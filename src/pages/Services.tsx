@@ -8,14 +8,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Form, FormField, FormItem, FormLabel, FormControl } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useForm } from 'react-hook-form';
-import { Plus, Camera, Gallery, Upload } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Service } from '@/types';
 
 const Services = () => {
   const [open, setOpen] = useState(false);
   const [servicesList, setServicesList] = useState([...services]);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const form = useForm({
     defaultValues: {
@@ -25,36 +24,6 @@ const Services = () => {
       image: '/placeholder.svg'
     }
   });
-
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result as string;
-        setImagePreview(result);
-        form.setValue('image', result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleCameraCapture = () => {
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = 'image/*';
-    fileInput.capture = 'environment';
-    fileInput.onchange = (e) => handleImageUpload(e as React.ChangeEvent<HTMLInputElement>);
-    fileInput.click();
-  };
-
-  const handleGallerySelection = () => {
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = 'image/*';
-    fileInput.onchange = (e) => handleImageUpload(e as React.ChangeEvent<HTMLInputElement>);
-    fileInput.click();
-  };
 
   const onSubmit = (data: any) => {
     const newService: Service = {
@@ -72,7 +41,6 @@ const Services = () => {
     });
     setOpen(false);
     form.reset();
-    setImagePreview(null);
   };
 
   return (
@@ -143,69 +111,6 @@ const Services = () => {
                     <FormControl>
                       <Input type="number" step="0.01" min="0" placeholder="0.00" {...field} />
                     </FormControl>
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="image"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Imagem</FormLabel>
-                    <div className="space-y-4">
-                      {imagePreview && (
-                        <div className="relative w-full aspect-video bg-muted rounded-md overflow-hidden">
-                          <img 
-                            src={imagePreview} 
-                            alt="Preview" 
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      )}
-                      
-                      <div className="flex flex-wrap gap-2">
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          onClick={handleCameraCapture}
-                          className="flex gap-2 items-center"
-                        >
-                          <Camera size={18} />
-                          Câmera
-                        </Button>
-                        
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          onClick={handleGallerySelection}
-                          className="flex gap-2 items-center"
-                        >
-                          <Gallery size={18} />
-                          Galeria
-                        </Button>
-                        
-                        <label htmlFor="file-upload" className="cursor-pointer">
-                          <Button 
-                            type="button" 
-                            variant="outline" 
-                            className="flex gap-2 items-center"
-                            onClick={() => document.getElementById('file-upload')?.click()}
-                          >
-                            <Upload size={18} />
-                            Arquivo
-                          </Button>
-                          <input
-                            id="file-upload"
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={handleImageUpload}
-                          />
-                        </label>
-                      </div>
-                      <input type="hidden" {...field} />
-                    </div>
                   </FormItem>
                 )}
               />
