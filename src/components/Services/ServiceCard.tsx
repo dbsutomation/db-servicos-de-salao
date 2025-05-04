@@ -38,7 +38,7 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
           <p className="text-xl font-semibold text-salon-purple">{formattedPrice}</p>
           <div className="flex items-center text-sm text-gray-500">
             <Percent size={14} className="mr-1" />
-            <span>{service.commission || 100}%</span>
+            <span>Comissão: {service.commission}%</span>
           </div>
         </div>
       </CardContent>

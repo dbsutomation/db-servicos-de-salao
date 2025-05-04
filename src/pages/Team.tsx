@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { teamMembers } from '@/data/mockData';
 import TeamMemberForm from '@/components/Forms/TeamMemberForm';
-import { Search } from 'lucide-react';
+import { Search, CheckCircle2 } from 'lucide-react';
 
 const Team = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -14,7 +14,9 @@ const Team = () => {
 
   const filteredTeamMembers = teamMembers.filter((member) => 
     member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    member.profession.toLowerCase().includes(searchTerm.toLowerCase())
+    member.profession.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (member.phone && member.phone.includes(searchTerm)) ||
+    (member.email && member.email.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const handleSuccess = () => {
@@ -45,7 +47,7 @@ const Team = () => {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
           <Input 
-            placeholder="Buscar por nome ou profissão" 
+            placeholder="Buscar por nome, profissão, telefone ou email" 
             className="pl-10"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -58,6 +60,9 @@ const Team = () => {
               <tr>
                 <th className="py-3 px-4 text-left">Nome</th>
                 <th className="py-3 px-4 text-left">Profissão</th>
+                <th className="py-3 px-4 text-left">Telefone</th>
+                <th className="py-3 px-4 text-left">Email</th>
+                <th className="py-3 px-4 text-center">Gerente</th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -65,11 +70,18 @@ const Team = () => {
                 <tr key={member.id} className="hover:bg-muted/50">
                   <td className="py-3 px-4">{member.name}</td>
                   <td className="py-3 px-4">{member.profession}</td>
+                  <td className="py-3 px-4">{member.phone || '-'}</td>
+                  <td className="py-3 px-4">{member.email || '-'}</td>
+                  <td className="py-3 px-4 text-center">
+                    {member.isManager && (
+                      <CheckCircle2 size={18} className="mx-auto text-green-500" />
+                    )}
+                  </td>
                 </tr>
               ))}
               {filteredTeamMembers.length === 0 && (
                 <tr>
-                  <td colSpan={2} className="py-8 text-center text-gray-500">
+                  <td colSpan={5} className="py-8 text-center text-gray-500">
                     {searchTerm ? 'Nenhum profissional encontrado' : 'Nenhum profissional cadastrado'}
                   </td>
                 </tr>

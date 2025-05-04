@@ -14,7 +14,8 @@ const Clients = () => {
 
   const filteredClients = clients.filter((client) => 
     client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.phone.includes(searchTerm)
+    client.phone.includes(searchTerm) ||
+    (client.email && client.email.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const handleSuccess = () => {
@@ -45,7 +46,7 @@ const Clients = () => {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
           <Input 
-            placeholder="Buscar por nome ou telefone" 
+            placeholder="Buscar por nome, telefone ou email" 
             className="pl-10"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -58,6 +59,7 @@ const Clients = () => {
               <tr>
                 <th className="py-3 px-4 text-left">Nome</th>
                 <th className="py-3 px-4 text-left">Telefone</th>
+                <th className="py-3 px-4 text-left">Email</th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -65,11 +67,12 @@ const Clients = () => {
                 <tr key={client.id} className="hover:bg-muted/50">
                   <td className="py-3 px-4">{client.name}</td>
                   <td className="py-3 px-4">{client.phone}</td>
+                  <td className="py-3 px-4">{client.email || '-'}</td>
                 </tr>
               ))}
               {filteredClients.length === 0 && (
                 <tr>
-                  <td colSpan={2} className="py-8 text-center text-gray-500">
+                  <td colSpan={3} className="py-8 text-center text-gray-500">
                     {searchTerm ? 'Nenhum cliente encontrado' : 'Nenhum cliente cadastrado'}
                   </td>
                 </tr>
