@@ -12,16 +12,18 @@ export interface TeamMember {
   id: number;
   name: string;
   profession: string;
-  phone?: string; // Added field for phone number
-  email?: string; // Added field for email
-  isManager?: boolean; // Added field to identify managers
+  phone?: string;
+  email?: string;
+  isManager?: boolean;
+  password?: string; // Added field for password
+  hasLoginAccess?: boolean; // Added field for login permission
 }
 
 export interface Client {
   id: number;
   name: string;
   phone: string;
-  email?: string; // Added field for email
+  email?: string;
 }
 
 export interface ServiceRecord {
@@ -30,10 +32,16 @@ export interface ServiceRecord {
   teamMember: TeamMember;
   client: Client;
   date: string;
-  commissionAmount?: number; // Added field for calculated commission amount
+  commissionAmount?: number;
 }
 
 export interface CartItem {
   service: Service;
   quantity: number;
+}
+
+// Add a new interface for authentication state
+export interface AuthState {
+  isAuthenticated: boolean;
+  currentUser: TeamMember | null;
 }

@@ -1,4 +1,5 @@
-import React, { useState, ChangeEvent } from 'react';
+
+import React, { useState, ChangeEvent, useEffect } from 'react';
 import MainLayout from '@/components/Layout/MainLayout';
 import ServiceCard from '@/components/Services/ServiceCard';
 import { services } from '@/data/mockData';
@@ -11,14 +12,28 @@ import { Plus, Pencil, Camera, Image } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Service } from '@/types';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, AlertDialogTitle, AlertDialogDescription, AlertDialogAction, AlertDialogCancel } from '@/components/ui/alert-dialog';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Services = () => {
+  const { currentUser } = useAuth();
   const [open, setOpen] = useState(false);
-  const [servicesList, setServicesList] = useState(services.map(service => ({ ...service, commission: 100 })));
+  const [servicesList, setServicesList] = useState(services);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState<Service | null>(null);
+
+  // Update some services to have 50% commission when component mounts
+  useEffect(() => {
+    const updatedServices = servicesList.map((service, index) => {
+      // Change every other service to 50% commission
+      if (index % 2 === 0) {
+        return { ...service, commission: 50 };
+      }
+      return service;
+    });
+    setServicesList(updatedServices);
+  }, []);
 
   const form = useForm({
     defaultValues: {
@@ -31,6 +46,16 @@ const Services = () => {
   });
 
   const handleEditService = (service: Service) => {
+    // Only managers can edit services
+    if (!currentUser?.isManager) {
+      toast({
+        title: "Acesso negado",
+        description: "Apenas gerentes podem editar serviços.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setEditingService(service);
     form.reset({
       name: service.name,
@@ -157,20 +182,25 @@ const Services = () => {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">Serviços</h1>
-          <Button 
-            onClick={() => { 
-              resetForm();
-              setOpen(true); 
-            }} 
-            className="bg-salon-purple hover:bg-salon-dark-purple"
-          >
-            <Plus className="mr-2" size={18} />
-            Novo Serviço
-          </Button>
+          {currentUser?.isManager && (
+            <Button 
+              onClick={() => { 
+                resetForm();
+                setOpen(true); 
+              }} 
+              className="bg-salon-purple hover:bg-salon-dark-purple"
+            >
+              <Plus className="mr-2" size={18} />
+              Novo Serviço
+            </Button>
+          )}
         </div>
         
         <p className="text-gray-500">
-          Selecione os serviços para adicionar ao carrinho ou editar.
+          {currentUser?.isManager ? 
+            "Selecione os serviços para adicionar ao carrinho ou editar." :
+            "Selecione os serviços para adicionar ao carrinho."
+          }
         </p>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -179,12 +209,14 @@ const Services = () => {
               <ServiceCard 
                 service={service} 
               />
-              <Button
-                onClick={() => handleEditService(service)}
-                className="absolute top-2 right-2 rounded-full w-8 h-8 p-0 bg-white/80 hover:bg-white"
-              >
-                <Pencil className="h-4 w-4 text-salon-purple" />
-              </Button>
+              {currentUser?.isManager && (
+                <Button
+                  onClick={() => handleEditService(service)}
+                  className="absolute top-2 right-2 rounded-full w-8 h-8 p-0 bg-white/80 hover:bg-white"
+                >
+                  <Pencil className="h-4 w-4 text-salon-purple" />
+                </Button>
+              )}
             </div>
           ))}
         </div>

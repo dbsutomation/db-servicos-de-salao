@@ -6,11 +6,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { teamMembers } from '@/data/mockData';
 import TeamMemberForm from '@/components/Forms/TeamMemberForm';
-import { Search, CheckCircle2 } from 'lucide-react';
+import { Search, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 
 const Team = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [showPasswords, setShowPasswords] = useState<Record<number, boolean>>({});
 
   const filteredTeamMembers = teamMembers.filter((member) => 
     member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -21,6 +22,13 @@ const Team = () => {
 
   const handleSuccess = () => {
     setDialogOpen(false);
+  };
+
+  const togglePasswordVisibility = (memberId: number) => {
+    setShowPasswords(prev => ({
+      ...prev,
+      [memberId]: !prev[memberId]
+    }));
   };
 
   return (
@@ -62,6 +70,8 @@ const Team = () => {
                 <th className="py-3 px-4 text-left">Profissão</th>
                 <th className="py-3 px-4 text-left">Telefone</th>
                 <th className="py-3 px-4 text-left">Email</th>
+                <th className="py-3 px-4 text-left">Senha</th>
+                <th className="py-3 px-4 text-center">Acesso</th>
                 <th className="py-3 px-4 text-center">Gerente</th>
               </tr>
             </thead>
@@ -72,6 +82,30 @@ const Team = () => {
                   <td className="py-3 px-4">{member.profession}</td>
                   <td className="py-3 px-4">{member.phone || '-'}</td>
                   <td className="py-3 px-4">{member.email || '-'}</td>
+                  <td className="py-3 px-4 relative">
+                    <div className="flex items-center">
+                      <span>
+                        {showPasswords[member.id] ? (member.password || '@123456') : '••••••'}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 ml-2"
+                        onClick={() => togglePasswordVisibility(member.id)}
+                      >
+                        {showPasswords[member.id] ? (
+                          <EyeOff size={16} />
+                        ) : (
+                          <Eye size={16} />
+                        )}
+                      </Button>
+                    </div>
+                  </td>
+                  <td className="py-3 px-4 text-center">
+                    {member.hasLoginAccess !== false && (
+                      <CheckCircle2 size={18} className="mx-auto text-green-500" />
+                    )}
+                  </td>
                   <td className="py-3 px-4 text-center">
                     {member.isManager && (
                       <CheckCircle2 size={18} className="mx-auto text-green-500" />
@@ -81,7 +115,7 @@ const Team = () => {
               ))}
               {filteredTeamMembers.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="py-8 text-center text-gray-500">
+                  <td colSpan={7} className="py-8 text-center text-gray-500">
                     {searchTerm ? 'Nenhum profissional encontrado' : 'Nenhum profissional cadastrado'}
                   </td>
                 </tr>

@@ -1,50 +1,82 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import MainLayout from '@/components/Layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
-import { serviceRecords } from '@/data/mockData';
+import { serviceRecords, teamMembers } from '@/data/mockData';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { format, parseISO, isAfter, isBefore, addDays } from 'date-fns';
+import { format, parseISO, isAfter, isBefore, addDays, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
+import { useAuth } from '@/contexts/AuthContext';
+import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
+import { Form } from '@/components/ui/form';
+import { useForm } from 'react-hook-form';
 
 const Index = () => {
+  const { currentUser } = useAuth();
   const [dateFilter, setDateFilter] = useState('all');
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [selectedProfessional, setSelectedProfessional] = useState<string | null>(null);
   
-  // Apply date filter to records
-  let filteredRecords = [...serviceRecords];
-  
-  // Apply date filter
-  if (dateFilter === 'today') {
-    const today = new Date().toISOString().split('T')[0];
-    filteredRecords = filteredRecords.filter(record => record.date === today);
-  } else if (dateFilter === 'week') {
-    const oneWeekAgo = new Date();
-    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-    filteredRecords = filteredRecords.filter(record => 
-      new Date(record.date) >= oneWeekAgo
-    );
-  } else if (dateFilter === 'month') {
-    const oneMonthAgo = new Date();
-    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-    filteredRecords = filteredRecords.filter(record => 
-      new Date(record.date) >= oneMonthAgo
-    );
-  } else if (dateFilter === 'custom' && startDate && endDate) {
-    filteredRecords = filteredRecords.filter(record => {
-      const recordDate = parseISO(record.date);
-      return isAfter(recordDate, startDate) && isBefore(recordDate, addDays(endDate, 1));
-    });
-  }
+  const form = useForm({
+    defaultValues: {
+      professional: "all"
+    }
+  });
+
+  // If user is not a manager, pre-filter by their ID
+  useEffect(() => {
+    if (currentUser && !currentUser.isManager) {
+      setSelectedProfessional(String(currentUser.id));
+    }
+  }, [currentUser]);
+
+  // Apply filters to records
+  const filteredRecords = useMemo(() => {
+    let records = [...serviceRecords];
+    
+    // Filter by professional if selected
+    if (selectedProfessional && selectedProfessional !== 'all') {
+      const professionalId = parseInt(selectedProfessional);
+      records = records.filter(record => record.teamMember.id === professionalId);
+    } else if (currentUser && !currentUser.isManager) {
+      // Non-managers can only see their own records
+      records = records.filter(record => record.teamMember.id === currentUser.id);
+    }
+    
+    // Apply date filter
+    if (dateFilter === 'today') {
+      const today = new Date().toISOString().split('T')[0];
+      records = records.filter(record => record.date === today);
+    } else if (dateFilter === 'week') {
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+      records = records.filter(record => 
+        new Date(record.date) >= oneWeekAgo
+      );
+    } else if (dateFilter === 'month') {
+      const oneMonthAgo = new Date();
+      oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+      records = records.filter(record => 
+        new Date(record.date) >= oneMonthAgo
+      );
+    } else if (dateFilter === 'custom' && startDate && endDate) {
+      records = records.filter(record => {
+        const recordDate = parseISO(record.date);
+        return isAfter(recordDate, startDate) && isBefore(recordDate, addDays(endDate, 1));
+      });
+    }
+    
+    return records;
+  }, [serviceRecords, dateFilter, startDate, endDate, selectedProfessional, currentUser]);
   
   // Calculate quick stats
   const totalServices = filteredRecords.length;
@@ -52,57 +84,93 @@ const Index = () => {
   const totalClients = new Set(filteredRecords.map(record => record.client.id)).size;
   
   // Prepare chart data - by date
-  const chartData = filteredRecords.reduce((acc: any[], record) => {
-    const recordDate = record.date;
-    const existingDay = acc.find(day => day.date === recordDate);
+  const chartData = useMemo(() => {
+    // Limit to 31 days worth of data maximum
+    let dateRange = filteredRecords;
     
-    if (existingDay) {
-      existingDay.services += 1;
-      existingDay.clients = new Set([...existingDay.clientsSet, record.client.id]).size;
-    } else {
-      acc.push({
-        date: recordDate,
-        services: 1,
-        clients: 1,
-        clientsSet: new Set([record.client.id])
-      });
+    if (startDate && endDate) {
+      const dayDiff = differenceInDays(endDate, startDate);
+      if (dayDiff > 31) {
+        // If more than 31 days, take the most recent 31
+        const newStartDate = addDays(endDate, -31);
+        dateRange = filteredRecords.filter(record => {
+          const recordDate = parseISO(record.date);
+          return isAfter(recordDate, newStartDate) && isBefore(recordDate, addDays(endDate, 1));
+        });
+      }
     }
     
-    return acc;
-  }, []);
+    return dateRange.reduce((acc: any[], record) => {
+      const recordDate = record.date;
+      const existingDay = acc.find(day => day.date === recordDate);
+      
+      if (existingDay) {
+        existingDay.services += 1;
+        existingDay.clients = new Set([...existingDay.clientsSet, record.client.id]).size;
+      } else {
+        acc.push({
+          date: recordDate,
+          services: 1,
+          clients: 1,
+          clientsSet: new Set([record.client.id])
+        });
+      }
+      
+      return acc;
+    }, []);
+  }, [filteredRecords, startDate, endDate]);
   
   // Sort by date and remove the clientsSet (used only for calculation)
-  const sortedChartData = chartData
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .map(({ clientsSet, ...rest }) => ({
-      ...rest,
-      date: format(new Date(rest.date), 'dd/MM')
-    }));
+  const sortedChartData = useMemo(() => {
+    return chartData
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .map(({ clientsSet, ...rest }) => ({
+        ...rest,
+        date: format(new Date(rest.date), 'dd/MM')
+      }));
+  }, [chartData]);
   
   // Prepare commission data by professional
-  const commissionsByProfessional = filteredRecords.reduce((acc: any[], record) => {
-    const { teamMember, commissionAmount = 0 } = record;
-    
-    const existingProfessional = acc.find(prof => prof.id === teamMember.id);
-    if (existingProfessional) {
-      existingProfessional.commissionAmount += commissionAmount;
-      existingProfessional.services += 1;
-    } else {
-      acc.push({
-        id: teamMember.id,
-        name: teamMember.name,
-        profession: teamMember.profession,
-        commissionAmount: commissionAmount,
-        services: 1
-      });
-    }
-    
-    return acc;
-  }, []);
+  const commissionsByProfessional = useMemo(() => {
+    return filteredRecords.reduce((acc: any[], record) => {
+      const { teamMember, service, commissionAmount = (service.price * service.commission / 100) } = record;
+      
+      const existingProfessional = acc.find(prof => prof.id === teamMember.id);
+      if (existingProfessional) {
+        existingProfessional.commissionAmount += commissionAmount;
+        existingProfessional.services += 1;
+        existingProfessional.serviceValue += service.price;
+      } else {
+        acc.push({
+          id: teamMember.id,
+          name: teamMember.name,
+          profession: teamMember.profession,
+          commissionAmount: commissionAmount,
+          serviceValue: service.price,
+          services: 1
+        });
+      }
+      
+      return acc;
+    }, []);
+  }, [filteredRecords]);
   
-  const totalCommissions = commissionsByProfessional.reduce(
-    (total, prof) => total + prof.commissionAmount, 0
-  );
+  const totalCommissions = useMemo(() => {
+    return commissionsByProfessional.reduce(
+      (total, prof) => total + prof.commissionAmount, 0
+    );
+  }, [commissionsByProfessional]);
+
+  const totalServiceValue = useMemo(() => {
+    return commissionsByProfessional.reduce(
+      (total, prof) => total + prof.serviceValue, 0
+    );
+  }, [commissionsByProfessional]);
+
+  const onProfessionalChange = (value: string) => {
+    setSelectedProfessional(value);
+    form.setValue("professional", value);
+  };
 
   return (
     <MainLayout>
@@ -163,6 +231,36 @@ const Index = () => {
                   </PopoverContent>
                 </Popover>
               </div>
+            )}
+
+            {/* Professional filter */}
+            {(currentUser?.isManager) && (
+              <Form {...form}>
+                <FormField
+                  control={form.control}
+                  name="professional"
+                  render={() => (
+                    <FormItem>
+                      <Select 
+                        value={selectedProfessional || "all"} 
+                        onValueChange={onProfessionalChange}
+                      >
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue placeholder="Todos os profissionais" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todos os profissionais</SelectItem>
+                          {teamMembers.map((member) => (
+                            <SelectItem key={member.id} value={String(member.id)}>
+                              {member.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormItem>
+                  )}
+                />
+              </Form>
             )}
             
             <Link to="/services">
@@ -249,7 +347,8 @@ const Index = () => {
                   <TableHead>Profissional</TableHead>
                   <TableHead>Função</TableHead>
                   <TableHead className="text-right">Serviços Realizados</TableHead>
-                  <TableHead className="text-right">Valor Comissão</TableHead>
+                  <TableHead className="text-right bg-[#FEC6A1]">Valor Comissão</TableHead>
+                  <TableHead className="text-right bg-[#F2FCE2]">Valor Serviço</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -258,33 +357,45 @@ const Index = () => {
                     <TableCell className="font-medium">{professional.name}</TableCell>
                     <TableCell>{professional.profession}</TableCell>
                     <TableCell className="text-right">{professional.services}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right bg-[#FEC6A1]/20">
                       {new Intl.NumberFormat('pt-BR', {
                         style: 'currency', 
                         currency: 'BRL'
                       }).format(professional.commissionAmount)}
                     </TableCell>
+                    <TableCell className="text-right bg-[#F2FCE2]/20">
+                      {new Intl.NumberFormat('pt-BR', {
+                        style: 'currency', 
+                        currency: 'BRL'
+                      }).format(professional.serviceValue)}
+                    </TableCell>
                   </TableRow>
                 ))}
                 {commissionsByProfessional.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center py-4 text-muted-foreground">
+                    <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
                       Nenhum dado para o período selecionado
                     </TableCell>
                   </TableRow>
                 )}
               </TableBody>
-              <tfoot>
-                <TableRow className="bg-muted/50">
+              <TableFooter>
+                <TableRow>
                   <TableCell colSpan={3} className="font-bold">Total</TableCell>
-                  <TableCell className="text-right font-bold">
+                  <TableCell className="text-right font-bold bg-[#FEC6A1]/30">
                     {new Intl.NumberFormat('pt-BR', {
                       style: 'currency', 
                       currency: 'BRL'
                     }).format(totalCommissions)}
                   </TableCell>
+                  <TableCell className="text-right font-bold bg-[#F2FCE2]/30">
+                    {new Intl.NumberFormat('pt-BR', {
+                      style: 'currency', 
+                      currency: 'BRL'
+                    }).format(totalServiceValue)}
+                  </TableCell>
                 </TableRow>
-              </tfoot>
+              </TableFooter>
             </Table>
           </Card>
         </div>
