@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Service } from '@/types';
 import { useCart } from '@/contexts/CartContext';
-import { Plus } from 'lucide-react';
+import { Plus, Percent } from 'lucide-react';
 
 interface ServiceCardProps {
   service: Service;
@@ -34,7 +34,13 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
         </CardDescription>
       </CardHeader>
       <CardContent className="pb-2">
-        <p className="text-xl font-semibold text-salon-purple">{formattedPrice}</p>
+        <div className="flex justify-between items-center">
+          <p className="text-xl font-semibold text-salon-purple">{formattedPrice}</p>
+          <div className="flex items-center text-sm text-gray-500">
+            <Percent size={14} className="mr-1" />
+            <span>{service.commission || 100}%</span>
+          </div>
+        </div>
       </CardContent>
       <CardFooter>
         <Button 

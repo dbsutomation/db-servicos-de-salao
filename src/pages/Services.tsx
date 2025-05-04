@@ -15,7 +15,7 @@ import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, 
 
 const Services = () => {
   const [open, setOpen] = useState(false);
-  const [servicesList, setServicesList] = useState([...services]);
+  const [servicesList, setServicesList] = useState(services.map(service => ({ ...service, commission: 100 })));
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -26,6 +26,7 @@ const Services = () => {
       name: '',
       description: '',
       price: '',
+      commission: '100',
       image: '/placeholder.svg'
     }
   });
@@ -36,6 +37,7 @@ const Services = () => {
       name: service.name,
       description: service.description,
       price: service.price.toString(),
+      commission: service.commission.toString(),
       image: service.image
     });
     setImagePreview(service.image);
@@ -60,7 +62,10 @@ const Services = () => {
     fileInput.type = 'file';
     fileInput.accept = 'image/*';
     fileInput.capture = 'environment';
-    fileInput.onchange = (e) => handleImageUpload(e as React.ChangeEvent<HTMLInputElement>);
+    fileInput.onchange = (e) => {
+      const event = e as React.ChangeEvent<HTMLInputElement>;
+      handleImageUpload(event);
+    };
     fileInput.click();
   };
 
@@ -68,7 +73,10 @@ const Services = () => {
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.accept = 'image/*';
-    fileInput.onchange = (e) => handleImageUpload(e as React.ChangeEvent<HTMLInputElement>);
+    fileInput.onchange = (e) => {
+      const event = e as React.ChangeEvent<HTMLInputElement>;
+      handleImageUpload(event);
+    };
     fileInput.click();
   };
 
@@ -77,6 +85,7 @@ const Services = () => {
       name: '',
       description: '',
       price: '',
+      commission: '100',
       image: '/placeholder.svg'
     });
     setImagePreview(null);
@@ -94,6 +103,7 @@ const Services = () => {
               name: data.name,
               description: data.description,
               price: parseFloat(data.price),
+              commission: parseFloat(data.commission),
               image: data.image
             } 
           : service
@@ -111,6 +121,7 @@ const Services = () => {
         name: data.name,
         description: data.description,
         price: parseFloat(data.price),
+        commission: parseFloat(data.commission),
         image: data.image || '/placeholder.svg'
       };
       
@@ -233,6 +244,19 @@ const Services = () => {
                     <FormLabel>Preço (R$)</FormLabel>
                     <FormControl>
                       <Input type="number" step="0.01" min="0" placeholder="0.00" {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="commission"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Comissão (%)</FormLabel>
+                    <FormControl>
+                      <Input type="number" step="1" min="0" max="100" placeholder="100" {...field} />
                     </FormControl>
                   </FormItem>
                 )}

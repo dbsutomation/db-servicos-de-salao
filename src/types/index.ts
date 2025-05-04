@@ -5,6 +5,7 @@ export interface Service {
   description: string;
   price: number;
   image: string;
+  commission: number; // Added field for commission percentage
 }
 
 export interface TeamMember {
