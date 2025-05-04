@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, ChangeEvent } from 'react';
 import MainLayout from '@/components/Layout/MainLayout';
 import ServiceCard from '@/components/Services/ServiceCard';
 import { services } from '@/data/mockData';
@@ -44,7 +43,7 @@ const Services = () => {
     setOpen(true);
   };
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -63,7 +62,7 @@ const Services = () => {
     fileInput.accept = 'image/*';
     fileInput.capture = 'environment';
     fileInput.onchange = (e) => {
-      const event = e as React.ChangeEvent<HTMLInputElement>;
+      const event = e as unknown as ChangeEvent<HTMLInputElement>;
       handleImageUpload(event);
     };
     fileInput.click();
@@ -74,7 +73,7 @@ const Services = () => {
     fileInput.type = 'file';
     fileInput.accept = 'image/*';
     fileInput.onchange = (e) => {
-      const event = e as React.ChangeEvent<HTMLInputElement>;
+      const event = e as unknown as ChangeEvent<HTMLInputElement>;
       handleImageUpload(event);
     };
     fileInput.click();
@@ -95,7 +94,6 @@ const Services = () => {
 
   const onSubmit = (data: any) => {
     if (editingService) {
-      // Update existing service
       const updatedServicesList = servicesList.map(service => 
         service.id === editingService.id 
           ? {
@@ -115,7 +113,6 @@ const Services = () => {
         description: `${data.name} foi atualizado com sucesso.`
       });
     } else {
-      // Add new service
       const newService: Service = {
         id: servicesList.length + 1,
         name: data.name,
