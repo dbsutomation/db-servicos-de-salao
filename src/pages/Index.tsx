@@ -82,6 +82,41 @@ const Index = () => {
   const totalServices = filteredRecords.length;
   const totalRevenue = filteredRecords.reduce((total, record) => total + record.service.price, 0);
   const totalClients = new Set(filteredRecords.map(record => record.client.id)).size;
+  const totalCommissions = filteredRecords.reduce((total, record) => total + record.commissionAmount, 0);
+  
+  // Calculate most used services
+  const topServices = useMemo(() => {
+    const serviceCounts = filteredRecords.reduce((acc, record) => {
+      const serviceId = record.service.id;
+      acc[serviceId] = (acc[serviceId] || 0) + 1;
+      return acc;
+    }, {} as Record<number, number>);
+
+    return Object.entries(serviceCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 1)
+      .map(([serviceId, count]) => {
+        const service = filteredRecords.find(r => r.service.id === parseInt(serviceId))?.service;
+        return service ? service.name : 'Não disponível';
+      })[0] || 'Não disponível';
+  }, [filteredRecords]);
+
+  // Calculate top clients
+  const topClient = useMemo(() => {
+    const clientCounts = filteredRecords.reduce((acc, record) => {
+      const clientId = record.client.id;
+      acc[clientId] = (acc[clientId] || 0) + 1;
+      return acc;
+    }, {} as Record<number, number>);
+
+    return Object.entries(clientCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 1)
+      .map(([clientId, count]) => {
+        const client = filteredRecords.find(r => r.client.id === parseInt(clientId))?.client;
+        return client ? client.name : 'Não disponível';
+      })[0] || 'Não disponível';
+  }, [filteredRecords]);
   
   // Prepare chart data - by date
   const chartData = useMemo(() => {
@@ -130,42 +165,23 @@ const Index = () => {
       }));
   }, [chartData]);
   
-  // Prepare commission data by professional
-  const commissionsByProfessional = useMemo(() => {
-    return filteredRecords.reduce((acc: any[], record) => {
-      const { teamMember, service, commissionAmount = (service.price * service.commission / 100) } = record;
-      
-      const existingProfessional = acc.find(prof => prof.id === teamMember.id);
-      if (existingProfessional) {
-        existingProfessional.commissionAmount += commissionAmount;
-        existingProfessional.services += 1;
-        existingProfessional.serviceValue += service.price;
-      } else {
-        acc.push({
-          id: teamMember.id,
-          name: teamMember.name,
-          profession: teamMember.profession,
-          commissionAmount: commissionAmount,
-          serviceValue: service.price,
-          services: 1
-        });
-      }
-      
-      return acc;
-    }, []);
+  // Show individual service records instead of grouping by professional
+  const serviceRecordsList = useMemo(() => {
+    return filteredRecords.map(record => ({
+      id: record.id,
+      professional: record.teamMember.name,
+      profession: record.teamMember.profession,
+      service: record.service.name,
+      client: record.client.name,
+      date: record.date,
+      serviceValue: record.service.price,
+      commissionAmount: record.commissionAmount
+    }));
   }, [filteredRecords]);
   
-  const totalCommissions = useMemo(() => {
-    return commissionsByProfessional.reduce(
-      (total, prof) => total + prof.commissionAmount, 0
-    );
-  }, [commissionsByProfessional]);
-
   const totalServiceValue = useMemo(() => {
-    return commissionsByProfessional.reduce(
-      (total, prof) => total + prof.serviceValue, 0
-    );
-  }, [commissionsByProfessional]);
+    return filteredRecords.reduce((total, record) => total + record.service.price, 0);
+  }, [filteredRecords]);
 
   const onProfessionalChange = (value: string) => {
     setSelectedProfessional(value);
@@ -272,7 +288,7 @@ const Index = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
             <CardHeader>
               <CardDescription>Total de Serviços</CardDescription>
@@ -294,8 +310,34 @@ const Index = () => {
           
           <Card>
             <CardHeader>
+              <CardDescription>Comissão Total</CardDescription>
+              <CardTitle className="text-3xl">
+                {new Intl.NumberFormat('pt-BR', {
+                  style: 'currency', 
+                  currency: 'BRL'
+                }).format(totalCommissions)}
+              </CardTitle>
+            </CardHeader>
+          </Card>
+          
+          <Card>
+            <CardHeader>
               <CardDescription>Clientes Atendidos</CardDescription>
               <CardTitle className="text-3xl">{totalClients}</CardTitle>
+            </CardHeader>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardDescription>Serviço Mais Realizado</CardDescription>
+              <CardTitle className="text-2xl">{topServices}</CardTitle>
+            </CardHeader>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardDescription>Cliente com Mais Serviços</CardDescription>
+              <CardTitle className="text-2xl">{topClient}</CardTitle>
             </CardHeader>
           </Card>
         </div>
@@ -337,43 +379,45 @@ const Index = () => {
           </Card>
         </div>
 
-        {/* Commissions by Professional */}
+        {/* Services Records List */}
         <div>
-          <h2 className="text-xl font-semibold mb-4">Comissões por Profissional</h2>
+          <h2 className="text-xl font-semibold mb-4">Serviços realizados</h2>
           <Card>
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Data</TableHead>
                   <TableHead>Profissional</TableHead>
-                  <TableHead>Função</TableHead>
-                  <TableHead className="text-right">Serviços Realizados</TableHead>
-                  <TableHead className="text-right bg-[#FEC6A1]">Valor Comissão</TableHead>
-                  <TableHead className="text-right bg-[#F2FCE2]">Valor Serviço</TableHead>
+                  <TableHead>Serviço</TableHead>
+                  <TableHead>Cliente</TableHead>
+                  <TableHead className="text-right">Valor Serviço</TableHead>
+                  <TableHead className="text-right">Valor Comissão</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {commissionsByProfessional.map((professional) => (
-                  <TableRow key={professional.id}>
-                    <TableCell className="font-medium">{professional.name}</TableCell>
-                    <TableCell>{professional.profession}</TableCell>
-                    <TableCell className="text-right">{professional.services}</TableCell>
-                    <TableCell className="text-right bg-[#FEC6A1]/20">
+                {serviceRecordsList.map((record) => (
+                  <TableRow key={record.id}>
+                    <TableCell>{format(new Date(record.date), 'dd/MM/yyyy')}</TableCell>
+                    <TableCell>{record.professional}</TableCell>
+                    <TableCell>{record.service}</TableCell>
+                    <TableCell>{record.client}</TableCell>
+                    <TableCell className="text-right">
                       {new Intl.NumberFormat('pt-BR', {
                         style: 'currency', 
                         currency: 'BRL'
-                      }).format(professional.commissionAmount)}
+                      }).format(record.serviceValue)}
                     </TableCell>
-                    <TableCell className="text-right bg-[#F2FCE2]/20">
+                    <TableCell className="text-right">
                       {new Intl.NumberFormat('pt-BR', {
                         style: 'currency', 
                         currency: 'BRL'
-                      }).format(professional.serviceValue)}
+                      }).format(record.commissionAmount)}
                     </TableCell>
                   </TableRow>
                 ))}
-                {commissionsByProfessional.length === 0 && (
+                {serviceRecordsList.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
+                    <TableCell colSpan={6} className="text-center py-4 text-muted-foreground">
                       Nenhum dado para o período selecionado
                     </TableCell>
                   </TableRow>
@@ -381,18 +425,18 @@ const Index = () => {
               </TableBody>
               <TableFooter>
                 <TableRow>
-                  <TableCell colSpan={3} className="font-bold">Total</TableCell>
-                  <TableCell className="text-right font-bold bg-[#FEC6A1]/30">
-                    {new Intl.NumberFormat('pt-BR', {
-                      style: 'currency', 
-                      currency: 'BRL'
-                    }).format(totalCommissions)}
-                  </TableCell>
-                  <TableCell className="text-right font-bold bg-[#F2FCE2]/30">
+                  <TableCell colSpan={4} className="font-bold">Total</TableCell>
+                  <TableCell className="text-right font-bold bg-[#F2FCE2]">
                     {new Intl.NumberFormat('pt-BR', {
                       style: 'currency', 
                       currency: 'BRL'
                     }).format(totalServiceValue)}
+                  </TableCell>
+                  <TableCell className="text-right font-bold bg-[#ea384c]/20">
+                    {new Intl.NumberFormat('pt-BR', {
+                      style: 'currency', 
+                      currency: 'BRL'
+                    }).format(totalCommissions)}
                   </TableCell>
                 </TableRow>
               </TableFooter>

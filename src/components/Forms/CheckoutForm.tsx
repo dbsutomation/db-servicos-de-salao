@@ -1,201 +1,218 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/components/ui/use-toast';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useCart } from '@/contexts/CartContext';
+import { useToast } from '@/components/ui/use-toast';
 import { clients, teamMembers, serviceRecords } from '@/data/mockData';
-import { ServiceRecord } from '@/types';
-import ClientForm from './ClientForm';
-import TeamMemberForm from './TeamMemberForm';
+import { useNavigate } from 'react-router-dom';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useAuth } from '@/contexts/AuthContext';
 
 const formSchema = z.object({
-  clientId: z.string().min(1, { message: 'Selecione um cliente' }),
-  teamMemberId: z.string().min(1, { message: 'Selecione um profissional' }),
+  client: z.string().min(1, { message: 'Selecione um cliente' }),
+  teamMember: z.string().min(1, { message: 'Selecione um profissional' }),
+  paymentMethod: z.enum(['debit', 'credit', 'cash', 'pix'], { 
+    required_error: 'Selecione uma forma de pagamento' 
+  }),
 });
 
-type FormValues = z.infer<typeof formSchema>;
-
 interface CheckoutFormProps {
-  onSuccess: () => void;
+  onSuccess?: () => void;
 }
 
 const CheckoutForm = ({ onSuccess }: CheckoutFormProps) => {
+  const { currentUser } = useAuth();
+  const { cartItems, clearCart } = useCart();
   const { toast } = useToast();
-  const { cartItems, getCartTotal, clearCart } = useCart();
-  const [clientDialogOpen, setClientDialogOpen] = useState(false);
-  const [teamDialogOpen, setTeamDialogOpen] = useState(false);
+  const navigate = useNavigate();
+  const [selectedClient, setSelectedClient] = useState<number | null>(null);
 
-  const form = useForm<FormValues>({
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      clientId: '',
-      teamMemberId: '',
+      client: "",
+      teamMember: currentUser?.id ? String(currentUser.id) : "",
+      paymentMethod: "pix",
     },
   });
 
-  const onSubmit = (values: FormValues) => {
-    if (cartItems.length === 0) {
-      toast({
-        title: 'Carrinho vazio',
-        description: 'Adicione serviços ao carrinho para finalizar o registro.',
-        variant: 'destructive',
-      });
-      return;
+  // Set the current user as the default team member
+  useEffect(() => {
+    if (currentUser?.id) {
+      form.setValue("teamMember", String(currentUser.id));
     }
+  }, [currentUser, form]);
 
-    const client = clients.find(c => c.id.toString() === values.clientId);
-    const teamMember = teamMembers.find(t => t.id.toString() === values.teamMemberId);
-
+  // Handle form submission
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
+    const clientId = parseInt(values.client);
+    const teamMemberId = parseInt(values.teamMember);
+    
+    const client = clients.find(c => c.id === clientId);
+    const teamMember = teamMembers.find(t => t.id === teamMemberId);
+    
     if (!client || !teamMember) {
       toast({
-        title: 'Erro no registro',
-        description: 'Cliente ou profissional não encontrado.',
-        variant: 'destructive',
+        title: "Erro",
+        description: "Cliente ou profissional não encontrado",
+        variant: "destructive",
       });
       return;
     }
-
-    // In a real app, this would be an API call to register the services
+    
+    // Create service records for each item in the cart
     cartItems.forEach(item => {
-      const today = new Date().toISOString().split('T')[0];
-      
-      const newRecord: ServiceRecord = {
-        id: serviceRecords.length + 1,
-        service: item.service,
-        teamMember,
-        client,
-        date: today,
-      };
-
-      serviceRecords.push(newRecord);
+      for (let i = 0; i < item.quantity; i++) {
+        const newRecord = {
+          id: serviceRecords.length + 1,
+          service: item.service,
+          teamMember,
+          client,
+          date: new Date().toISOString().split('T')[0],
+          commissionAmount: item.service.price * (item.service.commission / 100)
+        };
+        
+        serviceRecords.push(newRecord);
+      }
     });
-
+    
+    // Show success message
     toast({
-      title: 'Registro concluído',
-      description: 'Os serviços foram registrados com sucesso.',
+      title: "Serviços registrados",
+      description: `${cartItems.reduce((total, item) => total + item.quantity, 0)} serviços registrados com sucesso`,
     });
-
+    
+    // Clear the cart
     clearCart();
-    form.reset();
-    onSuccess();
+    
+    // Call onSuccess callback
+    if (onSuccess) {
+      onSuccess();
+    }
   };
-
-  const handleClientFormSuccess = () => {
-    setClientDialogOpen(false);
-    // Re-render will show new client in the dropdown
-  };
-
-  const handleTeamMemberFormSuccess = () => {
-    setTeamDialogOpen(false);
-    // Re-render will show new team member in the dropdown
-  };
-
+  
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="flex items-end gap-4">
-          <FormField
-            control={form.control}
-            name="clientId"
-            render={({ field }) => (
-              <FormItem className="flex-1">
-                <FormLabel>Cliente</FormLabel>
+        <FormField
+          control={form.control}
+          name="client"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Cliente</FormLabel>
+              <Select
+                onValueChange={(value) => {
+                  field.onChange(value);
+                  setSelectedClient(parseInt(value));
+                }}
+                value={field.value}
+              >
                 <FormControl>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    defaultValue={field.value}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um cliente" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {clients.map((client) => (
-                        <SelectItem key={client.id} value={client.id.toString()}>
-                          {client.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um cliente" />
+                  </SelectTrigger>
                 </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <Dialog open={clientDialogOpen} onOpenChange={setClientDialogOpen}>
-            <DialogTrigger asChild>
-              <Button type="button" variant="outline">Novo Cliente</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Adicionar Novo Cliente</DialogTitle>
-              </DialogHeader>
-              <ClientForm onSuccess={handleClientFormSuccess} />
-            </DialogContent>
-          </Dialog>
-        </div>
-
-        <div className="flex items-end gap-4">
-          <FormField
-            control={form.control}
-            name="teamMemberId"
-            render={({ field }) => (
-              <FormItem className="flex-1">
-                <FormLabel>Profissional</FormLabel>
-                <FormControl>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    defaultValue={field.value}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um profissional" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {teamMembers.map((member) => (
-                        <SelectItem key={member.id} value={member.id.toString()}>
-                          {member.name} - {member.profession}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <Dialog open={teamDialogOpen} onOpenChange={setTeamDialogOpen}>
-            <DialogTrigger asChild>
-              <Button type="button" variant="outline">Novo Profissional</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Adicionar Novo Profissional</DialogTitle>
-              </DialogHeader>
-              <TeamMemberForm onSuccess={handleTeamMemberFormSuccess} />
-            </DialogContent>
-          </Dialog>
-        </div>
+                <SelectContent>
+                  {clients.map((client) => (
+                    <SelectItem key={client.id} value={String(client.id)}>
+                      {client.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         
-        <div className="border-t pt-6">
-          <div className="flex justify-between font-semibold text-lg mb-6">
-            <span>Total:</span>
-            <span>
-              {new Intl.NumberFormat('pt-BR', {
-                style: 'currency',
-                currency: 'BRL'
-              }).format(getCartTotal())}
-            </span>
-          </div>
-          
-          <Button type="submit" className="w-full">Finalizar Registro</Button>
-        </div>
+        <FormField
+          control={form.control}
+          name="teamMember"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Profissional</FormLabel>
+              <Select
+                onValueChange={field.onChange}
+                value={field.value}
+                disabled={!!currentUser && !currentUser.isManager}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um profissional" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {teamMembers.map((member) => (
+                    <SelectItem key={member.id} value={String(member.id)}>
+                      {member.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="paymentMethod"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Forma de Pagamento</FormLabel>
+              <FormControl>
+                <RadioGroup
+                  onValueChange={field.onChange}
+                  value={field.value}
+                  className="grid grid-cols-2 gap-4"
+                >
+                  <FormItem className="flex items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="debit" />
+                    </FormControl>
+                    <FormLabel className="font-normal">
+                      Cartão de Débito
+                    </FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="credit" />
+                    </FormControl>
+                    <FormLabel className="font-normal">
+                      Cartão de Crédito
+                    </FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="cash" />
+                    </FormControl>
+                    <FormLabel className="font-normal">
+                      Dinheiro
+                    </FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="pix" />
+                    </FormControl>
+                    <FormLabel className="font-normal">
+                      PIX
+                    </FormLabel>
+                  </FormItem>
+                </RadioGroup>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <Button type="submit" className="w-full bg-salon-purple hover:bg-salon-dark-purple">
+          Finalizar Registro
+        </Button>
       </form>
     </Form>
   );

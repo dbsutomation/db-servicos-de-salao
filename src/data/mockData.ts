@@ -69,7 +69,9 @@ export const teamMembers: TeamMember[] = [
     profession: 'Colorista',
     phone: '(11) 91234-5678',
     email: 'carlos.santos@exemplo.com',
-    isManager: false
+    password: '@123456',
+    isManager: false,
+    hasLoginAccess: true
   },
   {
     id: 3,
@@ -77,7 +79,9 @@ export const teamMembers: TeamMember[] = [
     profession: 'Manicure',
     phone: '(11) 99876-5432',
     email: 'mariana.lima@exemplo.com',
-    isManager: false
+    password: '@123456',
+    isManager: false,
+    hasLoginAccess: true
   },
   {
     id: 4,
@@ -85,7 +89,9 @@ export const teamMembers: TeamMember[] = [
     profession: 'Maquiador',
     phone: '(11) 94321-8765',
     email: 'paulo.oliveira@exemplo.com',
-    isManager: false
+    password: '@123456',
+    isManager: false,
+    hasLoginAccess: true
   },
 ];
 
@@ -110,6 +116,11 @@ export const clients: Client[] = [
   },
 ];
 
+// Helper function to create a date in 2025, May
+const createDateInMay2025 = (day: number) => {
+  return `2025-05-${String(day).padStart(2, '0')}`;
+}
+
 // Calculate commission amount for each service record
 export const serviceRecords: ServiceRecord[] = [
   {
@@ -117,7 +128,7 @@ export const serviceRecords: ServiceRecord[] = [
     service: services[0],
     teamMember: teamMembers[0],
     client: clients[0],
-    date: '2023-05-01',
+    date: createDateInMay2025(1),
     commissionAmount: services[0].price * (services[0].commission / 100)
   },
   {
@@ -125,7 +136,7 @@ export const serviceRecords: ServiceRecord[] = [
     service: services[1],
     teamMember: teamMembers[1],
     client: clients[1],
-    date: '2023-05-02',
+    date: createDateInMay2025(2),
     commissionAmount: services[1].price * (services[1].commission / 100)
   },
   {
@@ -133,7 +144,7 @@ export const serviceRecords: ServiceRecord[] = [
     service: services[2],
     teamMember: teamMembers[2],
     client: clients[2],
-    date: '2023-05-03',
+    date: createDateInMay2025(3),
     commissionAmount: services[2].price * (services[2].commission / 100)
   },
   {
@@ -141,7 +152,7 @@ export const serviceRecords: ServiceRecord[] = [
     service: services[0],
     teamMember: teamMembers[0],
     client: clients[0],
-    date: '2023-05-10',
+    date: createDateInMay2025(10),
     commissionAmount: services[0].price * (services[0].commission / 100)
   },
   {
@@ -149,7 +160,7 @@ export const serviceRecords: ServiceRecord[] = [
     service: services[3],
     teamMember: teamMembers[1],
     client: clients[1],
-    date: '2023-05-15',
+    date: createDateInMay2025(15),
     commissionAmount: services[3].price * (services[3].commission / 100)
   },
   {
@@ -157,7 +168,7 @@ export const serviceRecords: ServiceRecord[] = [
     service: services[4],
     teamMember: teamMembers[2],
     client: clients[2],
-    date: '2023-05-20',
+    date: createDateInMay2025(20),
     commissionAmount: services[4].price * (services[4].commission / 100)
   },
   {
@@ -165,7 +176,7 @@ export const serviceRecords: ServiceRecord[] = [
     service: services[5],
     teamMember: teamMembers[3],
     client: clients[0],
-    date: '2023-05-25',
+    date: createDateInMay2025(25),
     commissionAmount: services[5].price * (services[5].commission / 100)
   },
 ];

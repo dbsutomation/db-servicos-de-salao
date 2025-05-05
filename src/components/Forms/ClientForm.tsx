@@ -12,6 +12,7 @@ import { clients } from '@/data/mockData';
 const formSchema = z.object({
   name: z.string().min(2, { message: 'O nome deve ter pelo menos 2 caracteres' }),
   phone: z.string().min(10, { message: 'Telefone inválido' }),
+  email: z.string().email({ message: 'E-mail inválido' }).optional().or(z.literal('')),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -28,6 +29,7 @@ const ClientForm = ({ onSuccess }: ClientFormProps) => {
     defaultValues: {
       name: '',
       phone: '',
+      email: '',
     },
   });
 
@@ -37,6 +39,7 @@ const ClientForm = ({ onSuccess }: ClientFormProps) => {
       id: clients.length + 1,
       name: values.name,
       phone: values.phone,
+      email: values.email || '',
     };
 
     // Simulate adding to the database
@@ -79,6 +82,20 @@ const ClientForm = ({ onSuccess }: ClientFormProps) => {
               <FormLabel>Telefone</FormLabel>
               <FormControl>
                 <Input placeholder="(00) 00000-0000" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>E-mail</FormLabel>
+              <FormControl>
+                <Input placeholder="email@exemplo.com" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

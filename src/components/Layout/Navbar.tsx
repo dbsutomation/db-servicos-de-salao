@@ -1,14 +1,17 @@
 
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, Menu, X } from 'lucide-react';
+import { ShoppingCart, Menu, X, LogOut } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Navbar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { cartItems } = useCart();
+  const { logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
@@ -23,6 +26,11 @@ const Navbar = () => {
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
   };
 
   return (
@@ -61,6 +69,10 @@ const Navbar = () => {
                 )}
               </Button>
             </Link>
+            <Button variant="ghost" onClick={handleLogout} className="flex items-center">
+              <LogOut size={18} className="mr-1" />
+              Sair
+            </Button>
           </div>
 
           {/* Mobile Navigation */}
@@ -98,6 +110,17 @@ const Navbar = () => {
                   {link.name}
                 </Link>
               ))}
+              <Button 
+                variant="ghost" 
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  handleLogout();
+                }}
+                className="justify-start py-2 px-4 text-gray-600 hover:bg-salon-light-purple"
+              >
+                <LogOut size={18} className="mr-2" />
+                Sair
+              </Button>
             </div>
           </div>
         )}

@@ -1,4 +1,3 @@
-
 export interface Service {
   id: number;
   name: string;
@@ -12,11 +11,11 @@ export interface TeamMember {
   id: number;
   name: string;
   profession: string;
-  phone?: string;
-  email?: string;
-  isManager?: boolean;
-  password?: string; // Added field for password
-  hasLoginAccess?: boolean; // Added field for login permission
+  phone: string;
+  email: string;
+  password?: string;
+  isManager: boolean;
+  hasLoginAccess?: boolean;
 }
 
 export interface Client {
