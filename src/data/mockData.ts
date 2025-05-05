@@ -58,8 +58,10 @@ export const teamMembers: TeamMember[] = [
     name: 'Ana Silva',
     profession: 'Cabeleireira',
     phone: '(11) 98765-4321',
-    email: 'ana.silva@exemplo.com',
-    isManager: true
+    email: 'ana.silva@salao.com',
+    password: '@123456',
+    isManager: true,
+    hasLoginAccess: true
   },
   {
     id: 2,
