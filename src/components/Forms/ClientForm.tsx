@@ -1,28 +1,31 @@
 
-import React from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import * as z from 'zod';
-import { Button } from '@/components/ui/button';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/components/ui/use-toast';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 import { clients } from '@/data/mockData';
+import { Client } from '@/types';
 
 const formSchema = z.object({
-  name: z.string().min(2, { message: 'O nome deve ter pelo menos 2 caracteres' }),
-  phone: z.string().min(10, { message: 'Telefone inválido' }),
-  email: z.string().email({ message: 'E-mail inválido' }).optional().or(z.literal('')),
+  name: z.string().min(3, { message: 'O nome deve ter pelo menos 3 caracteres' }),
+  phone: z.string().min(8, { message: 'O telefone deve ter pelo menos 8 caracteres' }),
+  email: z.string().email({ message: 'Email inválido' }).or(z.string().length(0)),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
 interface ClientFormProps {
-  onSuccess?: () => void;
+  onSuccess: () => void;
+  clientId?: number | null;
 }
 
-const ClientForm = ({ onSuccess }: ClientFormProps) => {
+const ClientForm = ({ onSuccess, clientId }: ClientFormProps) => {
   const { toast } = useToast();
+  const isEditing = clientId !== undefined && clientId !== null;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -33,33 +36,67 @@ const ClientForm = ({ onSuccess }: ClientFormProps) => {
     },
   });
 
-  const onSubmit = (values: FormValues) => {
-    // In a real app, this would be an API call
-    const newClient = {
-      id: clients.length + 1,
-      name: values.name,
-      phone: values.phone,
-      email: values.email || '',
-    };
+  // Load client data if editing
+  useEffect(() => {
+    if (isEditing) {
+      const clientToEdit = clients.find(c => c.id === clientId);
+      if (clientToEdit) {
+        form.reset({
+          name: clientToEdit.name,
+          phone: clientToEdit.phone,
+          email: clientToEdit.email || '',
+        });
+      }
+    }
+  }, [clientId, isEditing, form]);
 
-    // Simulate adding to the database
-    clients.push(newClient);
-    
-    toast({
-      title: 'Cliente adicionado',
-      description: 'O cliente foi adicionado com sucesso.',
-    });
-
-    form.reset();
-    
-    if (onSuccess) {
+  const onSubmit = (data: FormValues) => {
+    try {
+      if (isEditing) {
+        // Find the client in our mock data
+        const clientIndex = clients.findIndex(c => c.id === clientId);
+        if (clientIndex !== -1) {
+          // Update the client
+          clients[clientIndex] = {
+            ...clients[clientIndex],
+            name: data.name,
+            phone: data.phone,
+            email: data.email || undefined,
+          };
+          toast({
+            title: 'Cliente atualizado',
+            description: `${data.name} foi atualizado com sucesso.`,
+          });
+        }
+      } else {
+        // Create a new client
+        const newClient: Client = {
+          id: clients.length > 0 ? Math.max(...clients.map(c => c.id)) + 1 : 1,
+          name: data.name,
+          phone: data.phone,
+          email: data.email || undefined,
+        };
+        clients.push(newClient);
+        toast({
+          title: 'Cliente adicionado',
+          description: `${data.name} foi adicionado com sucesso.`,
+        });
+      }
+      form.reset();
       onSuccess();
+    } catch (error) {
+      console.error('Error saving client:', error);
+      toast({
+        title: 'Erro',
+        description: 'Ocorreu um erro ao salvar o cliente.',
+        variant: 'destructive',
+      });
     }
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="name"
@@ -73,7 +110,7 @@ const ClientForm = ({ onSuccess }: ClientFormProps) => {
             </FormItem>
           )}
         />
-        
+
         <FormField
           control={form.control}
           name="phone"
@@ -87,13 +124,13 @@ const ClientForm = ({ onSuccess }: ClientFormProps) => {
             </FormItem>
           )}
         />
-        
+
         <FormField
           control={form.control}
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>E-mail</FormLabel>
+              <FormLabel>Email</FormLabel>
               <FormControl>
                 <Input placeholder="email@exemplo.com" {...field} />
               </FormControl>
@@ -101,8 +138,12 @@ const ClientForm = ({ onSuccess }: ClientFormProps) => {
             </FormItem>
           )}
         />
-        
-        <Button type="submit" className="w-full">Adicionar Cliente</Button>
+
+        <div className="flex justify-end">
+          <Button type="submit" className="bg-salon-purple hover:bg-salon-dark-purple">
+            {isEditing ? 'Atualizar' : 'Adicionar'}
+          </Button>
+        </div>
       </form>
     </Form>
   );

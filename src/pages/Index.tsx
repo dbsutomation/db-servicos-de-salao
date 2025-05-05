@@ -80,9 +80,10 @@ const Index = () => {
   
   // Calculate quick stats
   const totalServices = filteredRecords.length;
-  const totalRevenue = filteredRecords.reduce((total, record) => total + record.service.price, 0);
+  const totalCommissions = filteredRecords.reduce((total, record) => total + (record.commissionAmount || 0), 0);
+  const totalServiceValue = filteredRecords.reduce((total, record) => total + record.service.price, 0);
+  const totalRevenue = totalServiceValue - totalCommissions; // Faturamento total = valor serviço - comissão
   const totalClients = new Set(filteredRecords.map(record => record.client.id)).size;
-  const totalCommissions = filteredRecords.reduce((total, record) => total + record.commissionAmount, 0);
   
   // Calculate most used services
   const topServices = useMemo(() => {
@@ -92,13 +93,15 @@ const Index = () => {
       return acc;
     }, {} as Record<number, number>);
 
-    return Object.entries(serviceCounts)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 1)
-      .map(([serviceId, count]) => {
-        const service = filteredRecords.find(r => r.service.id === parseInt(serviceId))?.service;
-        return service ? service.name : 'Não disponível';
-      })[0] || 'Não disponível';
+    // Get the service with most occurrences
+    const entries = Object.entries(serviceCounts);
+    if (entries.length === 0) return 'Não disponível (0)';
+    
+    entries.sort((a, b) => b[1] - a[1]);
+    const [serviceId, count] = entries[0];
+    const service = filteredRecords.find(r => r.service.id === parseInt(serviceId))?.service;
+    
+    return service ? `${service.name} (${count})` : 'Não disponível (0)';
   }, [filteredRecords]);
 
   // Calculate top clients
@@ -109,13 +112,15 @@ const Index = () => {
       return acc;
     }, {} as Record<number, number>);
 
-    return Object.entries(clientCounts)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 1)
-      .map(([clientId, count]) => {
-        const client = filteredRecords.find(r => r.client.id === parseInt(clientId))?.client;
-        return client ? client.name : 'Não disponível';
-      })[0] || 'Não disponível';
+    // Get the client with most occurrences
+    const entries = Object.entries(clientCounts);
+    if (entries.length === 0) return 'Não disponível (0)';
+    
+    entries.sort((a, b) => b[1] - a[1]);
+    const [clientId, count] = entries[0];
+    const client = filteredRecords.find(r => r.client.id === parseInt(clientId))?.client;
+    
+    return client ? `${client.name} (${count})` : 'Não disponível (0)';
   }, [filteredRecords]);
   
   // Prepare chart data - by date
@@ -174,13 +179,9 @@ const Index = () => {
       service: record.service.name,
       client: record.client.name,
       date: record.date,
-      serviceValue: record.service.price,
-      commissionAmount: record.commissionAmount
+      commissionAmount: record.commissionAmount || 0,
+      serviceValue: record.service.price
     }));
-  }, [filteredRecords]);
-  
-  const totalServiceValue = useMemo(() => {
-    return filteredRecords.reduce((total, record) => total + record.service.price, 0);
   }, [filteredRecords]);
 
   const onProfessionalChange = (value: string) => {
@@ -297,7 +298,7 @@ const Index = () => {
           </Card>
           
           <Card>
-            <CardHeader>
+            <CardHeader className="bg-[#F2FCE2]">
               <CardDescription>Faturamento Total</CardDescription>
               <CardTitle className="text-3xl">
                 {new Intl.NumberFormat('pt-BR', {
@@ -309,7 +310,7 @@ const Index = () => {
           </Card>
           
           <Card>
-            <CardHeader>
+            <CardHeader className="bg-[#ea384c]/20">
               <CardDescription>Comissão Total</CardDescription>
               <CardTitle className="text-3xl">
                 {new Intl.NumberFormat('pt-BR', {
@@ -345,30 +346,33 @@ const Index = () => {
         {/* Services and Clients Line Chart */}
         <div>
           <h2 className="text-xl font-semibold mb-4">Serviços e Clientes por Dia</h2>
-          <Card className="p-4">
+          <Card className="p-4 w-full">
             <ChartContainer 
               config={{
                 services: { label: "Serviços", color: "#9b87f5" },
                 clients: { label: "Clientes", color: "#f97316" }
               }}
-              className="h-80"
+              className="h-80 w-full"
             >
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={sortedChartData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+                <LineChart 
+                  data={sortedChartData} 
+                  margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="date" />
                   <YAxis />
                   <ChartTooltip content={<ChartTooltipContent />} />
                   <Legend />
                   <Line 
-                    type="monotone" 
+                    type="stepAfter" 
                     dataKey="services" 
                     name="Serviços" 
                     stroke="var(--color-services)" 
                     activeDot={{ r: 8 }} 
                   />
                   <Line 
-                    type="monotone" 
+                    type="stepAfter" 
                     dataKey="clients" 
                     name="Clientes" 
                     stroke="var(--color-clients)" 
@@ -390,8 +394,8 @@ const Index = () => {
                   <TableHead>Profissional</TableHead>
                   <TableHead>Serviço</TableHead>
                   <TableHead>Cliente</TableHead>
-                  <TableHead className="text-right">Valor Serviço</TableHead>
                   <TableHead className="text-right">Valor Comissão</TableHead>
+                  <TableHead className="text-right">Valor Serviço</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -405,13 +409,13 @@ const Index = () => {
                       {new Intl.NumberFormat('pt-BR', {
                         style: 'currency', 
                         currency: 'BRL'
-                      }).format(record.serviceValue)}
+                      }).format(record.commissionAmount)}
                     </TableCell>
                     <TableCell className="text-right">
                       {new Intl.NumberFormat('pt-BR', {
                         style: 'currency', 
                         currency: 'BRL'
-                      }).format(record.commissionAmount)}
+                      }).format(record.serviceValue)}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -426,17 +430,17 @@ const Index = () => {
               <TableFooter>
                 <TableRow>
                   <TableCell colSpan={4} className="font-bold">Total</TableCell>
-                  <TableCell className="text-right font-bold bg-[#F2FCE2]">
-                    {new Intl.NumberFormat('pt-BR', {
-                      style: 'currency', 
-                      currency: 'BRL'
-                    }).format(totalServiceValue)}
-                  </TableCell>
                   <TableCell className="text-right font-bold bg-[#ea384c]/20">
                     {new Intl.NumberFormat('pt-BR', {
                       style: 'currency', 
                       currency: 'BRL'
                     }).format(totalCommissions)}
+                  </TableCell>
+                  <TableCell className="text-right font-bold bg-[#F2FCE2]">
+                    {new Intl.NumberFormat('pt-BR', {
+                      style: 'currency', 
+                      currency: 'BRL'
+                    }).format(totalServiceValue)}
                   </TableCell>
                 </TableRow>
               </TableFooter>

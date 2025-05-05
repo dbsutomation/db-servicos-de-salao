@@ -6,12 +6,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { teamMembers } from '@/data/mockData';
 import TeamMemberForm from '@/components/Forms/TeamMemberForm';
-import { Search, CheckCircle2, Eye, EyeOff } from 'lucide-react';
+import { Search, CheckCircle2, Eye, EyeOff, Edit } from 'lucide-react';
 
 const Team = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [showPasswords, setShowPasswords] = useState<Record<number, boolean>>({});
+  const [editingMember, setEditingMember] = useState<number | null>(null);
 
   const filteredTeamMembers = teamMembers.filter((member) => 
     member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -22,6 +23,7 @@ const Team = () => {
 
   const handleSuccess = () => {
     setDialogOpen(false);
+    setEditingMember(null);
   };
 
   const togglePasswordVisibility = (memberId: number) => {
@@ -29,6 +31,11 @@ const Team = () => {
       ...prev,
       [memberId]: !prev[memberId]
     }));
+  };
+
+  const handleEdit = (memberId: number) => {
+    setEditingMember(memberId);
+    setDialogOpen(true);
   };
 
   return (
@@ -43,11 +50,16 @@ const Team = () => {
                 Novo Profissional
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-lg">
               <DialogHeader>
-                <DialogTitle>Adicionar Novo Profissional</DialogTitle>
+                <DialogTitle>
+                  {editingMember ? 'Editar Profissional' : 'Adicionar Novo Profissional'}
+                </DialogTitle>
               </DialogHeader>
-              <TeamMemberForm onSuccess={handleSuccess} />
+              <TeamMemberForm 
+                onSuccess={handleSuccess} 
+                memberId={editingMember}
+              />
             </DialogContent>
           </Dialog>
         </div>
@@ -73,6 +85,7 @@ const Team = () => {
                 <th className="py-3 px-4 text-left">Senha</th>
                 <th className="py-3 px-4 text-center">Acesso</th>
                 <th className="py-3 px-4 text-center">Gerente</th>
+                <th className="py-3 px-4 text-center">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -111,11 +124,21 @@ const Team = () => {
                       <CheckCircle2 size={18} className="mx-auto text-green-500" />
                     )}
                   </td>
+                  <td className="py-3 px-4 text-center">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleEdit(member.id)}
+                      className="h-8 w-8"
+                    >
+                      <Edit size={16} />
+                    </Button>
+                  </td>
                 </tr>
               ))}
               {filteredTeamMembers.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-gray-500">
+                  <td colSpan={8} className="py-8 text-center text-gray-500">
                     {searchTerm ? 'Nenhum profissional encontrado' : 'Nenhum profissional cadastrado'}
                   </td>
                 </tr>

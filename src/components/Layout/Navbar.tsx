@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, Menu, X, LogOut } from 'lucide-react';
+import { ShoppingCart, Menu, X, LogOut, User } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,18 +11,33 @@ const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { cartItems } = useCart();
-  const { logout } = useAuth();
+  const { logout, currentUser, isAuthenticated } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
 
-  const navLinks = [
-    { name: 'Início', path: '/' },
-    { name: 'Serviços', path: '/services' },
-    { name: 'Clientes', path: '/clients' },
-    { name: 'Equipe', path: '/team' },
-    { name: 'Registros', path: '/records' },
-  ];
+  // Only show routes the user has access to
+  const getAccessibleNavLinks = () => {
+    const allLinks = [
+      { name: 'Início', path: '/' },
+      { name: 'Serviços', path: '/services' },
+      { name: 'Clientes', path: '/clients' },
+      { name: 'Equipe', path: '/team' },
+      { name: 'Registros', path: '/records' },
+    ];
+    
+    if (!currentUser) return [];
+    
+    // Managers can see everything
+    if (currentUser.isManager) return allLinks;
+    
+    // Non-managers can only see specific routes
+    return allLinks.filter(link => 
+      ['/', '/services', '/clients'].includes(link.path)
+    );
+  };
+
+  const navLinks = getAccessibleNavLinks();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -38,7 +53,7 @@ const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           <Link to="/" className="text-xl font-semibold text-salon-purple">
-            Beleza Gestão
+            Gestão do Salão - Arquiteteto Capilar
           </Link>
 
           {/* Desktop Navigation */}
@@ -59,6 +74,12 @@ const Navbar = () => {
           </div>
 
           <div className="hidden md:flex items-center space-x-4">
+            {currentUser && (
+              <div className="flex items-center text-sm mr-2">
+                <User size={16} className="mr-1" />
+                <span>{currentUser.name}</span>
+              </div>
+            )}
             <Link to="/cart">
               <Button variant="ghost" className="relative">
                 <ShoppingCart size={20} />
@@ -77,6 +98,12 @@ const Navbar = () => {
 
           {/* Mobile Navigation */}
           <div className="md:hidden flex items-center">
+            {currentUser && (
+              <div className="flex items-center text-sm mr-2">
+                <User size={16} className="mr-1" />
+                <span className="truncate max-w-[100px]">{currentUser.name}</span>
+              </div>
+            )}
             <Link to="/cart" className="mr-4 relative">
               <ShoppingCart size={20} />
               {totalItems > 0 && (

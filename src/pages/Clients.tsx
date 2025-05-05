@@ -6,22 +6,29 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { clients } from '@/data/mockData';
 import ClientForm from '@/components/Forms/ClientForm';
-import { Search } from 'lucide-react';
+import { Search, Edit } from 'lucide-react';
 
 const Clients = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingClient, setEditingClient] = useState<number | null>(null);
 
   const filteredClients = clients.filter((client) => 
     client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.phone.includes(searchTerm) ||
+    (client.phone && client.phone.includes(searchTerm)) ||
     (client.email && client.email.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const handleSuccess = () => {
     setDialogOpen(false);
+    setEditingClient(null);
   };
 
+  const handleEdit = (clientId: number) => {
+    setEditingClient(clientId);
+    setDialogOpen(true);
+  };
+  
   return (
     <MainLayout>
       <div className="space-y-6">
@@ -36,9 +43,9 @@ const Clients = () => {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Adicionar Novo Cliente</DialogTitle>
+                <DialogTitle>{editingClient ? 'Editar Cliente' : 'Adicionar Novo Cliente'}</DialogTitle>
               </DialogHeader>
-              <ClientForm onSuccess={handleSuccess} />
+              <ClientForm onSuccess={handleSuccess} clientId={editingClient} />
             </DialogContent>
           </Dialog>
         </div>
@@ -60,19 +67,30 @@ const Clients = () => {
                 <th className="py-3 px-4 text-left">Nome</th>
                 <th className="py-3 px-4 text-left">Telefone</th>
                 <th className="py-3 px-4 text-left">Email</th>
+                <th className="py-3 px-4 text-center">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y">
               {filteredClients.map((client) => (
                 <tr key={client.id} className="hover:bg-muted/50">
                   <td className="py-3 px-4">{client.name}</td>
-                  <td className="py-3 px-4">{client.phone}</td>
+                  <td className="py-3 px-4">{client.phone || '-'}</td>
                   <td className="py-3 px-4">{client.email || '-'}</td>
+                  <td className="py-3 px-4 text-center">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleEdit(client.id)}
+                      className="h-8 w-8"
+                    >
+                      <Edit size={16} />
+                    </Button>
+                  </td>
                 </tr>
               ))}
               {filteredClients.length === 0 && (
                 <tr>
-                  <td colSpan={3} className="py-8 text-center text-gray-500">
+                  <td colSpan={4} className="py-8 text-center text-gray-500">
                     {searchTerm ? 'Nenhum cliente encontrado' : 'Nenhum cliente cadastrado'}
                   </td>
                 </tr>
