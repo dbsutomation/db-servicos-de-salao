@@ -1,10 +1,29 @@
+
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  password: string;
+  isManager: boolean;
+  accessibleRoutes: string[];
+}
+
+export interface Client {
+  id: number;
+  name: string;
+  phone?: string;
+  email?: string;
+}
+
 export interface Service {
   id: number;
   name: string;
-  description: string;
+  description?: string;
   price: number;
   image: string;
-  commission: number; // Percentage of commission for the service
+  commission: number;
+  category?: string;
+  type?: 'servico' | 'produto';
 }
 
 export interface TeamMember {
@@ -13,34 +32,32 @@ export interface TeamMember {
   profession: string;
   phone: string;
   email: string;
-  password?: string;
+  password: string;
+  hasAccess: boolean;
   isManager: boolean;
-  hasLoginAccess?: boolean;
-}
-
-export interface Client {
-  id: number;
-  name: string;
-  phone: string;
-  email?: string;
+  avatar: string;
 }
 
 export interface ServiceRecord {
   id: number;
   service: Service;
-  teamMember: TeamMember;
   client: Client;
+  teamMember: TeamMember;
   date: string;
   commissionAmount?: number;
+  paymentMethod?: string;
+}
+
+export interface Expense {
+  id: number;
+  name: string;
+  description: string;
+  amount: number;
 }
 
 export interface CartItem {
+  id: number;
   service: Service;
-  quantity: number;
-}
-
-// Add a new interface for authentication state
-export interface AuthState {
-  isAuthenticated: boolean;
-  currentUser: TeamMember | null;
+  client: Client;
+  teamMember?: TeamMember;
 }

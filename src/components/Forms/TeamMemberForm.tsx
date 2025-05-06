@@ -1,123 +1,95 @@
 
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+import * as z from 'zod';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { useToast } from '@/hooks/use-toast';
+import { Input } from '@/components/ui/input';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { teamMembers } from '@/data/mockData';
-import { TeamMember } from '@/types';
 
 const formSchema = z.object({
-  name: z.string().min(3, { message: 'O nome deve ter pelo menos 3 caracteres' }),
-  profession: z.string().min(2, { message: 'A profissão deve ter pelo menos 2 caracteres' }),
-  phone: z.string().min(8, { message: 'O telefone deve ter pelo menos 8 caracteres' }),
-  email: z.string().email({ message: 'Email inválido' }),
-  password: z.string().min(6, { message: 'A senha deve ter pelo menos 6 caracteres' }),
-  isManager: z.boolean().default(false),
-  hasLoginAccess: z.boolean().default(true),
+  name: z.string().min(2, {
+    message: 'Nome deve ter pelo menos 2 caracteres'
+  }),
+  profession: z.string().min(2, {
+    message: 'Profissão deve ter pelo menos 2 caracteres'
+  }),
+  phone: z.string().min(10, {
+    message: 'Telefone deve ser válido'
+  }),
+  email: z.string().email({
+    message: 'Email deve ser válido'
+  }),
+  password: z.string().min(6, {
+    message: 'Senha deve ter pelo menos 6 caracteres'
+  }),
+  hasAccess: z.boolean(),
+  isManager: z.boolean()
 });
 
-type FormValues = z.infer<typeof formSchema>;
+type TeamMemberFormValues = z.infer<typeof formSchema>;
 
 interface TeamMemberFormProps {
-  onSuccess: () => void;
-  memberId?: number | null;
+  onSuccess: (data: TeamMemberFormValues) => void;
+  teamMemberId?: number | null;
 }
 
-const TeamMemberForm = ({ onSuccess, memberId }: TeamMemberFormProps) => {
-  const { toast } = useToast();
-  const isEditing = memberId !== undefined && memberId !== null;
+const professions = [
+  'Cabelereiro',
+  'Barbeiro',
+  'Manicure',
+  'Pedicure',
+  'Esteticista',
+  'Maquiador',
+  'Depilador',
+  'Massagista',
+  'Podólogo',
+  'Outro'
+];
 
-  const form = useForm<FormValues>({
+const TeamMemberForm = ({ onSuccess, teamMemberId }: TeamMemberFormProps) => {
+  const form = useForm<TeamMemberFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: '',
       profession: '',
       phone: '',
       email: '',
-      password: '@123456',
-      isManager: false,
-      hasLoginAccess: true,
-    },
+      password: '',
+      hasAccess: true,
+      isManager: false
+    }
   });
 
-  // Load team member data if editing
+  // Populate form when editing an existing team member
   useEffect(() => {
-    if (isEditing) {
-      const memberToEdit = teamMembers.find(m => m.id === memberId);
-      if (memberToEdit) {
+    if (teamMemberId) {
+      const member = teamMembers.find(m => m.id === teamMemberId);
+      if (member) {
         form.reset({
-          name: memberToEdit.name,
-          profession: memberToEdit.profession,
-          phone: memberToEdit.phone,
-          email: memberToEdit.email,
-          password: memberToEdit.password || '@123456',
-          isManager: memberToEdit.isManager,
-          hasLoginAccess: memberToEdit.hasLoginAccess !== false,
+          name: member.name,
+          profession: member.profession,
+          phone: member.phone,
+          email: member.email,
+          password: member.password,
+          hasAccess: member.hasAccess,
+          isManager: member.isManager
         });
       }
     }
-  }, [memberId, isEditing, form]);
+  }, [teamMemberId, form]);
 
-  const onSubmit = (data: FormValues) => {
-    try {
-      if (isEditing) {
-        // Find the member in our mock data
-        const memberIndex = teamMembers.findIndex(m => m.id === memberId);
-        if (memberIndex !== -1) {
-          // Update the member
-          teamMembers[memberIndex] = {
-            ...teamMembers[memberIndex],
-            name: data.name,
-            profession: data.profession,
-            phone: data.phone,
-            email: data.email,
-            password: data.password,
-            isManager: data.isManager,
-            hasLoginAccess: data.hasLoginAccess,
-          };
-          toast({
-            title: 'Profissional atualizado',
-            description: `${data.name} foi atualizado com sucesso.`,
-          });
-        }
-      } else {
-        // Create a new team member
-        const newMember: TeamMember = {
-          id: teamMembers.length > 0 ? Math.max(...teamMembers.map(m => m.id)) + 1 : 1,
-          name: data.name,
-          profession: data.profession,
-          phone: data.phone,
-          email: data.email,
-          password: data.password,
-          isManager: data.isManager,
-          hasLoginAccess: data.hasLoginAccess,
-        };
-        teamMembers.push(newMember);
-        toast({
-          title: 'Profissional adicionado',
-          description: `${data.name} foi adicionado com sucesso.`,
-        });
-      }
-      form.reset();
-      onSuccess();
-    } catch (error) {
-      console.error('Error saving team member:', error);
-      toast({
-        title: 'Erro',
-        description: 'Ocorreu um erro ao salvar o profissional.',
-        variant: 'destructive',
-      });
-    }
+  const onSubmit = (data: TeamMemberFormValues) => {
+    onSuccess(data);
+    form.reset();
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormField
           control={form.control}
           name="name"
@@ -131,21 +103,36 @@ const TeamMemberForm = ({ onSuccess, memberId }: TeamMemberFormProps) => {
             </FormItem>
           )}
         />
-
+        
         <FormField
           control={form.control}
           name="profession"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Profissão</FormLabel>
-              <FormControl>
-                <Input placeholder="Profissão" {...field} />
-              </FormControl>
+              <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+                value={field.value}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma profissão" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {professions.map((profession) => (
+                    <SelectItem key={profession} value={profession}>
+                      {profession}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
         />
-
+        
         <FormField
           control={form.control}
           name="phone"
@@ -159,7 +146,7 @@ const TeamMemberForm = ({ onSuccess, memberId }: TeamMemberFormProps) => {
             </FormItem>
           )}
         />
-
+        
         <FormField
           control={form.control}
           name="email"
@@ -167,13 +154,13 @@ const TeamMemberForm = ({ onSuccess, memberId }: TeamMemberFormProps) => {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder="email@exemplo.com" {...field} />
+                <Input type="email" placeholder="exemplo@email.com" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-
+        
         <FormField
           control={form.control}
           name="password"
@@ -181,51 +168,53 @@ const TeamMemberForm = ({ onSuccess, memberId }: TeamMemberFormProps) => {
             <FormItem>
               <FormLabel>Senha</FormLabel>
               <FormControl>
-                <Input placeholder="Senha" {...field} type="password" />
+                <Input type="password" placeholder="******" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-
-        <div className="flex flex-col space-y-2">
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             control={form.control}
-            name="hasLoginAccess"
+            name="hasAccess"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                  <FormLabel className="text-base">Acesso ao Sistema</FormLabel>
+                </div>
                 <FormControl>
-                  <Checkbox
+                  <Switch
                     checked={field.value}
                     onCheckedChange={field.onChange}
                   />
                 </FormControl>
-                <FormLabel className="cursor-pointer">Possui acesso ao sistema</FormLabel>
               </FormItem>
             )}
           />
-
+          
           <FormField
             control={form.control}
             name="isManager"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                  <FormLabel className="text-base">Perfil de Gerente</FormLabel>
+                </div>
                 <FormControl>
-                  <Checkbox
+                  <Switch
                     checked={field.value}
                     onCheckedChange={field.onChange}
                   />
                 </FormControl>
-                <FormLabel className="cursor-pointer">É gerente</FormLabel>
               </FormItem>
             )}
           />
         </div>
-
-        <div className="flex justify-end pt-4">
-          <Button type="submit" className="bg-salon-purple hover:bg-salon-dark-purple">
-            {isEditing ? 'Atualizar' : 'Adicionar'}
-          </Button>
+        
+        <div className="flex justify-end space-x-2">
+          <Button type="submit">{teamMemberId ? 'Salvar' : 'Adicionar'}</Button>
         </div>
       </form>
     </Form>

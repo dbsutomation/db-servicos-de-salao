@@ -34,8 +34,6 @@ const ProtectedRoute = ({ children, requiredRoutes }: { children: JSX.Element, r
 
 // Auth wrapper that uses the context
 const AuthenticatedApp = () => {
-  const { isAuthenticated } = useAuth();
-
   return (
     <CartProvider>
       <Routes>

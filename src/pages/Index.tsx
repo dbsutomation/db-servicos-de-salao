@@ -6,18 +6,23 @@ import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/ca
 import { Link } from 'react-router-dom';
 import { serviceRecords, teamMembers } from '@/data/mockData';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { format, parseISO, isAfter, isBefore, addDays, differenceInDays } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { format, parseISO, isAfter, isBefore, addDays } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Calendar as CalendarIcon } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { useAuth } from '@/contexts/AuthContext';
-import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
-import { Form } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
+import { Expense } from '@/types';
+
+// Mock expenses data (from Records.tsx)
+const initialExpenses: Expense[] = [
+  { id: 1, name: 'Aluguel', description: 'Aluguel mensal do salão', amount: 2500 },
+  { id: 2, name: 'Água', description: 'Conta de água', amount: 150 },
+  { id: 3, name: 'Luz', description: 'Conta de energia elétrica', amount: 350 },
+  { id: 4, name: 'Internet', description: 'Serviço de internet', amount: 120 }
+];
 
 const Index = () => {
   const { currentUser } = useAuth();
@@ -25,10 +30,12 @@ const Index = () => {
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [selectedProfessional, setSelectedProfessional] = useState<string | null>(null);
+  const [selectedType, setSelectedType] = useState<string>('all');
   
   const form = useForm({
     defaultValues: {
-      professional: "all"
+      professional: "all",
+      type: "all"
     }
   });
 
@@ -50,6 +57,11 @@ const Index = () => {
     } else if (currentUser && !currentUser.isManager) {
       // Non-managers can only see their own records
       records = records.filter(record => record.teamMember.id === currentUser.id);
+    }
+    
+    // Filter by product/service type
+    if (selectedType !== 'all') {
+      records = records.filter(record => record.service.type === selectedType);
     }
     
     // Apply date filter
@@ -76,13 +88,17 @@ const Index = () => {
     }
     
     return records;
-  }, [serviceRecords, dateFilter, startDate, endDate, selectedProfessional, currentUser]);
+  }, [serviceRecords, dateFilter, startDate, endDate, selectedProfessional, selectedType, currentUser]);
   
+  // Calculate expenses
+  const totalExpenses = initialExpenses.reduce((total, expense) => total + expense.amount, 0);
+
   // Calculate quick stats
   const totalServices = filteredRecords.length;
   const totalCommissions = filteredRecords.reduce((total, record) => total + (record.commissionAmount || 0), 0);
   const totalServiceValue = filteredRecords.reduce((total, record) => total + record.service.price, 0);
-  const totalRevenue = totalServiceValue - totalCommissions; // Faturamento total = valor serviço - comissão
+  const totalRevenue = totalServiceValue; // Revenue is the total value of all services/products
+  const netProfit = totalRevenue - totalCommissions - totalExpenses; // Net profit after deducting commissions and expenses
   const totalClients = new Set(filteredRecords.map(record => record.client.id)).size;
   
   // Calculate most used services
@@ -95,13 +111,13 @@ const Index = () => {
 
     // Get the service with most occurrences
     const entries = Object.entries(serviceCounts);
-    if (entries.length === 0) return 'Não disponível (0)';
+    if (entries.length === 0) return { name: 'Não disponível', count: 0 };
     
     entries.sort((a, b) => b[1] - a[1]);
     const [serviceId, count] = entries[0];
     const service = filteredRecords.find(r => r.service.id === parseInt(serviceId))?.service;
     
-    return service ? `${service.name} (${count})` : 'Não disponível (0)';
+    return service ? { name: service.name, count } : { name: 'Não disponível', count: 0 };
   }, [filteredRecords]);
 
   // Calculate top clients
@@ -114,71 +130,41 @@ const Index = () => {
 
     // Get the client with most occurrences
     const entries = Object.entries(clientCounts);
-    if (entries.length === 0) return 'Não disponível (0)';
+    if (entries.length === 0) return { name: 'Não disponível', count: 0 };
     
     entries.sort((a, b) => b[1] - a[1]);
     const [clientId, count] = entries[0];
     const client = filteredRecords.find(r => r.client.id === parseInt(clientId))?.client;
     
-    return client ? `${client.name} (${count})` : 'Não disponível (0)';
+    return client ? { name: client.name, count } : { name: 'Não disponível', count: 0 };
   }, [filteredRecords]);
   
-  // Prepare chart data - by date
-  const chartData = useMemo(() => {
-    // Limit to 31 days worth of data maximum
-    let dateRange = filteredRecords;
-    
-    if (startDate && endDate) {
-      const dayDiff = differenceInDays(endDate, startDate);
-      if (dayDiff > 31) {
-        // If more than 31 days, take the most recent 31
-        const newStartDate = addDays(endDate, -31);
-        dateRange = filteredRecords.filter(record => {
-          const recordDate = parseISO(record.date);
-          return isAfter(recordDate, newStartDate) && isBefore(recordDate, addDays(endDate, 1));
-        });
-      }
-    }
-    
-    return dateRange.reduce((acc: any[], record) => {
-      const recordDate = record.date;
-      const existingDay = acc.find(day => day.date === recordDate);
-      
-      if (existingDay) {
-        existingDay.services += 1;
-        existingDay.clients = new Set([...existingDay.clientsSet, record.client.id]).size;
-      } else {
-        acc.push({
-          date: recordDate,
-          services: 1,
-          clients: 1,
-          clientsSet: new Set([record.client.id])
-        });
-      }
-      
+  // Calculate payment method stats
+  const paymentMethodStats = useMemo(() => {
+    const stats = filteredRecords.reduce((acc, record) => {
+      const method = record.paymentMethod || 'Não especificado';
+      acc[method] = (acc[method] || 0) + record.service.price;
       return acc;
-    }, []);
-  }, [filteredRecords, startDate, endDate]);
-  
-  // Sort by date and remove the clientsSet (used only for calculation)
-  const sortedChartData = useMemo(() => {
-    return chartData
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-      .map(({ clientsSet, ...rest }) => ({
-        ...rest,
-        date: format(new Date(rest.date), 'dd/MM')
-      }));
-  }, [chartData]);
-  
-  // Show individual service records instead of grouping by professional
+    }, {} as Record<string, number>);
+    
+    return Object.entries(stats).map(([method, amount]) => ({
+      method, 
+      amount
+    }));
+  }, [filteredRecords]);
+
+  // Show individual service records
   const serviceRecordsList = useMemo(() => {
     return filteredRecords.map(record => ({
       id: record.id,
       professional: record.teamMember.name,
       profession: record.teamMember.profession,
       service: record.service.name,
+      serviceType: record.service.type || 'servico',
+      category: record.service.category || '-',
       client: record.client.name,
       date: record.date,
+      paymentMethod: record.paymentMethod || 'Não especificado',
       commissionAmount: record.commissionAmount || 0,
       serviceValue: record.service.price
     }));
@@ -187,6 +173,11 @@ const Index = () => {
   const onProfessionalChange = (value: string) => {
     setSelectedProfessional(value);
     form.setValue("professional", value);
+  };
+
+  const onTypeChange = (value: string) => {
+    setSelectedType(value);
+    form.setValue("type", value);
   };
 
   return (
@@ -280,6 +271,31 @@ const Index = () => {
               </Form>
             )}
             
+            {/* Type filter (Product/Service) */}
+            <Form {...form}>
+              <FormField
+                control={form.control}
+                name="type"
+                render={() => (
+                  <FormItem>
+                    <Select 
+                      value={selectedType} 
+                      onValueChange={onTypeChange}
+                    >
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Todos os tipos" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos os tipos</SelectItem>
+                        <SelectItem value="servico">Apenas Serviços</SelectItem>
+                        <SelectItem value="produto">Apenas Produtos</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormItem>
+                )}
+              />
+            </Form>
+            
             <Link to="/services">
               <Button className="bg-salon-purple hover:bg-salon-dark-purple">
                 Novo Registro
@@ -288,15 +304,9 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Stats Cards */}
+        {/* Financial Stats Cards */}
+        <h2 className="text-xl font-semibold">Indicadores Financeiros</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card>
-            <CardHeader>
-              <CardDescription>Total de Serviços</CardDescription>
-              <CardTitle className="text-3xl">{totalServices}</CardTitle>
-            </CardHeader>
-          </Card>
-          
           <Card>
             <CardHeader className="bg-[#F2FCE2]">
               <CardDescription>Faturamento Total</CardDescription>
@@ -322,6 +332,66 @@ const Index = () => {
           </Card>
           
           <Card>
+            <CardHeader className="bg-[#ea384c]/20">
+              <CardDescription>Despesas</CardDescription>
+              <CardTitle className="text-3xl">
+                {new Intl.NumberFormat('pt-BR', {
+                  style: 'currency', 
+                  currency: 'BRL'
+                }).format(totalExpenses)}
+              </CardTitle>
+            </CardHeader>
+          </Card>
+          
+          <Card>
+            <CardHeader className="bg-[#F2FCE2]">
+              <CardDescription>Lucro Líquido</CardDescription>
+              <CardTitle className="text-3xl">
+                {new Intl.NumberFormat('pt-BR', {
+                  style: 'currency', 
+                  currency: 'BRL'
+                }).format(netProfit)}
+              </CardTitle>
+            </CardHeader>
+          </Card>
+        </div>
+
+        {/* Stats by payment method */}
+        <h2 className="text-xl font-semibold">Pagamentos por Método</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {paymentMethodStats.map(({method, amount}) => (
+            <Card key={method}>
+              <CardHeader>
+                <CardDescription>Pagamentos em {method}</CardDescription>
+                <CardTitle className="text-2xl">
+                  {new Intl.NumberFormat('pt-BR', {
+                    style: 'currency', 
+                    currency: 'BRL'
+                  }).format(amount)}
+                </CardTitle>
+              </CardHeader>
+            </Card>
+          ))}
+          {paymentMethodStats.length === 0 && (
+            <Card className="col-span-full">
+              <CardHeader>
+                <CardDescription>Nenhum pagamento registrado no período</CardDescription>
+              </CardHeader>
+            </Card>
+          )}
+        </div>
+
+        {/* Quantity Stats Cards */}
+        <h2 className="text-xl font-semibold">Indicadores de Quantidade</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card>
+            <CardHeader>
+              <CardDescription>Total de Serviços</CardDescription>
+              <CardTitle className="text-3xl">{totalServices}</CardTitle>
+            </CardHeader>
+          </Card>
+          
+          <Card>
             <CardHeader>
               <CardDescription>Clientes Atendidos</CardDescription>
               <CardTitle className="text-3xl">{totalClients}</CardTitle>
@@ -331,55 +401,19 @@ const Index = () => {
           <Card>
             <CardHeader>
               <CardDescription>Serviço Mais Realizado</CardDescription>
-              <CardTitle className="text-2xl">{topServices}</CardTitle>
+              <CardTitle className="text-2xl">
+                {topServices.name} ({topServices.count})
+              </CardTitle>
             </CardHeader>
           </Card>
           
           <Card>
             <CardHeader>
               <CardDescription>Cliente com Mais Serviços</CardDescription>
-              <CardTitle className="text-2xl">{topClient}</CardTitle>
+              <CardTitle className="text-2xl">
+                {topClient.name} ({topClient.count})
+              </CardTitle>
             </CardHeader>
-          </Card>
-        </div>
-
-        {/* Services and Clients Line Chart */}
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Serviços e Clientes por Dia</h2>
-          <Card className="p-4 w-full">
-            <ChartContainer 
-              config={{
-                services: { label: "Serviços", color: "#9b87f5" },
-                clients: { label: "Clientes", color: "#f97316" }
-              }}
-              className="h-80 w-full"
-            >
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart 
-                  data={sortedChartData} 
-                  margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Legend />
-                  <Line 
-                    type="stepAfter" 
-                    dataKey="services" 
-                    name="Serviços" 
-                    stroke="var(--color-services)" 
-                    activeDot={{ r: 8 }} 
-                  />
-                  <Line 
-                    type="stepAfter" 
-                    dataKey="clients" 
-                    name="Clientes" 
-                    stroke="var(--color-clients)" 
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </ChartContainer>
           </Card>
         </div>
 
@@ -392,10 +426,13 @@ const Index = () => {
                 <TableRow>
                   <TableHead>Data</TableHead>
                   <TableHead>Profissional</TableHead>
-                  <TableHead>Serviço</TableHead>
+                  <TableHead>Item</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead>Categoria</TableHead>
                   <TableHead>Cliente</TableHead>
-                  <TableHead className="text-right">Valor Comissão</TableHead>
-                  <TableHead className="text-right">Valor Serviço</TableHead>
+                  <TableHead>Pagamento</TableHead>
+                  <TableHead className="text-right">Comissão</TableHead>
+                  <TableHead className="text-right">Valor</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -404,7 +441,10 @@ const Index = () => {
                     <TableCell>{format(new Date(record.date), 'dd/MM/yyyy')}</TableCell>
                     <TableCell>{record.professional}</TableCell>
                     <TableCell>{record.service}</TableCell>
+                    <TableCell>{record.serviceType === 'produto' ? 'Produto' : 'Serviço'}</TableCell>
+                    <TableCell>{record.category}</TableCell>
                     <TableCell>{record.client}</TableCell>
+                    <TableCell>{record.paymentMethod}</TableCell>
                     <TableCell className="text-right">
                       {new Intl.NumberFormat('pt-BR', {
                         style: 'currency', 
@@ -421,7 +461,7 @@ const Index = () => {
                 ))}
                 {serviceRecordsList.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-4 text-muted-foreground">
+                    <TableCell colSpan={9} className="text-center py-4 text-muted-foreground">
                       Nenhum dado para o período selecionado
                     </TableCell>
                   </TableRow>
@@ -429,7 +469,7 @@ const Index = () => {
               </TableBody>
               <TableFooter>
                 <TableRow>
-                  <TableCell colSpan={4} className="font-bold">Total</TableCell>
+                  <TableCell colSpan={7} className="font-bold">Total</TableCell>
                   <TableCell className="text-right font-bold bg-[#ea384c]/20">
                     {new Intl.NumberFormat('pt-BR', {
                       style: 'currency', 

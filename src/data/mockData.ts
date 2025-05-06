@@ -1,41 +1,7 @@
 
-import { Service, TeamMember, Client, ServiceRecord } from '../types';
+import { Client, Service, ServiceRecord, TeamMember } from '@/types';
 
-export const services: Service[] = [
-  {
-    id: 1,
-    name: 'Corte de Cabelo',
-    description: 'Corte profissional com finalização',
-    price: 100.00,
-    image: '/placeholder.svg',
-    commission: 0
-  },
-  {
-    id: 2,
-    name: 'Coloração',
-    description: 'Coloração completa com produtos de qualidade',
-    price: 200.00,
-    image: '/placeholder.svg',
-    commission: 0
-  },
-  {
-    id: 3,
-    name: 'Manicure',
-    description: 'Cuidados completos para suas unhas',
-    price: 60.00,
-    image: '/placeholder.svg',
-    commission: 60
-  },
-  {
-    id: 4,
-    name: 'Pedicure',
-    description: 'Tratamento para pés com esfoliação e hidratação',
-    price: 60.00,
-    image: '/placeholder.svg',
-    commission: 60
-  }
-];
-
+// Updated team members data
 export const teamMembers: TeamMember[] = [
   {
     id: 1,
@@ -44,8 +10,9 @@ export const teamMembers: TeamMember[] = [
     phone: '(11) 98765-4321',
     email: 'paulo.ubiratan@salao.com',
     password: '@123456',
+    hasAccess: true,
     isManager: true,
-    hasLoginAccess: true
+    avatar: '/placeholder.svg'
   },
   {
     id: 2,
@@ -54,120 +21,171 @@ export const teamMembers: TeamMember[] = [
     phone: '(11) 98765-4321',
     email: 'maria.isabel@salao.com',
     password: '@123456',
+    hasAccess: true,
     isManager: false,
-    hasLoginAccess: true
+    avatar: '/placeholder.svg'
   }
 ];
 
-export const clients: Client[] = [
+// Updated services data with new structure
+export const services: Service[] = [
   {
     id: 1,
-    name: 'Juliana Ferreira',
-    phone: '(11) 99999-1111',
-    email: 'juliana.ferreira@exemplo.com'
+    name: 'Corte de Cabelo',
+    description: 'Corte masculino ou feminino',
+    price: 100,
+    commission: 0,
+    image: '/placeholder.svg',
+    category: 'cabelo',
+    type: 'servico'
   },
   {
     id: 2,
-    name: 'Roberto Almeida',
-    phone: '(11) 99999-2222',
-    email: 'roberto.almeida@exemplo.com'
-  },
-  {
-    id: 3,
-    name: 'Camila Costa',
-    phone: '(11) 99999-3333',
-    email: 'camila.costa@exemplo.com'
-  },
-];
-
-// Helper function to create a date in 2025, May
-const createDateInMay2025 = (day: number) => {
-  return `2025-05-${String(day).padStart(2, '0')}`;
-}
-
-// Calculate commission amount for each service record
-export const serviceRecords: ServiceRecord[] = [
-  // Manicure e Pedicure by Maria (6 records)
-  {
-    id: 1,
-    service: services[2], // Manicure
-    teamMember: teamMembers[1], // Maria
-    client: clients[0], // Juliana
-    date: createDateInMay2025(5),
-    commissionAmount: services[2].price * (services[2].commission / 100)
-  },
-  {
-    id: 2,
-    service: services[3], // Pedicure
-    teamMember: teamMembers[1], // Maria
-    client: clients[1], // Roberto
-    date: createDateInMay2025(7),
-    commissionAmount: services[3].price * (services[3].commission / 100)
-  },
-  {
-    id: 3,
-    service: services[2], // Manicure
-    teamMember: teamMembers[1], // Maria
-    client: clients[2], // Camila
-    date: createDateInMay2025(10),
-    commissionAmount: services[2].price * (services[2].commission / 100)
+    name: 'Coloração',
+    description: 'Aplicação de cor e tintura',
+    price: 200,
+    commission: 0,
+    image: '/placeholder.svg',
+    category: 'cabelo',
+    type: 'servico'
   },
   {
     id: 4,
-    service: services[3], // Pedicure
-    teamMember: teamMembers[1], // Maria
-    client: clients[0], // Juliana
-    date: createDateInMay2025(12),
-    commissionAmount: services[3].price * (services[3].commission / 100)
+    name: 'Manicure',
+    description: 'Tratamento das unhas das mãos',
+    price: 60,
+    commission: 60,
+    image: '/placeholder.svg',
+    category: 'unhas',
+    type: 'servico'
   },
   {
     id: 5,
-    service: services[2], // Manicure
-    teamMember: teamMembers[1], // Maria
-    client: clients[1], // Roberto
-    date: createDateInMay2025(15),
-    commissionAmount: services[2].price * (services[2].commission / 100)
+    name: 'Pedicure',
+    description: 'Tratamento das unhas dos pés',
+    price: 60,
+    commission: 60,
+    image: '/placeholder.svg',
+    category: 'unhas',
+    type: 'servico'
+  }
+];
+
+// Client data
+export const clients: Client[] = [
+  {
+    id: 1,
+    name: 'João Silva',
+    phone: '(11) 99999-8888',
+    email: 'joao.silva@email.com'
+  },
+  {
+    id: 2,
+    name: 'Maria Oliveira',
+    phone: '(11) 97777-6666',
+    email: 'maria.oliveira@email.com'
+  },
+  {
+    id: 3,
+    name: 'Pedro Santos',
+    phone: '(11) 95555-4444',
+    email: 'pedro.santos@email.com'
+  }
+];
+
+// Create 10 new service records (6 for manicure/pedicure for Maria, 4 for haircut/coloring for Paulo)
+export const serviceRecords: ServiceRecord[] = [
+  // Maria's services (Manicure/Pedicure)
+  {
+    id: 1,
+    service: services.find(s => s.name === 'Manicure')!,
+    client: clients[0],
+    teamMember: teamMembers.find(m => m.name === 'Maria Isabel')!,
+    date: '2025-05-01',
+    commissionAmount: 36, // 60% of 60
+    paymentMethod: 'Dinheiro'
+  },
+  {
+    id: 2,
+    service: services.find(s => s.name === 'Pedicure')!,
+    client: clients[1],
+    teamMember: teamMembers.find(m => m.name === 'Maria Isabel')!,
+    date: '2025-05-02',
+    commissionAmount: 36, // 60% of 60
+    paymentMethod: 'Crédito'
+  },
+  {
+    id: 3,
+    service: services.find(s => s.name === 'Manicure')!,
+    client: clients[2],
+    teamMember: teamMembers.find(m => m.name === 'Maria Isabel')!,
+    date: '2025-05-03',
+    commissionAmount: 36, // 60% of 60
+    paymentMethod: 'Débito'
+  },
+  {
+    id: 4,
+    service: services.find(s => s.name === 'Pedicure')!,
+    client: clients[0],
+    teamMember: teamMembers.find(m => m.name === 'Maria Isabel')!,
+    date: '2025-05-04',
+    commissionAmount: 36, // 60% of 60
+    paymentMethod: 'PIX'
+  },
+  {
+    id: 5,
+    service: services.find(s => s.name === 'Manicure')!,
+    client: clients[1],
+    teamMember: teamMembers.find(m => m.name === 'Maria Isabel')!,
+    date: '2025-05-05',
+    commissionAmount: 36, // 60% of 60
+    paymentMethod: 'Dinheiro'
   },
   {
     id: 6,
-    service: services[2], // Manicure
-    teamMember: teamMembers[1], // Maria
-    client: clients[2], // Camila
-    date: createDateInMay2025(17),
-    commissionAmount: services[2].price * (services[2].commission / 100)
+    service: services.find(s => s.name === 'Pedicure')!,
+    client: clients[2],
+    teamMember: teamMembers.find(m => m.name === 'Maria Isabel')!,
+    date: '2025-05-06',
+    commissionAmount: 36, // 60% of 60
+    paymentMethod: 'Crédito'
   },
   
-  // Corte e Coloração by Paulo (4 records)
+  // Paulo's services (Haircut/Coloring)
   {
     id: 7,
-    service: services[0], // Corte
-    teamMember: teamMembers[0], // Paulo
-    client: clients[0], // Juliana
-    date: createDateInMay2025(6),
-    commissionAmount: services[0].price * (services[0].commission / 100)
+    service: services.find(s => s.name === 'Corte de Cabelo')!,
+    client: clients[0],
+    teamMember: teamMembers.find(m => m.name === 'Paulo Ubratan')!,
+    date: '2025-05-03',
+    commissionAmount: 0, // 0% commission
+    paymentMethod: 'PIX'
   },
   {
     id: 8,
-    service: services[1], // Coloração
-    teamMember: teamMembers[0], // Paulo
-    client: clients[2], // Camila
-    date: createDateInMay2025(9),
-    commissionAmount: services[1].price * (services[1].commission / 100)
+    service: services.find(s => s.name === 'Coloração')!,
+    client: clients[1],
+    teamMember: teamMembers.find(m => m.name === 'Paulo Ubratan')!,
+    date: '2025-05-04',
+    commissionAmount: 0, // 0% commission
+    paymentMethod: 'Débito'
   },
   {
     id: 9,
-    service: services[0], // Corte
-    teamMember: teamMembers[0], // Paulo
-    client: clients[1], // Roberto
-    date: createDateInMay2025(18),
-    commissionAmount: services[0].price * (services[0].commission / 100)
+    service: services.find(s => s.name === 'Corte de Cabelo')!,
+    client: clients[2],
+    teamMember: teamMembers.find(m => m.name === 'Paulo Ubratan')!,
+    date: '2025-05-05',
+    commissionAmount: 0, // 0% commission
+    paymentMethod: 'Dinheiro'
   },
   {
     id: 10,
-    service: services[1], // Coloração
-    teamMember: teamMembers[0], // Paulo
-    client: clients[0], // Juliana
-    date: createDateInMay2025(20),
-    commissionAmount: services[1].price * (services[1].commission / 100)
+    service: services.find(s => s.name === 'Coloração')!,
+    client: clients[0],
+    teamMember: teamMembers.find(m => m.name === 'Paulo Ubratan')!,
+    date: '2025-05-06',
+    commissionAmount: 0, // 0% commission
+    paymentMethod: 'Crédito'
   }
 ];
