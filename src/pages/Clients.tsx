@@ -6,10 +6,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { clients } from '@/data/mockData';
 import ClientForm from '@/components/Forms/ClientForm';
-import { Search, Edit, Trash2 } from 'lucide-react';
+import { Search, Edit, Trash2, Plus, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 const Clients = () => {
   const { currentUser } = useAuth();
@@ -100,9 +101,10 @@ const Clients = () => {
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button 
-                className="bg-salon-purple hover:bg-salon-dark-purple"
+                className="bg-salon-purple hover:bg-salon-dark-purple shadow-md"
                 onClick={() => setEditingClient(null)}
               >
+                <Plus className="mr-2" size={18} />
                 Novo Cliente
               </Button>
             </DialogTrigger>
@@ -115,65 +117,71 @@ const Clients = () => {
           </Dialog>
         </div>
 
-        <div className="relative">
+        <div className="relative mb-6">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
           <Input 
             placeholder="Buscar por nome, telefone ou email" 
-            className="pl-10"
+            className="pl-10 border-2 border-gray-200 shadow-sm bg-white"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
         
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-muted">
-              <tr>
-                <th className="py-3 px-4 text-left">Nome</th>
-                <th className="py-3 px-4 text-left">Telefone</th>
-                <th className="py-3 px-4 text-left">Email</th>
-                <th className="py-3 px-4 text-center">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {filteredClients.map((client) => (
-                <tr key={client.id} className="hover:bg-muted/50">
-                  <td className="py-3 px-4">{client.name}</td>
-                  <td className="py-3 px-4">{client.phone || '-'}</td>
-                  <td className="py-3 px-4">{client.email || '-'}</td>
-                  <td className="py-3 px-4 text-center">
-                    <div className="flex justify-center space-x-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEdit(client.id)}
-                        className="h-8 w-8"
-                      >
-                        <Edit size={16} />
-                      </Button>
-                      {currentUser?.isManager && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => confirmDeleteClient(client.id)}
-                          className="h-8 w-8 text-destructive"
-                        >
-                          <Trash2 size={16} />
-                        </Button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {filteredClients.length === 0 && (
-                <tr>
-                  <td colSpan={4} className="py-8 text-center text-gray-500">
-                    {searchTerm ? 'Nenhum cliente encontrado' : 'Nenhum cliente cadastrado'}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredClients.map((client) => (
+            <div
+              key={client.id}
+              className="bg-white rounded-lg shadow-md border-2 border-gray-100 overflow-hidden flex flex-col"
+            >
+              <div className="p-6 flex items-start gap-4">
+                <Avatar className="h-16 w-16 bg-salon-purple/20">
+                  <AvatarFallback className="bg-salon-purple/20 text-salon-purple">
+                    {client.name.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                
+                <div className="flex-1">
+                  <h3 className="font-medium text-lg">{client.name}</h3>
+                  
+                  <div className="mt-2 space-y-1 text-sm">
+                    {client.phone && (
+                      <p><span className="font-medium">Telefone:</span> {client.phone}</p>
+                    )}
+                    {client.email && (
+                      <p><span className="font-medium">Email:</span> {client.email}</p>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="flex flex-col gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleEdit(client.id)}
+                    className="h-8 w-8"
+                  >
+                    <Edit size={16} />
+                  </Button>
+                  {currentUser?.isManager && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => confirmDeleteClient(client.id)}
+                      className="h-8 w-8 text-destructive"
+                    >
+                      <Trash2 size={16} />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+          
+          {filteredClients.length === 0 && (
+            <div className="col-span-full text-center py-12 text-gray-500 bg-white rounded-lg shadow-md border-2 border-gray-100">
+              {searchTerm ? 'Nenhum cliente encontrado' : 'Nenhum cliente cadastrado'}
+            </div>
+          )}
         </div>
       </div>
 

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import MainLayout from '@/components/Layout/MainLayout';
 import { Button } from '@/components/ui/button';
@@ -187,7 +186,7 @@ const Index = () => {
           <h1 className="text-3xl font-bold">Dashboard</h1>
           <div className="flex flex-wrap items-center gap-4">
             <Select value={dateFilter} onValueChange={setDateFilter}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-[180px] bg-white border-2 border-gray-200 shadow-sm">
                 <SelectValue placeholder="Filtrar por período" />
               </SelectTrigger>
               <SelectContent>
@@ -203,7 +202,7 @@ const Index = () => {
               <div className="flex items-center gap-2">
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="justify-start text-left font-normal">
+                    <Button variant="outline" className="justify-start text-left font-normal bg-white border-2 border-gray-200 shadow-sm">
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {startDate ? format(startDate, 'dd/MM/yyyy') : 'Data inicial'}
                     </Button>
@@ -223,7 +222,7 @@ const Index = () => {
                 
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="justify-start text-left font-normal">
+                    <Button variant="outline" className="justify-start text-left font-normal bg-white border-2 border-gray-200 shadow-sm">
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {endDate ? format(endDate, 'dd/MM/yyyy') : 'Data final'}
                     </Button>
@@ -253,7 +252,7 @@ const Index = () => {
                         value={selectedProfessional || "all"} 
                         onValueChange={onProfessionalChange}
                       >
-                        <SelectTrigger className="w-[180px]">
+                        <SelectTrigger className="w-[180px] bg-white border-2 border-gray-200 shadow-sm">
                           <SelectValue placeholder="Todos os profissionais" />
                         </SelectTrigger>
                         <SelectContent>
@@ -282,7 +281,7 @@ const Index = () => {
                       value={selectedType} 
                       onValueChange={onTypeChange}
                     >
-                      <SelectTrigger className="w-[180px]">
+                      <SelectTrigger className="w-[180px] bg-white border-2 border-gray-200 shadow-sm">
                         <SelectValue placeholder="Todos os tipos" />
                       </SelectTrigger>
                       <SelectContent>
@@ -297,7 +296,7 @@ const Index = () => {
             </Form>
             
             <Link to="/services">
-              <Button className="bg-salon-purple hover:bg-salon-dark-purple">
+              <Button className="bg-salon-purple hover:bg-salon-dark-purple shadow-md">
                 Novo Registro
               </Button>
             </Link>
@@ -307,7 +306,7 @@ const Index = () => {
         {/* Financial Stats Cards */}
         <h2 className="text-xl font-semibold">Indicadores Financeiros</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card>
+          <Card className="shadow-md border-2 border-gray-100">
             <CardHeader className="bg-[#F2FCE2]">
               <CardDescription>Faturamento Total</CardDescription>
               <CardTitle className="text-3xl">
@@ -319,7 +318,7 @@ const Index = () => {
             </CardHeader>
           </Card>
           
-          <Card>
+          <Card className="shadow-md border-2 border-gray-100">
             <CardHeader className="bg-[#ea384c]/20">
               <CardDescription>Comissão Total</CardDescription>
               <CardTitle className="text-3xl">
@@ -331,36 +330,40 @@ const Index = () => {
             </CardHeader>
           </Card>
           
-          <Card>
-            <CardHeader className="bg-[#ea384c]/20">
-              <CardDescription>Despesas</CardDescription>
-              <CardTitle className="text-3xl">
-                {new Intl.NumberFormat('pt-BR', {
-                  style: 'currency', 
-                  currency: 'BRL'
-                }).format(totalExpenses)}
-              </CardTitle>
-            </CardHeader>
-          </Card>
+          {currentUser?.isManager && (
+            <Card className="shadow-md border-2 border-gray-100">
+              <CardHeader className="bg-[#ea384c]/20">
+                <CardDescription>Despesas</CardDescription>
+                <CardTitle className="text-3xl">
+                  {new Intl.NumberFormat('pt-BR', {
+                    style: 'currency', 
+                    currency: 'BRL'
+                  }).format(totalExpenses)}
+                </CardTitle>
+              </CardHeader>
+            </Card>
+          )}
           
-          <Card>
-            <CardHeader className="bg-[#F2FCE2]">
-              <CardDescription>Lucro Líquido</CardDescription>
-              <CardTitle className="text-3xl">
-                {new Intl.NumberFormat('pt-BR', {
-                  style: 'currency', 
-                  currency: 'BRL'
-                }).format(netProfit)}
-              </CardTitle>
-            </CardHeader>
-          </Card>
+          {currentUser?.isManager && (
+            <Card className="shadow-md border-2 border-gray-100">
+              <CardHeader className="bg-[#F2FCE2]">
+                <CardDescription>Lucro Líquido</CardDescription>
+                <CardTitle className="text-3xl">
+                  {new Intl.NumberFormat('pt-BR', {
+                    style: 'currency', 
+                    currency: 'BRL'
+                  }).format(netProfit)}
+                </CardTitle>
+              </CardHeader>
+            </Card>
+          )}
         </div>
 
         {/* Stats by payment method */}
         <h2 className="text-xl font-semibold">Pagamentos por Método</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {paymentMethodStats.map(({method, amount}) => (
-            <Card key={method}>
+            <Card key={method} className="shadow-md border-2 border-gray-100">
               <CardHeader>
                 <CardDescription>Pagamentos em {method}</CardDescription>
                 <CardTitle className="text-2xl">
@@ -373,7 +376,7 @@ const Index = () => {
             </Card>
           ))}
           {paymentMethodStats.length === 0 && (
-            <Card className="col-span-full">
+            <Card className="col-span-full shadow-md border-2 border-gray-100">
               <CardHeader>
                 <CardDescription>Nenhum pagamento registrado no período</CardDescription>
               </CardHeader>
@@ -384,21 +387,21 @@ const Index = () => {
         {/* Quantity Stats Cards */}
         <h2 className="text-xl font-semibold">Indicadores de Quantidade</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card>
+          <Card className="shadow-md border-2 border-gray-100">
             <CardHeader>
               <CardDescription>Total de Serviços</CardDescription>
               <CardTitle className="text-3xl">{totalServices}</CardTitle>
             </CardHeader>
           </Card>
           
-          <Card>
+          <Card className="shadow-md border-2 border-gray-100">
             <CardHeader>
               <CardDescription>Clientes Atendidos</CardDescription>
               <CardTitle className="text-3xl">{totalClients}</CardTitle>
             </CardHeader>
           </Card>
 
-          <Card>
+          <Card className="shadow-md border-2 border-gray-100">
             <CardHeader>
               <CardDescription>Serviço Mais Realizado</CardDescription>
               <CardTitle className="text-2xl">
@@ -407,7 +410,7 @@ const Index = () => {
             </CardHeader>
           </Card>
           
-          <Card>
+          <Card className="shadow-md border-2 border-gray-100">
             <CardHeader>
               <CardDescription>Cliente com Mais Serviços</CardDescription>
               <CardTitle className="text-2xl">
@@ -420,10 +423,10 @@ const Index = () => {
         {/* Services Records List */}
         <div>
           <h2 className="text-xl font-semibold mb-4">Serviços realizados</h2>
-          <Card>
+          <Card className="shadow-md border-2 border-gray-100">
             <Table>
               <TableHeader>
-                <TableRow>
+                <TableRow className="bg-muted/50">
                   <TableHead>Data</TableHead>
                   <TableHead>Profissional</TableHead>
                   <TableHead>Item</TableHead>
@@ -437,7 +440,7 @@ const Index = () => {
               </TableHeader>
               <TableBody>
                 {serviceRecordsList.map((record) => (
-                  <TableRow key={record.id}>
+                  <TableRow key={record.id} className="border-b border-gray-200 hover:bg-gray-50">
                     <TableCell>{format(new Date(record.date), 'dd/MM/yyyy')}</TableCell>
                     <TableCell>{record.professional}</TableCell>
                     <TableCell>{record.service}</TableCell>

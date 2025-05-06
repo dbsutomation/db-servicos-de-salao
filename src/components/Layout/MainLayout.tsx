@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   Home, 
   Scissors, 
@@ -40,7 +40,6 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   const { currentUser, logout, checkAccess } = useAuth();
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const location = useLocation();
   const navigate = useNavigate();
 
   const navItems: NavItem[] = [
@@ -99,51 +98,53 @@ const MainLayout = ({ children }: MainLayoutProps) => {
     <div className="flex min-h-screen bg-gray-50">
       {/* Sidebar for desktop */}
       <aside 
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transition-transform duration-300 ease-in-out ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r-2 border-gray-200 shadow-md transition-transform duration-300 ease-in-out ${
           isMobile ? '-translate-x-full' : 'translate-x-0'
         }`}
       >
         <div className="flex flex-col h-full">
-          <div className="px-4 py-6">
+          <div className="px-4 py-6 border-b-2 border-gray-100">
             <h1 className="text-xl font-bold text-salon-purple">
               Gestão do Salão - Arquiteteto Capilar
             </h1>
           </div>
 
-          <nav className="flex-1 px-2 space-y-1">
+          <nav className="flex-1 px-2 py-4 space-y-2">
             {filteredNavItems.map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}
                 className={({ isActive }) =>
                   cn(
-                    "flex items-center px-4 py-3 text-sm rounded-md transition-colors",
+                    "flex items-center px-4 py-3 text-sm rounded-md transition-colors border-2",
                     isActive
-                      ? "bg-salon-purple text-white"
-                      : "text-gray-700 hover:bg-gray-100"
+                      ? "bg-salon-purple text-white border-salon-purple shadow-md"
+                      : "text-gray-700 hover:bg-gray-100 border-transparent hover:border-gray-200"
                   )
                 }
               >
                 <span className="mr-3">{item.icon}</span>
-                <span>{item.label}</span>
+                <span className="font-medium">{item.label}</span>
               </NavLink>
             ))}
             
             <Button
               variant="ghost"
-              className="flex w-full items-center px-4 py-3 text-sm rounded-md transition-colors text-gray-700 hover:bg-gray-100 justify-start"
+              className="flex w-full items-center px-4 py-3 text-sm rounded-md transition-colors text-gray-700 hover:bg-gray-100 justify-start border-2 border-transparent hover:border-gray-200 mt-4"
               onClick={handleLogout}
             >
               <LogOut size={20} className="mr-3" />
-              <span>Sair</span>
+              <span className="font-medium">Sair</span>
             </Button>
           </nav>
           
           {currentUser && (
-            <div className="border-t border-gray-200 p-4">
+            <div className="border-t-2 border-gray-200 p-4 bg-gray-50">
               <div className="flex items-center">
-                <Avatar className="h-8 w-8 mr-2">
-                  <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
+                <Avatar className="h-8 w-8 mr-2 border border-gray-200">
+                  <AvatarFallback className="bg-salon-purple/20 text-salon-purple">
+                    {currentUser.name.charAt(0)}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
                   <span className="text-sm font-medium">{currentUser.name}</span>
@@ -158,7 +159,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       </aside>
 
       {/* Mobile header */}
-      <div className={`${isMobile ? 'block' : 'hidden'} fixed top-0 left-0 right-0 z-40 bg-white border-b border-gray-200 p-4`}>
+      <div className={`${isMobile ? 'block' : 'hidden'} fixed top-0 left-0 right-0 z-40 bg-white border-b-2 border-gray-200 p-4 shadow-md`}>
         <div className="flex items-center justify-between">
           <Button variant="ghost" size="icon" onClick={toggleMobileMenu}>
             <MenuIcon size={24} />
@@ -171,12 +172,14 @@ const MainLayout = ({ children }: MainLayoutProps) => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full">
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
+                  <Avatar className="h-8 w-8 border border-gray-200">
+                    <AvatarFallback className="bg-salon-purple/20 text-salon-purple">
+                      {currentUser.name.charAt(0)}
+                    </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="shadow-lg border-2 border-gray-200">
                 <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
@@ -200,9 +203,9 @@ const MainLayout = ({ children }: MainLayoutProps) => {
             className="fixed inset-0 bg-black/50 z-40"
             onClick={toggleMobileMenu}
           />
-          <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transition-transform duration-300 ease-in-out translate-x-0">
+          <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transition-transform duration-300 ease-in-out translate-x-0 border-r-2 border-gray-200">
             <div className="flex flex-col h-full">
-              <div className="px-4 py-6 flex justify-between items-center">
+              <div className="px-4 py-6 flex justify-between items-center border-b-2 border-gray-100">
                 <h1 className="text-lg font-bold text-salon-purple">
                   Gestão do Salão
                 </h1>
@@ -211,41 +214,43 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                 </Button>
               </div>
 
-              <nav className="flex-1 px-2 space-y-1">
+              <nav className="flex-1 px-2 py-4 space-y-2">
                 {filteredNavItems.map((item) => (
                   <NavLink
                     key={item.path}
                     to={item.path}
                     className={({ isActive }) =>
                       cn(
-                        "flex items-center px-4 py-3 text-sm rounded-md transition-colors",
+                        "flex items-center px-4 py-3 text-sm rounded-md transition-colors border-2",
                         isActive
-                          ? "bg-salon-purple text-white"
-                          : "text-gray-700 hover:bg-gray-100"
+                          ? "bg-salon-purple text-white border-salon-purple shadow-md"
+                          : "text-gray-700 hover:bg-gray-100 border-transparent hover:border-gray-200"
                       )
                     }
                     onClick={toggleMobileMenu}
                   >
                     <span className="mr-3">{item.icon}</span>
-                    <span>{item.label}</span>
+                    <span className="font-medium">{item.label}</span>
                   </NavLink>
                 ))}
                 
                 <Button
                   variant="ghost"
-                  className="flex w-full items-center px-4 py-3 text-sm rounded-md transition-colors text-gray-700 hover:bg-gray-100 justify-start"
+                  className="flex w-full items-center px-4 py-3 text-sm rounded-md transition-colors text-gray-700 hover:bg-gray-100 justify-start border-2 border-transparent hover:border-gray-200 mt-4"
                   onClick={handleLogout}
                 >
                   <LogOut size={20} className="mr-3" />
-                  <span>Sair</span>
+                  <span className="font-medium">Sair</span>
                 </Button>
               </nav>
               
               {currentUser && (
-                <div className="border-t border-gray-200 p-4">
+                <div className="border-t-2 border-gray-200 p-4 bg-gray-50">
                   <div className="flex items-center">
-                    <Avatar className="h-8 w-8 mr-2">
-                      <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
+                    <Avatar className="h-8 w-8 mr-2 border border-gray-200">
+                      <AvatarFallback className="bg-salon-purple/20 text-salon-purple">
+                        {currentUser.name.charAt(0)}
+                      </AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col">
                       <span className="text-sm font-medium">{currentUser.name}</span>
@@ -262,8 +267,10 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       )}
 
       {/* Main content */}
-      <main className={`flex-1 p-4 md:p-8 ${isMobile ? 'mt-16' : 'ml-64'}`}>
-        {children}
+      <main className={`flex-1 p-4 md:p-8 ${isMobile ? 'mt-16' : 'ml-64'} bg-gray-50`}>
+        <div className="bg-white rounded-lg shadow-md border-2 border-gray-100 p-6">
+          {children}
+        </div>
       </main>
     </div>
   );
