@@ -60,4 +60,10 @@ export interface CartItem {
   service: Service;
   client: Client;
   teamMember?: TeamMember;
+  quantity: number;
+}
+
+export interface AuthState {
+  isAuthenticated: boolean;
+  currentUser: TeamMember | null;
 }

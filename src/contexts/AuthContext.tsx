@@ -30,7 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       (member) => 
         member.email === email && 
         member.password === password && 
-        member.hasLoginAccess !== false
+        member.hasAccess !== false
     );
 
     if (user) {

@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { CartItem, Service } from '../types';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 interface CartContextType {
   cartItems: CartItem[];
@@ -41,7 +41,15 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           duration: 2000,
         });
         
-        return [...prevItems, { service, quantity: 1 }];
+        // Create a new cart item with default values
+        const newItem: CartItem = {
+          id: Date.now(), // Use timestamp as a simple unique ID
+          service,
+          client: { id: 0, name: '' }, // This will be set during checkout
+          quantity: 1
+        };
+        
+        return [...prevItems, newItem];
       }
     });
   };
