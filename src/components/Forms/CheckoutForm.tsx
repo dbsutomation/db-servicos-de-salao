@@ -25,6 +25,14 @@ interface CheckoutFormProps {
   onSuccess?: () => void;
 }
 
+// Mapeamento das formas de pagamento
+const paymentMethodLabels: Record<string, string> = {
+  'debit': 'Cartão de Débito',
+  'credit': 'Cartão de Crédito',
+  'cash': 'Dinheiro',
+  'pix': 'PIX'
+};
+
 const CheckoutForm = ({ onSuccess }: CheckoutFormProps) => {
   const { currentUser } = useAuth();
   const { cartItems, clearCart } = useCart();
@@ -74,7 +82,9 @@ const CheckoutForm = ({ onSuccess }: CheckoutFormProps) => {
           teamMember,
           client,
           date: new Date().toISOString().split('T')[0],
-          commissionAmount: item.service.price * (item.service.commission / 100)
+          commissionAmount: item.service.price * (item.service.commission / 100),
+          // Usar o valor correto da forma de pagamento
+          paymentMethod: paymentMethodLabels[values.paymentMethod]
         };
         
         serviceRecords.push(newRecord);

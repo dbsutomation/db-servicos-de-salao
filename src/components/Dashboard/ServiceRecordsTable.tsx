@@ -1,8 +1,10 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Search } from 'lucide-react';
 
 interface ServiceRecord {
   id: number;
@@ -29,9 +31,36 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
   totalCommissions,
   totalServiceValue
 }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Função de filtro para a busca
+  const filteredRecords = serviceRecordsList.filter(record => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      record.professional.toLowerCase().includes(searchLower) ||
+      record.service.toLowerCase().includes(searchLower) ||
+      record.serviceType.toLowerCase().includes(searchLower) ||
+      record.category.toLowerCase().includes(searchLower) ||
+      record.client.toLowerCase().includes(searchLower) ||
+      record.paymentMethod.toLowerCase().includes(searchLower) ||
+      format(new Date(record.date), 'dd/MM/yyyy').includes(searchTerm)
+    );
+  });
+
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-4">Serviços realizados</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold">Serviços realizados</h2>
+        <div className="relative w-64">
+          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+          <Input 
+            placeholder="Buscar serviços..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+      </div>
       <Card className="shadow-md border-2 border-gray-100">
         <Table>
           <TableHeader>
@@ -48,7 +77,7 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {serviceRecordsList.map((record) => (
+            {filteredRecords.map((record) => (
               <TableRow key={record.id} className="border-b border-gray-200 hover:bg-gray-50">
                 <TableCell>{format(new Date(record.date), 'dd/MM/yyyy')}</TableCell>
                 <TableCell>{record.professional}</TableCell>
@@ -71,10 +100,10 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
                 </TableCell>
               </TableRow>
             ))}
-            {serviceRecordsList.length === 0 && (
+            {filteredRecords.length === 0 && (
               <TableRow>
                 <TableCell colSpan={9} className="text-center py-4 text-muted-foreground">
-                  Nenhum dado para o período selecionado
+                  {searchTerm ? "Nenhum resultado encontrado para a busca" : "Nenhum dado para o período selecionado"}
                 </TableCell>
               </TableRow>
             )}

@@ -1,11 +1,13 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, Menu, X, LogOut, User } from 'lucide-react';
+import { ShoppingCart, Menu, X, LogOut, User, Edit } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
+import { Input } from '@/components/ui/input';
+import { toast } from '@/hooks/use-toast';
 
 const Navbar = () => {
   const location = useLocation();
@@ -13,6 +15,9 @@ const Navbar = () => {
   const { cartItems } = useCart();
   const { logout, currentUser, isAuthenticated } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [salonTitle, setSalonTitle] = useState('Gestão do Salão - Arquiteto Capilar');
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
 
@@ -48,13 +53,86 @@ const Navbar = () => {
     navigate('/login');
   };
 
+  const handleEditTitle = () => {
+    setIsEditingTitle(true);
+  };
+
+  // Foco no input quando iniciar a edição
+  useEffect(() => {
+    if (isEditingTitle && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isEditingTitle]);
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSalonTitle(e.target.value);
+  };
+
+  const handleTitleSave = () => {
+    setIsEditingTitle(false);
+    if (salonTitle.trim() === '') {
+      setSalonTitle('Gestão do Salão - Arquiteto Capilar');
+    } else {
+      toast({
+        title: "Título atualizado",
+        description: "O título do salão foi atualizado com sucesso."
+      });
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleTitleSave();
+    } else if (e.key === 'Escape') {
+      setIsEditingTitle(false);
+    }
+  };
+
+  // Detectar clique fora do input para salvar
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isEditingTitle && inputRef.current && !inputRef.current.contains(event.target as Node)) {
+        handleTitleSave();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isEditingTitle]);
+
   return (
     <nav className="bg-white border-b shadow-sm sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
-          <Link to="/" className="text-xl font-semibold text-salon-purple">
-            Gestão do Salão - Arquiteteto Capilar
-          </Link>
+          <div className="flex items-center">
+            {isEditingTitle ? (
+              <Input
+                ref={inputRef}
+                value={salonTitle}
+                onChange={handleTitleChange}
+                onBlur={handleTitleSave}
+                onKeyDown={handleKeyDown}
+                className="text-xl font-semibold text-salon-purple max-w-xs"
+              />
+            ) : (
+              <div className="flex items-center">
+                <Link to="/" className="text-xl font-semibold text-salon-purple">
+                  {salonTitle}
+                </Link>
+                {currentUser?.isManager && (
+                  <button 
+                    onClick={handleEditTitle}
+                    className="ml-2 p-1 text-gray-500 hover:text-salon-purple"
+                    aria-label="Editar título"
+                  >
+                    <Edit size={16} />
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex space-x-8">
@@ -84,7 +162,7 @@ const Navbar = () => {
               <Button variant="ghost" className="relative">
                 <ShoppingCart size={20} />
                 {totalItems > 0 && (
-                  <Badge variant="destructive" className="absolute -top-2 -right-2">
+                  <Badge variant="destructive" className="absolute -top-2 -right-2 min-w-[20px] h-5 flex items-center justify-center">
                     {totalItems}
                   </Badge>
                 )}
@@ -107,7 +185,7 @@ const Navbar = () => {
             <Link to="/cart" className="mr-4 relative">
               <ShoppingCart size={20} />
               {totalItems > 0 && (
-                <Badge variant="destructive" className="absolute -top-2 -right-2">
+                <Badge variant="destructive" className="absolute -top-2 -right-2 min-w-[20px] h-5 flex items-center justify-center">
                   {totalItems}
                 </Badge>
               )}
