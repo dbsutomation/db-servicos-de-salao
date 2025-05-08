@@ -5,13 +5,14 @@ import { Button } from '@/components/ui/button';
 import { ShoppingCart, UserCircle, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
+import { Badge } from '@/components/ui/badge';
 
 const Navbar = () => {
   const navigate = useNavigate();
   const { logout, currentUser } = useAuth();
-  const { cart } = useCart();
+  const { cartItems } = useCart();
   
-  const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
+  const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
 
   return (
     <nav className="bg-white border-b border-gray-200 px-4 py-2.5 fixed left-0 right-0 top-0 z-50">
@@ -29,9 +30,9 @@ const Navbar = () => {
             <Button variant="outline" size="icon" className="border-none">
               <ShoppingCart className="h-5 w-5" />
               {totalItems > 0 && (
-                <span className="absolute -top-1 -right-1 h-5 w-5 text-xs rounded-full bg-red-500 text-white flex items-center justify-center">
+                <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 text-xs flex items-center justify-center p-0 rounded-full">
                   {totalItems}
-                </span>
+                </Badge>
               )}
             </Button>
           </Link>
