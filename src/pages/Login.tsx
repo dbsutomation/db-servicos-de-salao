@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Email inválido' }),
@@ -19,8 +21,15 @@ type LoginFormValues = z.infer<typeof formSchema>;
 
 const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Redirecionar para a página inicial se já estiver autenticado
+    if (isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(formSchema),
@@ -37,6 +46,56 @@ const Login = () => {
       if (success) {
         navigate('/');
       }
+    } catch (error: any) {
+      toast({
+        title: "Erro ao fazer login",
+        description: error.message || "Ocorreu um erro inesperado",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSignUp = async () => {
+    const email = form.getValues('email');
+    const password = form.getValues('password');
+    
+    if (!email || !password) {
+      toast({
+        title: "Campos incompletos",
+        description: "Preencha email e senha para se registrar",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password
+      });
+      
+      if (error) {
+        toast({
+          title: "Erro no cadastro",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      toast({
+        title: "Cadastro realizado",
+        description: "Sua conta foi criada com sucesso. Entre em contato com o gerente para obter acesso ao sistema.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro no cadastro",
+        description: error.message || "Ocorreu um erro inesperado",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -86,7 +145,15 @@ const Login = () => {
             </form>
           </Form>
         </CardContent>
-        <CardFooter className="flex flex-col">
+        <CardFooter className="flex flex-col space-y-4">
+          <Button 
+            variant="outline" 
+            className="w-full" 
+            onClick={handleSignUp}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Cadastrando...' : 'Cadastrar-se'}
+          </Button>
           <p className="text-center text-sm text-gray-500">
             Caso não possua acesso, entre em contato com o gerente.
           </p>

@@ -51,10 +51,10 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
     <div>
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">Serviços realizados</h2>
-        <div className="relative w-64">
+        <div className="relative w-80">
           <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
           <Input 
-            placeholder="Buscar serviços..." 
+            placeholder="Buscar" 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-9"
