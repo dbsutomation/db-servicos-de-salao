@@ -6,20 +6,21 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { clients } from '@/data/mockData';
 import ClientForm from '@/components/Forms/ClientForm';
-import { Search, Edit, Trash2, Plus, User } from 'lucide-react';
+import { Search, Edit, Trash2, Plus } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Client } from '@/types';
 
 const Clients = () => {
   const { currentUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingClient, setEditingClient] = useState<number | null>(null);
+  const [editingClient, setEditingClient] = useState<string | null>(null);
   const [clientsList, setClientsList] = useState(clients);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [clientToDelete, setClientToDelete] = useState<number | null>(null);
+  const [clientToDelete, setClientToDelete] = useState<string | null>(null);
 
   const filteredClients = clientsList.filter((client) => 
     client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -41,8 +42,9 @@ const Clients = () => {
       });
     } else {
       // Add new client
-      const newClient = {
-        id: Math.max(0, ...clientsList.map(c => c.id)) + 1,
+      const newId = (Math.max(0, ...clientsList.map(c => parseInt(c.id))) + 1).toString();
+      const newClient: Client = {
+        id: newId,
         ...updatedClient
       };
       setClientsList(prevClients => [...prevClients, newClient]);
@@ -55,12 +57,12 @@ const Clients = () => {
     setEditingClient(null);
   };
 
-  const handleEdit = (clientId: number) => {
+  const handleEdit = (clientId: string) => {
     setEditingClient(clientId);
     setDialogOpen(true);
   };
 
-  const confirmDeleteClient = (clientId: number) => {
+  const confirmDeleteClient = (clientId: string) => {
     // Only managers can delete clients
     if (!currentUser?.isManager) {
       toast({

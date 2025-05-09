@@ -20,7 +20,7 @@ type ClientFormValues = z.infer<typeof formSchema>;
 
 interface ClientFormProps {
   onSuccess: (data: ClientFormValues) => void;
-  clientId?: number | null;
+  clientId?: string | null;
 }
 
 const ClientForm = ({ onSuccess, clientId }: ClientFormProps) => {

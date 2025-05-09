@@ -38,7 +38,7 @@ const CheckoutForm = ({ onSuccess }: CheckoutFormProps) => {
   const { cartItems, clearCart } = useCart();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [selectedClient, setSelectedClient] = useState<number | null>(null);
+  const [selectedClient, setSelectedClient] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -52,14 +52,14 @@ const CheckoutForm = ({ onSuccess }: CheckoutFormProps) => {
   // Set the current user as the default team member
   useEffect(() => {
     if (currentUser?.id) {
-      form.setValue("teamMember", String(currentUser.id));
+      form.setValue("teamMember", currentUser.id);
     }
   }, [currentUser, form]);
 
   // Handle form submission
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    const clientId = parseInt(values.client);
-    const teamMemberId = parseInt(values.teamMember);
+    const clientId = values.client;
+    const teamMemberId = values.teamMember;
     
     const client = clients.find(c => c.id === clientId);
     const teamMember = teamMembers.find(t => t.id === teamMemberId);
@@ -77,7 +77,7 @@ const CheckoutForm = ({ onSuccess }: CheckoutFormProps) => {
     cartItems.forEach(item => {
       for (let i = 0; i < item.quantity; i++) {
         const newRecord = {
-          id: serviceRecords.length + 1,
+          id: (serviceRecords.length + 1).toString(),
           service: item.service,
           teamMember,
           client,
@@ -118,7 +118,7 @@ const CheckoutForm = ({ onSuccess }: CheckoutFormProps) => {
               <Select
                 onValueChange={(value) => {
                   field.onChange(value);
-                  setSelectedClient(parseInt(value));
+                  setSelectedClient(value);
                 }}
                 value={field.value}
               >
@@ -129,7 +129,7 @@ const CheckoutForm = ({ onSuccess }: CheckoutFormProps) => {
                 </FormControl>
                 <SelectContent>
                   {clients.map((client) => (
-                    <SelectItem key={client.id} value={String(client.id)}>
+                    <SelectItem key={client.id} value={client.id}>
                       {client.name}
                     </SelectItem>
                   ))}
@@ -158,7 +158,7 @@ const CheckoutForm = ({ onSuccess }: CheckoutFormProps) => {
                 </FormControl>
                 <SelectContent>
                   {teamMembers.map((member) => (
-                    <SelectItem key={member.id} value={String(member.id)}>
+                    <SelectItem key={member.id} value={member.id}>
                       {member.name}
                     </SelectItem>
                   ))}

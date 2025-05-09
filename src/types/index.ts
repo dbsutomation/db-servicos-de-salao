@@ -58,7 +58,7 @@ export interface Expense {
 }
 
 export interface CartItem {
-  id: number;
+  id: string;
   service: Service;
   client: Client;
   teamMember?: TeamMember;

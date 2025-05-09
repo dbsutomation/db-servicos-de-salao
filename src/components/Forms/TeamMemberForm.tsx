@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -34,7 +33,7 @@ type TeamMemberFormValues = z.infer<typeof formSchema>;
 
 interface TeamMemberFormProps {
   onSuccess: (data: TeamMemberFormValues) => void;
-  teamMemberId?: number | null;
+  teamMemberId?: string | null;
 }
 
 const professions = [

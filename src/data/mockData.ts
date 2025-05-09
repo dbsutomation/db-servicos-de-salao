@@ -4,7 +4,7 @@ import { Client, Service, ServiceRecord, TeamMember } from '@/types';
 // Updated team members data
 export const teamMembers: TeamMember[] = [
   {
-    id: 1,
+    id: "1",
     name: 'Paulo Ubratan',
     profession: 'Cabelereiro',
     phone: '(11) 98765-4321',
@@ -15,7 +15,7 @@ export const teamMembers: TeamMember[] = [
     avatar: '/placeholder.svg'
   },
   {
-    id: 2,
+    id: "2",
     name: 'Maria Isabel',
     profession: 'Manicure',
     phone: '(11) 98765-4321',
@@ -30,7 +30,7 @@ export const teamMembers: TeamMember[] = [
 // Updated services data with new structure
 export const services: Service[] = [
   {
-    id: 1,
+    id: "1",
     name: 'Corte de Cabelo',
     description: 'Corte masculino ou feminino',
     price: 100,
@@ -40,7 +40,7 @@ export const services: Service[] = [
     type: 'servico'
   },
   {
-    id: 2,
+    id: "2",
     name: 'Coloração',
     description: 'Aplicação de cor e tintura',
     price: 200,
@@ -50,7 +50,7 @@ export const services: Service[] = [
     type: 'servico'
   },
   {
-    id: 4,
+    id: "4",
     name: 'Manicure',
     description: 'Tratamento das unhas das mãos',
     price: 60,
@@ -60,7 +60,7 @@ export const services: Service[] = [
     type: 'servico'
   },
   {
-    id: 5,
+    id: "5",
     name: 'Pedicure',
     description: 'Tratamento das unhas dos pés',
     price: 60,
@@ -74,19 +74,19 @@ export const services: Service[] = [
 // Client data
 export const clients: Client[] = [
   {
-    id: 1,
+    id: "1",
     name: 'João Silva',
     phone: '(11) 99999-8888',
     email: 'joao.silva@email.com'
   },
   {
-    id: 2,
+    id: "2",
     name: 'Maria Oliveira',
     phone: '(11) 97777-6666',
     email: 'maria.oliveira@email.com'
   },
   {
-    id: 3,
+    id: "3",
     name: 'Pedro Santos',
     phone: '(11) 95555-4444',
     email: 'pedro.santos@email.com'
@@ -97,7 +97,7 @@ export const clients: Client[] = [
 export const serviceRecords: ServiceRecord[] = [
   // Maria's services (Manicure/Pedicure)
   {
-    id: 1,
+    id: "1",
     service: services.find(s => s.name === 'Manicure')!,
     client: clients[0],
     teamMember: teamMembers.find(m => m.name === 'Maria Isabel')!,
@@ -106,7 +106,7 @@ export const serviceRecords: ServiceRecord[] = [
     paymentMethod: 'Dinheiro'
   },
   {
-    id: 2,
+    id: "2",
     service: services.find(s => s.name === 'Pedicure')!,
     client: clients[1],
     teamMember: teamMembers.find(m => m.name === 'Maria Isabel')!,
@@ -115,7 +115,7 @@ export const serviceRecords: ServiceRecord[] = [
     paymentMethod: 'Crédito'
   },
   {
-    id: 3,
+    id: "3",
     service: services.find(s => s.name === 'Manicure')!,
     client: clients[2],
     teamMember: teamMembers.find(m => m.name === 'Maria Isabel')!,
@@ -124,7 +124,7 @@ export const serviceRecords: ServiceRecord[] = [
     paymentMethod: 'Débito'
   },
   {
-    id: 4,
+    id: "4",
     service: services.find(s => s.name === 'Pedicure')!,
     client: clients[0],
     teamMember: teamMembers.find(m => m.name === 'Maria Isabel')!,
@@ -133,7 +133,7 @@ export const serviceRecords: ServiceRecord[] = [
     paymentMethod: 'PIX'
   },
   {
-    id: 5,
+    id: "5",
     service: services.find(s => s.name === 'Manicure')!,
     client: clients[1],
     teamMember: teamMembers.find(m => m.name === 'Maria Isabel')!,
@@ -142,7 +142,7 @@ export const serviceRecords: ServiceRecord[] = [
     paymentMethod: 'Dinheiro'
   },
   {
-    id: 6,
+    id: "6",
     service: services.find(s => s.name === 'Pedicure')!,
     client: clients[2],
     teamMember: teamMembers.find(m => m.name === 'Maria Isabel')!,
@@ -153,7 +153,7 @@ export const serviceRecords: ServiceRecord[] = [
   
   // Paulo's services (Haircut/Coloring)
   {
-    id: 7,
+    id: "7",
     service: services.find(s => s.name === 'Corte de Cabelo')!,
     client: clients[0],
     teamMember: teamMembers.find(m => m.name === 'Paulo Ubratan')!,
@@ -162,7 +162,7 @@ export const serviceRecords: ServiceRecord[] = [
     paymentMethod: 'PIX'
   },
   {
-    id: 8,
+    id: "8",
     service: services.find(s => s.name === 'Coloração')!,
     client: clients[1],
     teamMember: teamMembers.find(m => m.name === 'Paulo Ubratan')!,
@@ -171,7 +171,7 @@ export const serviceRecords: ServiceRecord[] = [
     paymentMethod: 'Débito'
   },
   {
-    id: 9,
+    id: "9",
     service: services.find(s => s.name === 'Corte de Cabelo')!,
     client: clients[2],
     teamMember: teamMembers.find(m => m.name === 'Paulo Ubratan')!,
@@ -180,7 +180,7 @@ export const serviceRecords: ServiceRecord[] = [
     paymentMethod: 'Dinheiro'
   },
   {
-    id: 10,
+    id: "10",
     service: services.find(s => s.name === 'Coloração')!,
     client: clients[0],
     teamMember: teamMembers.find(m => m.name === 'Paulo Ubratan')!,

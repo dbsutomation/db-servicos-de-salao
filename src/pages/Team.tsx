@@ -10,14 +10,15 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { TeamMember } from '@/types';
 
 const Team = () => {
   const { currentUser } = useAuth();
   const [teamMembersList, setTeamMembersList] = useState(teamMembers);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingMember, setEditingMember] = useState<number | null>(null);
+  const [editingMember, setEditingMember] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [memberToDelete, setMemberToDelete] = useState<number | null>(null);
+  const [memberToDelete, setMemberToDelete] = useState<string | null>(null);
 
   const handleSuccess = (data: any) => {
     if (editingMember) {
@@ -40,8 +41,9 @@ const Team = () => {
       });
     } else {
       // Add new team member
-      const newMember = {
-        id: Math.max(0, ...teamMembersList.map(m => m.id)) + 1,
+      const newId = (Math.max(0, ...teamMembersList.map(m => parseInt(m.id))) + 1).toString();
+      const newMember: TeamMember = {
+        id: newId,
         ...data,
         avatar: '/placeholder.svg'
       };
@@ -57,12 +59,12 @@ const Team = () => {
     setEditingMember(null);
   };
 
-  const handleEdit = (memberId: number) => {
+  const handleEdit = (memberId: string) => {
     setEditingMember(memberId);
     setDialogOpen(true);
   };
 
-  const confirmDeleteMember = (memberId: number) => {
+  const confirmDeleteMember = (memberId: string) => {
     setMemberToDelete(memberId);
     setDeleteDialogOpen(true);
   };
