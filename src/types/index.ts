@@ -1,6 +1,6 @@
 
 export interface User {
-  id: number;
+  id: string;
   name: string;
   email: string;
   password: string;
@@ -9,14 +9,14 @@ export interface User {
 }
 
 export interface Client {
-  id: number;
+  id: string;
   name: string;
   phone?: string;
   email?: string;
 }
 
 export interface Service {
-  id: number;
+  id: string;
   name: string;
   description?: string;
   price: number;
@@ -27,7 +27,7 @@ export interface Service {
 }
 
 export interface TeamMember {
-  id: number;
+  id: string;
   name: string;
   profession: string;
   phone: string;
@@ -39,7 +39,7 @@ export interface TeamMember {
 }
 
 export interface ServiceRecord {
-  id: number;
+  id: string;
   service: Service;
   client: Client;
   teamMember: TeamMember;
@@ -49,10 +49,12 @@ export interface ServiceRecord {
 }
 
 export interface Expense {
-  id: number;
+  id: string;
   name: string;
   description: string;
   amount: number;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface CartItem {

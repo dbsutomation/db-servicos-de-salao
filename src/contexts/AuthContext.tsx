@@ -64,7 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   id: data.id,
                   name: data.name,
                   email: data.email,
-                  profession: '',  // Esses campos não existem na tabela users ainda, 
+                  profession: '',  // Esses campos não existem na tabela users ainda
                   phone: '',       // podemos adicioná-los depois se necessário
                   password: '',
                   hasAccess: data.has_access,

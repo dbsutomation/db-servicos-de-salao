@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/Layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -14,22 +14,8 @@ import { Edit, Plus, Trash2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-
-// Add expense type
-export interface Expense {
-  id: number;
-  name: string;
-  description: string;
-  amount: number;
-}
-
-// Initial expenses data
-const initialExpenses: Expense[] = [
-  { id: 1, name: 'Aluguel', description: 'Aluguel mensal do salão', amount: 2500 },
-  { id: 2, name: 'Água', description: 'Conta de água', amount: 150 },
-  { id: 3, name: 'Luz', description: 'Conta de energia elétrica', amount: 350 },
-  { id: 4, name: 'Internet', description: 'Serviço de internet', amount: 120 }
-];
+import { supabase } from '@/integrations/supabase/client';
+import { Expense } from '@/types';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Nome deve ter pelo menos 2 caracteres' }),
@@ -41,11 +27,12 @@ type FormValues = z.infer<typeof formSchema>;
 
 const Records = () => {
   const { currentUser } = useAuth();
-  const [expenses, setExpenses] = useState<Expense[]>(initialExpenses);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [editExpenseId, setEditExpenseId] = useState<number | null>(null);
+  const [editExpenseId, setEditExpenseId] = useState<string | null>(null);
   const [expenseToDelete, setExpenseToDelete] = useState<Expense | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -55,6 +42,36 @@ const Records = () => {
       amount: 0
     }
   });
+
+  // Fetching expenses from Supabase
+  useEffect(() => {
+    const fetchExpenses = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('expenses')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          throw error;
+        }
+
+        if (data) {
+          setExpenses(data as Expense[]);
+        }
+      } catch (error: any) {
+        toast({
+          title: "Erro ao buscar despesas",
+          description: error.message || "Não foi possível carregar as despesas.",
+          variant: "destructive"
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchExpenses();
+  }, [toast]);
 
   const handleEditExpense = (expense: Expense) => {
     // Only managers can edit expenses
@@ -71,7 +88,7 @@ const Records = () => {
     form.reset({
       name: expense.name,
       description: expense.description,
-      amount: expense.amount
+      amount: expense.amount as number
     });
     setDialogOpen(true);
   };
@@ -91,50 +108,96 @@ const Records = () => {
     setDeleteDialogOpen(true);
   };
 
-  const handleDeleteExpense = () => {
+  const handleDeleteExpense = async () => {
     if (expenseToDelete) {
-      setExpenses(expenses.filter(expense => expense.id !== expenseToDelete.id));
-      toast({
-        title: "Despesa removida",
-        description: `${expenseToDelete.name} foi removida com sucesso.`
-      });
-      setDeleteDialogOpen(false);
-      setExpenseToDelete(null);
+      try {
+        const { error } = await supabase
+          .from('expenses')
+          .delete()
+          .eq('id', expenseToDelete.id);
+
+        if (error) throw error;
+
+        setExpenses(expenses.filter(expense => expense.id !== expenseToDelete.id));
+        toast({
+          title: "Despesa removida",
+          description: `${expenseToDelete.name} foi removida com sucesso.`
+        });
+      } catch (error: any) {
+        toast({
+          title: "Erro ao remover despesa",
+          description: error.message || "Não foi possível remover a despesa.",
+          variant: "destructive"
+        });
+      } finally {
+        setDeleteDialogOpen(false);
+        setExpenseToDelete(null);
+      }
     }
   };
 
-  const onSubmit = (data: FormValues) => {
-    if (editExpenseId) {
-      // Update existing expense
-      setExpenses(
-        expenses.map(expense => 
-          expense.id === editExpenseId 
-            ? { 
-                ...expense, 
-                name: data.name, 
-                description: data.description || '', 
-                amount: data.amount 
-              } 
-            : expense
-        )
-      );
+  const onSubmit = async (data: FormValues) => {
+    try {
+      if (editExpenseId) {
+        // Update existing expense
+        const { error } = await supabase
+          .from('expenses')
+          .update({
+            name: data.name,
+            description: data.description || '',
+            amount: data.amount
+          })
+          .eq('id', editExpenseId);
+
+        if (error) throw error;
+
+        // Update local state
+        setExpenses(
+          expenses.map(expense => 
+            expense.id === editExpenseId 
+              ? { 
+                  ...expense, 
+                  name: data.name, 
+                  description: data.description || '', 
+                  amount: data.amount 
+                } 
+              : expense
+          )
+        );
+        
+        toast({
+          title: "Despesa atualizada",
+          description: `${data.name} foi atualizada com sucesso.`
+        });
+      } else {
+        // Create new expense
+        const { data: newExpense, error } = await supabase
+          .from('expenses')
+          .insert({
+            name: data.name,
+            description: data.description || '',
+            amount: data.amount
+          })
+          .select('*')
+          .single();
+
+        if (error) throw error;
+
+        // Add to local state
+        setExpenses([newExpense as Expense, ...expenses]);
+        
+        toast({
+          title: "Despesa adicionada",
+          description: `${data.name} foi adicionada com sucesso.`
+        });
+      }
+    } catch (error: any) {
       toast({
-        title: "Despesa atualizada",
-        description: `${data.name} foi atualizada com sucesso.`
+        title: editExpenseId ? "Erro ao atualizar despesa" : "Erro ao adicionar despesa",
+        description: error.message || "Ocorreu um erro. Tente novamente.",
+        variant: "destructive"
       });
-    } else {
-      // Create new expense
-      const newExpense: Expense = {
-        id: Math.max(0, ...expenses.map(e => e.id)) + 1,
-        name: data.name,
-        description: data.description || '',
-        amount: data.amount
-      };
-      setExpenses([...expenses, newExpense]);
-      toast({
-        title: "Despesa adicionada",
-        description: `${data.name} foi adicionada com sucesso.`
-      });
+      return;
     }
     
     form.reset({
@@ -146,7 +209,7 @@ const Records = () => {
     setEditExpenseId(null);
   };
 
-  const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+  const totalExpenses = expenses.reduce((sum, expense) => sum + (expense.amount as number), 0);
 
   return (
     <MainLayout>
@@ -252,41 +315,48 @@ const Records = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {expenses.map((expense) => (
-                <TableRow key={expense.id}>
-                  <TableCell className="font-medium">{expense.name}</TableCell>
-                  <TableCell>{expense.description}</TableCell>
-                  <TableCell className="text-right">
-                    {new Intl.NumberFormat('pt-BR', {
-                      style: 'currency',
-                      currency: 'BRL'
-                    }).format(expense.amount)}
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={currentUser?.isManager ? 4 : 3} className="text-center py-6">
+                    Carregando...
                   </TableCell>
-                  {currentUser?.isManager && (
-                    <TableCell className="text-center">
-                      <div className="flex justify-center space-x-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEditExpense(expense)}
-                          className="h-8 w-8"
-                        >
-                          <Edit size={16} />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => confirmDeleteExpense(expense)}
-                          className="h-8 w-8 text-destructive"
-                        >
-                          <Trash2 size={16} />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  )}
                 </TableRow>
-              ))}
-              {expenses.length === 0 && (
+              ) : expenses.length > 0 ? (
+                expenses.map((expense) => (
+                  <TableRow key={expense.id}>
+                    <TableCell className="font-medium">{expense.name}</TableCell>
+                    <TableCell>{expense.description}</TableCell>
+                    <TableCell className="text-right">
+                      {new Intl.NumberFormat('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL'
+                      }).format(expense.amount as number)}
+                    </TableCell>
+                    {currentUser?.isManager && (
+                      <TableCell className="text-center">
+                        <div className="flex justify-center space-x-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEditExpense(expense)}
+                            className="h-8 w-8"
+                          >
+                            <Edit size={16} />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => confirmDeleteExpense(expense)}
+                            className="h-8 w-8 text-destructive"
+                          >
+                            <Trash2 size={16} />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))
+              ) : (
                 <TableRow>
                   <TableCell colSpan={currentUser?.isManager ? 4 : 3} className="text-center py-6 text-gray-500">
                     Nenhuma despesa registrada
