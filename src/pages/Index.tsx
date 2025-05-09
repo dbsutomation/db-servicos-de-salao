@@ -36,20 +36,8 @@ const Index = () => {
     serviceRecordsList
   } = useDashboardData();
 
-  // Format the service records for display in the table
-  const displayServiceRecords = serviceRecordsList.map(record => ({
-    id: record.id,
-    professional: record.teamMember.name,
-    profession: record.teamMember.profession,
-    service: record.service.name,
-    serviceType: record.service.type || 'servico',
-    category: record.service.category || '-',
-    client: record.client.name,
-    date: record.date,
-    paymentMethod: record.paymentMethod || 'Não especificado',
-    commissionAmount: record.commissionAmount || 0,
-    serviceValue: record.service.price
-  }));
+  // The serviceRecordsList is already formatted in the correct structure from the hook
+  // No transformation needed as the format is already correct
 
   return (
     <MainLayout>
@@ -99,7 +87,7 @@ const Index = () => {
 
         {/* Services Records List */}
         <ServiceRecordsTable 
-          serviceRecordsList={displayServiceRecords}
+          serviceRecordsList={serviceRecordsList}
           totalCommissions={totalCommissions}
           totalServiceValue={totalServiceValue}
         />

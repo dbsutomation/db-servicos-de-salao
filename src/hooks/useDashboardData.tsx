@@ -134,7 +134,7 @@ export const useDashboardData = () => {
     }));
   }, [filteredRecords]);
 
-  // Show individual service records
+  // Format records for the table display
   const serviceRecordsList = useMemo(() => {
     return filteredRecords.map(record => ({
       id: record.id,
