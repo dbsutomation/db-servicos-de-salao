@@ -36,6 +36,21 @@ const Index = () => {
     serviceRecordsList
   } = useDashboardData();
 
+  // Format the service records for display in the table
+  const displayServiceRecords = serviceRecordsList.map(record => ({
+    id: record.id,
+    professional: record.teamMember.name,
+    profession: record.teamMember.profession,
+    service: record.service.name,
+    serviceType: record.service.type || 'servico',
+    category: record.service.category || '-',
+    client: record.client.name,
+    date: record.date,
+    paymentMethod: record.paymentMethod || 'Não especificado',
+    commissionAmount: record.commissionAmount || 0,
+    serviceValue: record.service.price
+  }));
+
   return (
     <MainLayout>
       <div className="space-y-6">
@@ -84,7 +99,7 @@ const Index = () => {
 
         {/* Services Records List */}
         <ServiceRecordsTable 
-          serviceRecordsList={serviceRecordsList as unknown as ServiceRecord[]}
+          serviceRecordsList={displayServiceRecords}
           totalCommissions={totalCommissions}
           totalServiceValue={totalServiceValue}
         />
