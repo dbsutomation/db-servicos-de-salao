@@ -15,12 +15,14 @@ import { toast } from '@/hooks/use-toast';
 const formSchema = z.object({
   email: z.string().email({ message: 'Email inválido' }),
   password: z.string().min(1, { message: 'A senha é obrigatória' }),
+  name: z.string().optional(),
 });
 
 type LoginFormValues = z.infer<typeof formSchema>;
 
 const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
   const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
@@ -36,6 +38,7 @@ const Login = () => {
     defaultValues: {
       email: '',
       password: '',
+      name: '',
     },
   });
 
@@ -60,6 +63,7 @@ const Login = () => {
   const handleSignUp = async () => {
     const email = form.getValues('email');
     const password = form.getValues('password');
+    const name = form.getValues('name');
     
     if (!email || !password) {
       toast({
@@ -69,27 +73,63 @@ const Login = () => {
       });
       return;
     }
+
+    if (isSignUp && !name) {
+      toast({
+        title: "Nome obrigatório",
+        description: "Por favor, preencha seu nome para se cadastrar",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.auth.signUp({
+      // Primeiro, crie o usuário na autenticação do Supabase
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
-        password
+        password,
+        options: {
+          data: {
+            name: name || email.split('@')[0],
+          }
+        }
       });
       
-      if (error) {
+      if (authError) {
         toast({
           title: "Erro no cadastro",
-          description: error.message,
+          description: authError.message,
           variant: "destructive",
         });
         return;
+      }
+      
+      // Se a autenticação for bem-sucedida, o trigger no Supabase deve criar o usuário na tabela users
+      // ou podemos inserir manualmente aqui para garantir
+      if (authData.user) {
+        const { error: usersError } = await supabase
+          .from('users')
+          .insert({
+            id: authData.user.id,
+            name: name || email.split('@')[0],
+            email: email,
+            has_access: true,
+            is_manager: false
+          });
+          
+        if (usersError) {
+          console.error("Erro ao inserir na tabela users:", usersError);
+          // Podemos continuar mesmo com esse erro, já que o usuário foi criado na autenticação
+        }
       }
       
       toast({
         title: "Cadastro realizado",
         description: "Sua conta foi criada com sucesso. Entre em contato com o gerente para obter acesso ao sistema.",
       });
+      
+      setIsSignUp(false);
     } catch (error: any) {
       toast({
         title: "Erro no cadastro",
@@ -107,12 +147,27 @@ const Login = () => {
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl text-center font-bold">Gestão Salão</CardTitle>
           <CardDescription className="text-center">
-            Entre com suas credenciais para acessar o sistema
+            {isSignUp ? 'Crie sua conta para acessar o sistema' : 'Entre com suas credenciais para acessar o sistema'}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              {isSignUp && (
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Seu nome completo" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
               <FormField
                 control={form.control}
                 name="email"
@@ -139,24 +194,48 @@ const Login = () => {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Entrando...' : 'Entrar'}
-              </Button>
+              {!isSignUp && (
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? 'Entrando...' : 'Entrar'}
+                </Button>
+              )}
             </form>
           </Form>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
-          <Button 
-            variant="outline" 
-            className="w-full" 
-            onClick={handleSignUp}
-            disabled={isLoading}
-          >
-            {isLoading ? 'Cadastrando...' : 'Cadastrar-se'}
-          </Button>
-          <p className="text-center text-sm text-gray-500">
-            Caso não possua acesso, entre em contato com o gerente.
-          </p>
+          {isSignUp ? (
+            <>
+              <Button 
+                className="w-full bg-salon-purple hover:bg-salon-dark-purple" 
+                onClick={handleSignUp}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Cadastrando...' : 'Cadastrar'}
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => setIsSignUp(false)}
+                disabled={isLoading}
+              >
+                Voltar ao Login
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button 
+                variant="outline" 
+                className="w-full" 
+                onClick={() => setIsSignUp(true)}
+                disabled={isLoading}
+              >
+                Cadastrar-se
+              </Button>
+              <p className="text-center text-sm text-gray-500">
+                Caso não possua acesso, entre em contato com o gerente.
+              </p>
+            </>
+          )}
         </CardFooter>
       </Card>
     </div>

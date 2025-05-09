@@ -12,6 +12,7 @@ const Navbar = () => {
   const { logout, currentUser } = useAuth();
   const { cartItems } = useCart();
   
+  // Calcular o total de itens no carrinho
   const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
 
   return (
@@ -27,7 +28,7 @@ const Navbar = () => {
 
         <div className="flex items-center gap-2">
           <Link to="/cart" className="relative">
-            <Button variant="outline" size="icon" className="border-none">
+            <Button variant="outline" size="icon" className="relative border-none">
               <ShoppingCart className="h-5 w-5" />
               {totalItems > 0 && (
                 <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 text-xs flex items-center justify-center p-0 rounded-full">

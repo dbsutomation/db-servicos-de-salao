@@ -8,10 +8,11 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCart } from '@/contexts/CartContext';
 import { useToast } from '@/hooks/use-toast';
-import { clients, teamMembers, serviceRecords } from '@/data/mockData';
 import { useNavigate } from 'react-router-dom';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { Client, TeamMember } from '@/types';
 
 const formSchema = z.object({
   client: z.string().min(1, { message: 'Selecione um cliente' }),
@@ -38,26 +39,62 @@ const CheckoutForm = ({ onSuccess }: CheckoutFormProps) => {
   const { cartItems, clearCart } = useCart();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [selectedClient, setSelectedClient] = useState<string | null>(null);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       client: "",
-      teamMember: currentUser?.id ? String(currentUser.id) : "",
+      teamMember: "",
       paymentMethod: "pix",
     },
   });
 
-  // Set the current user as the default team member
+  // Fetch clients and team members
   useEffect(() => {
-    if (currentUser?.id) {
-      form.setValue("teamMember", currentUser.id);
-    }
-  }, [currentUser, form]);
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        // Fetch clients
+        const { data: clientsData, error: clientsError } = await supabase
+          .from('clients')
+          .select('*');
+        
+        if (clientsError) throw clientsError;
+        
+        // Fetch team members
+        const { data: teamData, error: teamError } = await supabase
+          .from('users')
+          .select('*');
+          
+        if (teamError) throw teamError;
+        
+        setClients(clientsData || []);
+        setTeamMembers(teamData || []);
+        
+        // Set current user as default team member if available
+        if (currentUser?.id) {
+          form.setValue('teamMember', currentUser.id);
+        }
+      } catch (error: any) {
+        console.error('Error fetching data:', error.message);
+        toast({
+          title: 'Erro ao carregar dados',
+          description: 'Não foi possível carregar clientes ou profissionais',
+          variant: 'destructive'
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, [currentUser, form, toast]);
 
   // Handle form submission
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
     const clientId = values.client;
     const teamMemberId = values.teamMember;
     
@@ -72,37 +109,45 @@ const CheckoutForm = ({ onSuccess }: CheckoutFormProps) => {
       });
       return;
     }
-    
-    // Create service records for each item in the cart
-    cartItems.forEach(item => {
-      for (let i = 0; i < item.quantity; i++) {
-        const newRecord = {
-          id: (serviceRecords.length + 1).toString(),
-          service: item.service,
-          teamMember,
-          client,
-          date: new Date().toISOString().split('T')[0],
-          commissionAmount: item.service.price * (item.service.commission / 100),
-          // Usar o valor correto da forma de pagamento
-          paymentMethod: paymentMethodLabels[values.paymentMethod]
-        };
-        
-        serviceRecords.push(newRecord);
+
+    try {
+      // Processar cada item do carrinho
+      for (const item of cartItems) {
+        for (let i = 0; i < item.quantity; i++) {
+          const { error } = await supabase
+            .from('service_records')
+            .insert({
+              client_id: client.id,
+              professional_id: teamMember.id,
+              service_id: item.service.id,
+              payment_method: paymentMethodLabels[values.paymentMethod],
+              commission_amount: item.service.price * (item.service.commission / 100),
+              service_value: item.service.price
+            });
+
+          if (error) throw error;
+        }
       }
-    });
-    
-    // Show success message
-    toast({
-      title: "Serviços registrados",
-      description: `${cartItems.reduce((total, item) => total + item.quantity, 0)} serviços registrados com sucesso`,
-    });
-    
-    // Clear the cart
-    clearCart();
-    
-    // Call onSuccess callback
-    if (onSuccess) {
-      onSuccess();
+      
+      // Show success message
+      toast({
+        title: "Serviços registrados",
+        description: `${cartItems.reduce((total, item) => total + item.quantity, 0)} serviços registrados com sucesso`,
+      });
+      
+      // Clear the cart
+      clearCart();
+      
+      // Call onSuccess callback
+      if (onSuccess) {
+        onSuccess();
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erro ao registrar serviços",
+        description: error.message || "Ocorreu um erro ao salvar os registros",
+        variant: "destructive",
+      });
     }
   };
   
@@ -116,11 +161,9 @@ const CheckoutForm = ({ onSuccess }: CheckoutFormProps) => {
             <FormItem>
               <FormLabel>Cliente</FormLabel>
               <Select
-                onValueChange={(value) => {
-                  field.onChange(value);
-                  setSelectedClient(value);
-                }}
+                onValueChange={field.onChange}
                 value={field.value}
+                disabled={loading}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -149,7 +192,7 @@ const CheckoutForm = ({ onSuccess }: CheckoutFormProps) => {
               <Select
                 onValueChange={field.onChange}
                 value={field.value}
-                disabled={!!currentUser && !currentUser.isManager}
+                disabled={loading || (!!currentUser && !currentUser.isManager)}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -220,7 +263,7 @@ const CheckoutForm = ({ onSuccess }: CheckoutFormProps) => {
           )}
         />
         
-        <Button type="submit" className="w-full bg-salon-purple hover:bg-salon-dark-purple">
+        <Button type="submit" className="w-full bg-salon-purple hover:bg-salon-dark-purple" disabled={loading}>
           Finalizar Registro
         </Button>
       </form>
