@@ -132,16 +132,18 @@ export const useDashboardData = () => {
   // Calculate quick stats
   const totalServices = filteredRecords.length;
   const totalCommissions = filteredRecords.reduce((total, record) => total + Number(record.commissionAmount || 0), 0);
-  const totalServiceValue = filteredRecords.reduce((total, record) => total + Number(record.serviceValue || record.service.price || 0), 0);
+  const totalServiceValue = filteredRecords.reduce((total, record) => total + Number(record.serviceValue || record.service?.price || 0), 0);
   const totalRevenue = totalServiceValue; // Revenue is the total value of all services/products
   const netProfit = totalRevenue - totalCommissions - totalExpenses; // Net profit after deducting commissions and expenses
-  const totalClients = new Set(filteredRecords.map(record => record.client.id)).size;
+  const totalClients = new Set(filteredRecords.map(record => record.client?.id)).size;
   
   // Calculate most used services
   const topServices = useMemo(() => {
-    const serviceCounts = filteredRecords.reduce((acc: Record<string, number>, record) => {
-      const serviceId = record.service.id;
-      acc[serviceId] = (acc[serviceId] || 0) + 1;
+    const serviceCounts: Record<string, number> = filteredRecords.reduce((acc: Record<string, number>, record) => {
+      if (record.service?.id) {
+        const serviceId = record.service.id;
+        acc[serviceId] = (acc[serviceId] || 0) + 1;
+      }
       return acc;
     }, {} as Record<string, number>);
 
@@ -151,16 +153,18 @@ export const useDashboardData = () => {
     
     entries.sort((a, b) => b[1] - a[1]);
     const [serviceId, count] = entries[0];
-    const service = filteredRecords.find(r => r.service.id === serviceId)?.service;
+    const service = filteredRecords.find(r => r.service?.id === serviceId)?.service;
     
-    return service ? { name: service.name, count } : { name: 'Não disponível', count: 0 };
+    return service ? { name: service.name || 'Não disponível', count } : { name: 'Não disponível', count: 0 };
   }, [filteredRecords]);
 
   // Calculate top clients
   const topClient = useMemo(() => {
-    const clientCounts = filteredRecords.reduce((acc: Record<string, number>, record) => {
-      const clientId = record.client.id;
-      acc[clientId] = (acc[clientId] || 0) + 1;
+    const clientCounts: Record<string, number> = filteredRecords.reduce((acc: Record<string, number>, record) => {
+      if (record.client?.id) {
+        const clientId = record.client.id;
+        acc[clientId] = (acc[clientId] || 0) + 1;
+      }
       return acc;
     }, {} as Record<string, number>);
 
@@ -170,22 +174,22 @@ export const useDashboardData = () => {
     
     entries.sort((a, b) => b[1] - a[1]);
     const [clientId, count] = entries[0];
-    const client = filteredRecords.find(r => r.client.id === clientId)?.client;
+    const client = filteredRecords.find(r => r.client?.id === clientId)?.client;
     
-    return client ? { name: client.name, count } : { name: 'Não disponível', count: 0 };
+    return client ? { name: client.name || 'Não disponível', count } : { name: 'Não disponível', count: 0 };
   }, [filteredRecords]);
   
   // Calculate payment method stats
   const paymentMethodStats = useMemo(() => {
     const stats = filteredRecords.reduce((acc: Record<string, number>, record) => {
       const method = record.paymentMethod || 'Não especificado';
-      acc[method] = (acc[method] || 0) + Number(record.serviceValue || record.service.price || 0);
+      acc[method] = (acc[method] || 0) + Number(record.serviceValue || record.service?.price || 0);
       return acc;
     }, {} as Record<string, number>);
     
     return Object.entries(stats).map(([method, amount]) => ({
       method, 
-      amount
+      amount: Number(amount)
     }));
   }, [filteredRecords]);
 
@@ -193,16 +197,16 @@ export const useDashboardData = () => {
   const serviceRecordsList = useMemo(() => {
     return filteredRecords.map(record => ({
       id: record.id,
-      professional: record.teamMember.name,
-      profession: record.teamMember.profession,
-      service: record.service.name,
-      serviceType: record.service.type || 'servico',
-      category: record.service.category || '-',
-      client: record.client.name,
+      professional: record.teamMember?.name || 'Não especificado',
+      profession: record.teamMember?.profession || 'Não especificado',
+      service: record.service?.name || 'Não especificado',
+      serviceType: record.service?.type || 'servico',
+      category: record.service?.category || '-',
+      client: record.client?.name || 'Não especificado',
       date: record.date,
       paymentMethod: record.paymentMethod || 'Não especificado',
       commissionAmount: Number(record.commissionAmount || 0),
-      serviceValue: Number(record.serviceValue || record.service.price || 0)
+      serviceValue: Number(record.serviceValue || record.service?.price || 0)
     }));
   }, [filteredRecords]);
 

@@ -36,9 +36,6 @@ const Index = () => {
     loading
   } = useDashboardData();
 
-  // The serviceRecordsList is already formatted in the correct structure from the hook
-  // No transformation needed as the format is already correct
-
   return (
     <MainLayout>
       <div className="space-y-6">
@@ -87,8 +84,14 @@ const Index = () => {
             <QuantityStats 
               totalServices={totalServices}
               totalClients={totalClients}
-              topServices={topServices}
-              topClient={topClient}
+              topServices={{
+                name: topServices.name,
+                count: Number(topServices.count)
+              }}
+              topClient={{
+                name: topClient.name,
+                count: Number(topClient.count)
+              }}
             />
 
             {/* Services Records List */}
