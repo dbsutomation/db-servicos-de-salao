@@ -72,7 +72,21 @@ const CheckoutForm = ({ onSuccess }: CheckoutFormProps) => {
         if (teamError) throw teamError;
         
         setClients(clientsData || []);
-        setTeamMembers(teamData || []);
+        
+        // Map the team data to match TeamMember interface
+        const mappedTeamData = teamData?.map(member => ({
+          id: member.id,
+          name: member.name,
+          email: member.email,
+          phone: member.phone || '',
+          profession: member.profession || '',
+          password: '', // This is a placeholder as we don't get passwords from the database
+          hasAccess: member.has_access,
+          isManager: member.is_manager,
+          avatar: member.avatar || ''
+        })) || [];
+        
+        setTeamMembers(mappedTeamData);
         
         // Set current user as default team member if available
         if (currentUser?.id) {
