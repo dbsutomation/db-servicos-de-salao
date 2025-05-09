@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -7,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { teamMembers } from '@/data/mockData';
+import { supabase } from '@/integrations/supabase/client';
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -66,18 +67,32 @@ const TeamMemberForm = ({ onSuccess, teamMemberId }: TeamMemberFormProps) => {
   // Populate form when editing an existing team member
   useEffect(() => {
     if (teamMemberId) {
-      const member = teamMembers.find(m => m.id === teamMemberId);
-      if (member) {
-        form.reset({
-          name: member.name,
-          profession: member.profession,
-          phone: member.phone,
-          email: member.email,
-          password: member.password,
-          hasAccess: member.hasAccess,
-          isManager: member.isManager
-        });
-      }
+      const fetchTeamMember = async () => {
+        const { data, error } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', teamMemberId)
+          .single();
+        
+        if (error) {
+          console.error('Error fetching team member:', error);
+          return;
+        }
+        
+        if (data) {
+          form.reset({
+            name: data.name,
+            profession: data.profession || '',
+            phone: data.phone || '',
+            email: data.email,
+            password: '', // Password is not fetched from the database
+            hasAccess: data.has_access,
+            isManager: data.is_manager
+          });
+        }
+      };
+
+      fetchTeamMember();
     }
   }, [teamMemberId, form]);
 

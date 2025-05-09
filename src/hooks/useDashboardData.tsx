@@ -153,7 +153,7 @@ export const useDashboardData = () => {
     const [serviceId, count] = entries[0];
     const service = filteredRecords.find(r => r.service.id === serviceId)?.service;
     
-    return service ? { name: service.name, count: Number(count) } : { name: 'Não disponível', count: 0 };
+    return service ? { name: service.name, count } : { name: 'Não disponível', count: 0 };
   }, [filteredRecords]);
 
   // Calculate top clients
@@ -172,7 +172,7 @@ export const useDashboardData = () => {
     const [clientId, count] = entries[0];
     const client = filteredRecords.find(r => r.client.id === clientId)?.client;
     
-    return client ? { name: client.name, count: Number(count) } : { name: 'Não disponível', count: 0 };
+    return client ? { name: client.name, count } : { name: 'Não disponível', count: 0 };
   }, [filteredRecords]);
   
   // Calculate payment method stats
@@ -185,7 +185,7 @@ export const useDashboardData = () => {
     
     return Object.entries(stats).map(([method, amount]) => ({
       method, 
-      amount: Number(amount)
+      amount
     }));
   }, [filteredRecords]);
 
