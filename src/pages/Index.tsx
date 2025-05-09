@@ -9,7 +9,6 @@ import PaymentMethodStats from '@/components/Dashboard/PaymentMethodStats';
 import QuantityStats from '@/components/Dashboard/QuantityStats';
 import ServiceRecordsTable from '@/components/Dashboard/ServiceRecordsTable';
 import { useDashboardData } from '@/hooks/useDashboardData';
-import { ServiceRecord } from '@/types';
 
 const Index = () => {
   const {
@@ -33,7 +32,8 @@ const Index = () => {
     topServices,
     topClient,
     paymentMethodStats,
-    serviceRecordsList
+    serviceRecordsList,
+    loading
   } = useDashboardData();
 
   // The serviceRecordsList is already formatted in the correct structure from the hook
@@ -66,31 +66,39 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Financial Stats Cards */}
-        <FinancialStats 
-          totalRevenue={totalRevenue}
-          totalCommissions={totalCommissions}
-          totalExpenses={totalExpenses}
-          netProfit={netProfit}
-        />
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <p className="text-lg">Carregando dados...</p>
+          </div>
+        ) : (
+          <>
+            {/* Financial Stats Cards */}
+            <FinancialStats 
+              totalRevenue={totalRevenue}
+              totalCommissions={totalCommissions}
+              totalExpenses={totalExpenses}
+              netProfit={netProfit}
+            />
 
-        {/* Stats by payment method */}
-        <PaymentMethodStats paymentMethodStats={paymentMethodStats} />
+            {/* Stats by payment method */}
+            <PaymentMethodStats paymentMethodStats={paymentMethodStats} />
 
-        {/* Quantity Stats Cards */}
-        <QuantityStats 
-          totalServices={totalServices}
-          totalClients={totalClients}
-          topServices={topServices}
-          topClient={topClient}
-        />
+            {/* Quantity Stats Cards */}
+            <QuantityStats 
+              totalServices={totalServices}
+              totalClients={totalClients}
+              topServices={topServices}
+              topClient={topClient}
+            />
 
-        {/* Services Records List */}
-        <ServiceRecordsTable 
-          serviceRecordsList={serviceRecordsList}
-          totalCommissions={totalCommissions}
-          totalServiceValue={totalServiceValue}
-        />
+            {/* Services Records List */}
+            <ServiceRecordsTable 
+              serviceRecordsList={serviceRecordsList}
+              totalCommissions={totalCommissions}
+              totalServiceValue={totalServiceValue}
+            />
+          </>
+        )}
       </div>
     </MainLayout>
   );

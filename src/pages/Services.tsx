@@ -1,9 +1,6 @@
-
-// Only update the relevant part of the file to fix the ID type issue
 import React, { useState, ChangeEvent, useEffect } from 'react';
 import MainLayout from '@/components/Layout/MainLayout';
 import ServiceCard from '@/components/Services/ServiceCard';
-import { services } from '@/data/mockData';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Form, FormField, FormItem, FormLabel, FormControl } from '@/components/ui/form';
@@ -16,6 +13,7 @@ import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, 
 import { useAuth } from '@/contexts/AuthContext';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { supabase } from '@/integrations/supabase/client';
 
 // Define service categories
 const serviceCategories = [
@@ -26,47 +24,15 @@ const serviceCategories = [
   { value: 'unhas', label: 'Unhas' }
 ];
 
-// Add type and category to services
-const updatedServices = services.map(service => {
-  // Assign default categories based on existing services
-  let category = 'cabelo';
-  if (service.name === 'Manicure' || service.name === 'Pedicure') {
-    category = 'unhas';
-  }
-  
-  // Remove specific services
-  if (service.name === 'Hidratação Capilar' || service.name === 'Maquiagem') {
-    return null;
-  }
-  
-  // Update prices and commissions for specific services
-  let updatedService = { ...service, category, type: 'servico' };
-  
-  if (service.name === 'Corte de Cabelo') {
-    updatedService.price = 100;
-    updatedService.commission = 0;
-  } else if (service.name === 'Coloração') {
-    updatedService.price = 200;
-    updatedService.commission = 0;
-  } else if (service.name === 'Manicure') {
-    updatedService.price = 60;
-    updatedService.commission = 60;
-  } else if (service.name === 'Pedicure') {
-    updatedService.price = 60;
-    updatedService.commission = 60;
-  }
-  
-  return updatedService;
-}).filter(Boolean) as Service[];
-
 const Services = () => {
   const { currentUser } = useAuth();
   const [open, setOpen] = useState(false);
-  const [servicesList, setServicesList] = useState(updatedServices);
+  const [servicesList, setServicesList] = useState<Service[]>([]);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState<Service | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const form = useForm({
     defaultValues: {
@@ -79,6 +45,32 @@ const Services = () => {
       type: 'servico'
     }
   });
+
+  // Fetch services from Supabase
+  useEffect(() => {
+    const fetchServices = async () => {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('services')
+          .select('*');
+        
+        if (error) throw error;
+        
+        setServicesList(data || []);
+      } catch (error: any) {
+        toast({
+          title: "Erro ao carregar serviços",
+          description: error.message || "Não foi possível carregar os serviços e produtos",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchServices();
+  }, []);
 
   const handleEditService = (service: Service) => {
     // Only managers can edit services
@@ -94,14 +86,14 @@ const Services = () => {
     setEditingService(service);
     form.reset({
       name: service.name,
-      description: service.description,
+      description: service.description || '',
       price: service.price.toString(),
       commission: service.commission.toString(),
-      image: service.image,
+      image: service.image || '/placeholder.svg',
       category: service.category || 'cabelo',
       type: service.type || 'servico'
     });
-    setImagePreview(service.image);
+    setImagePreview(service.image || '/placeholder.svg');
     setOpen(true);
   };
 
@@ -156,31 +148,9 @@ const Services = () => {
     setOpen(false);
   };
 
-  const onSubmit = (data: any) => {
-    if (editingService) {
-      const updatedServicesList = servicesList.map(service => 
-        service.id === editingService.id 
-          ? {
-              ...service,
-              name: data.name,
-              description: data.description,
-              price: parseFloat(data.price),
-              commission: parseFloat(data.commission),
-              image: data.image,
-              category: data.category,
-              type: data.type
-            } 
-          : service
-      );
-      
-      setServicesList(updatedServicesList);
-      toast({
-        title: data.type === 'produto' ? "Produto atualizado" : "Serviço atualizado",
-        description: `${data.name} foi atualizado com sucesso.`
-      });
-    } else {
-      const newService: Service = {
-        id: Date.now().toString(), // Use string ID
+  const onSubmit = async (data: any) => {
+    try {
+      const serviceData = {
         name: data.name,
         description: data.description,
         price: parseFloat(data.price),
@@ -189,12 +159,55 @@ const Services = () => {
         category: data.category,
         type: data.type
       };
-      
-      setServicesList([...servicesList, newService]);
+
+      if (editingService) {
+        // Update existing service in Supabase
+        const { error } = await supabase
+          .from('services')
+          .update(serviceData)
+          .eq('id', editingService.id);
+          
+        if (error) throw error;
+        
+        // Update local state
+        setServicesList(prevServices => 
+          prevServices.map(service => 
+            service.id === editingService.id 
+              ? { ...service, ...serviceData }
+              : service
+          )
+        );
+        
+        toast({
+          title: data.type === 'produto' ? "Produto atualizado" : "Serviço atualizado",
+          description: `${data.name} foi atualizado com sucesso.`
+        });
+      } else {
+        // Add new service to Supabase
+        const { data: newService, error } = await supabase
+          .from('services')
+          .insert(serviceData)
+          .select();
+          
+        if (error) throw error;
+        
+        if (newService && newService[0]) {
+          // Add to local state
+          setServicesList([...servicesList, newService[0] as Service]);
+          
+          toast({
+            title: data.type === 'produto' ? "Produto adicionado" : "Serviço adicionado",
+            description: `${data.name} foi adicionado com sucesso.`
+          });
+        }
+      }
+    } catch (error: any) {
       toast({
-        title: data.type === 'produto' ? "Produto adicionado" : "Serviço adicionado",
-        description: `${data.name} foi adicionado com sucesso.`
+        title: "Erro",
+        description: error.message || "Ocorreu um erro ao salvar o item",
+        variant: "destructive"
       });
+      return;
     }
     
     resetForm();
@@ -205,18 +218,34 @@ const Services = () => {
     setDeleteDialogOpen(true);
   };
 
-  const handleDeleteService = () => {
+  const handleDeleteService = async () => {
     if (serviceToDelete) {
-      const filteredServices = servicesList.filter(
-        service => service.id !== serviceToDelete.id
-      );
-      setServicesList(filteredServices);
-      toast({
-        title: serviceToDelete.type === 'produto' ? "Produto removido" : "Serviço removido",
-        description: `${serviceToDelete.name} foi removido com sucesso.`
-      });
-      setDeleteDialogOpen(false);
-      setServiceToDelete(null);
+      try {
+        // Delete from Supabase
+        const { error } = await supabase
+          .from('services')
+          .delete()
+          .eq('id', serviceToDelete.id);
+          
+        if (error) throw error;
+        
+        // Update local state
+        setServicesList(servicesList.filter(service => service.id !== serviceToDelete.id));
+        
+        toast({
+          title: serviceToDelete.type === 'produto' ? "Produto removido" : "Serviço removido",
+          description: `${serviceToDelete.name} foi removido com sucesso.`
+        });
+      } catch (error: any) {
+        toast({
+          title: "Erro",
+          description: error.message || "Ocorreu um erro ao excluir o item",
+          variant: "destructive"
+        });
+      } finally {
+        setDeleteDialogOpen(false);
+        setServiceToDelete(null);
+      }
     }
   };
 
@@ -246,23 +275,35 @@ const Services = () => {
           }
         </p>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {servicesList.map((service) => (
-            <div key={service.id} className="relative">
-              <ServiceCard 
-                service={service} 
-              />
-              {currentUser?.isManager && (
-                <Button
-                  onClick={() => handleEditService(service)}
-                  className="absolute top-2 right-2 rounded-full w-8 h-8 p-0 bg-white/80 hover:bg-white"
-                >
-                  <Pencil className="h-4 w-4 text-salon-purple" />
-                </Button>
-              )}
-            </div>
-          ))}
-        </div>
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <p className="text-lg">Carregando serviços e produtos...</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {servicesList.map((service) => (
+              <div key={service.id} className="relative">
+                <ServiceCard 
+                  service={service} 
+                />
+                {currentUser?.isManager && (
+                  <Button
+                    onClick={() => handleEditService(service)}
+                    className="absolute top-2 right-2 rounded-full w-8 h-8 p-0 bg-white/80 hover:bg-white"
+                  >
+                    <Pencil className="h-4 w-4 text-salon-purple" />
+                  </Button>
+                )}
+              </div>
+            ))}
+            
+            {servicesList.length === 0 && !loading && (
+              <div className="col-span-full text-center py-12 text-gray-500 bg-white rounded-lg shadow-md border-2 border-gray-100">
+                Nenhum serviço ou produto cadastrado
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <Dialog open={open} onOpenChange={(isOpen) => { 

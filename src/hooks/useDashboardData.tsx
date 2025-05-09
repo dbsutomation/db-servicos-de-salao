@@ -1,17 +1,9 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { isAfter, isBefore, addDays, parseISO } from 'date-fns';
-import { serviceRecords } from '@/data/mockData';
 import { useAuth } from '@/contexts/AuthContext';
-import { Expense } from '@/types';
-
-// Mock expenses data
-const initialExpenses: Expense[] = [
-  { id: "1", name: 'Aluguel', description: 'Aluguel mensal do salão', amount: 2500 },
-  { id: "2", name: 'Água', description: 'Conta de água', amount: 150 },
-  { id: "3", name: 'Luz', description: 'Conta de energia elétrica', amount: 350 },
-  { id: "4", name: 'Internet', description: 'Serviço de internet', amount: 120 }
-];
+import { supabase } from '@/integrations/supabase/client';
+import { Expense, ServiceRecord, Service, TeamMember, Client } from '@/types';
 
 export const useDashboardData = () => {
   const { currentUser } = useAuth();
@@ -20,6 +12,69 @@ export const useDashboardData = () => {
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [selectedProfessional, setSelectedProfessional] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<string>('all');
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [serviceRecords, setServiceRecords] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch expenses and service records from Supabase
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        // Fetch expenses
+        const { data: expensesData, error: expensesError } = await supabase
+          .from('expenses')
+          .select('*');
+
+        if (expensesError) {
+          throw expensesError;
+        }
+
+        // Fetch service records with related data
+        const { data: recordsData, error: recordsError } = await supabase
+          .from('service_records')
+          .select(`
+            id,
+            date,
+            payment_method,
+            commission_amount,
+            service_value,
+            services:service_id (id, name, price, type, category),
+            clients:client_id (id, name),
+            users:professional_id (id, name, profession)
+          `);
+
+        if (recordsError) {
+          throw recordsError;
+        }
+
+        setExpenses(expensesData || []);
+        
+        // Transform the fetched data to match the expected structure
+        const formattedRecords = recordsData?.map((record: any) => ({
+          id: record.id,
+          date: record.date ? record.date.split('T')[0] : new Date().toISOString().split('T')[0],
+          paymentMethod: record.payment_method,
+          commissionAmount: record.commission_amount,
+          serviceValue: record.service_value,
+          service: record.services,
+          client: record.clients,
+          teamMember: {
+            ...record.users,
+            profession: record.users?.profession || 'Não especificado'
+          }
+        })) || [];
+
+        setServiceRecords(formattedRecords);
+      } catch (error: any) {
+        console.error('Error fetching dashboard data:', error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   // If user is not a manager, pre-filter by their ID
   useEffect(() => {
@@ -72,12 +127,12 @@ export const useDashboardData = () => {
   }, [serviceRecords, dateFilter, startDate, endDate, selectedProfessional, selectedType, currentUser]);
   
   // Calculate expenses
-  const totalExpenses = initialExpenses.reduce((total, expense) => total + expense.amount, 0);
+  const totalExpenses = expenses.reduce((total, expense) => total + Number(expense.amount), 0);
 
   // Calculate quick stats
   const totalServices = filteredRecords.length;
   const totalCommissions = filteredRecords.reduce((total, record) => total + (record.commissionAmount || 0), 0);
-  const totalServiceValue = filteredRecords.reduce((total, record) => total + record.service.price, 0);
+  const totalServiceValue = filteredRecords.reduce((total, record) => total + (record.serviceValue || record.service.price), 0);
   const totalRevenue = totalServiceValue; // Revenue is the total value of all services/products
   const netProfit = totalRevenue - totalCommissions - totalExpenses; // Net profit after deducting commissions and expenses
   const totalClients = new Set(filteredRecords.map(record => record.client.id)).size;
@@ -124,7 +179,7 @@ export const useDashboardData = () => {
   const paymentMethodStats = useMemo(() => {
     const stats = filteredRecords.reduce((acc, record) => {
       const method = record.paymentMethod || 'Não especificado';
-      acc[method] = (acc[method] || 0) + record.service.price;
+      acc[method] = (acc[method] || 0) + (record.serviceValue || record.service.price);
       return acc;
     }, {} as Record<string, number>);
     
@@ -147,7 +202,7 @@ export const useDashboardData = () => {
       date: record.date,
       paymentMethod: record.paymentMethod || 'Não especificado',
       commissionAmount: record.commissionAmount || 0,
-      serviceValue: record.service.price
+      serviceValue: record.serviceValue || record.service.price
     }));
   }, [filteredRecords]);
 
@@ -172,6 +227,7 @@ export const useDashboardData = () => {
     topServices,
     topClient,
     paymentMethodStats,
-    serviceRecordsList
+    serviceRecordsList,
+    loading
   };
 };
