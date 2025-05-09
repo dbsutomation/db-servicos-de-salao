@@ -55,8 +55,8 @@ export const useDashboardData = () => {
           id: record.id,
           date: record.date ? record.date.split('T')[0] : new Date().toISOString().split('T')[0],
           paymentMethod: record.payment_method,
-          commissionAmount: record.commission_amount,
-          serviceValue: record.service_value,
+          commissionAmount: Number(record.commission_amount || 0),
+          serviceValue: Number(record.service_value || 0),
           service: record.services,
           client: record.clients,
           teamMember: {
@@ -131,15 +131,15 @@ export const useDashboardData = () => {
 
   // Calculate quick stats
   const totalServices = filteredRecords.length;
-  const totalCommissions = filteredRecords.reduce((total, record) => total + (record.commissionAmount || 0), 0);
-  const totalServiceValue = filteredRecords.reduce((total, record) => total + (record.serviceValue || record.service.price), 0);
+  const totalCommissions = filteredRecords.reduce((total, record) => total + Number(record.commissionAmount || 0), 0);
+  const totalServiceValue = filteredRecords.reduce((total, record) => total + Number(record.serviceValue || record.service.price || 0), 0);
   const totalRevenue = totalServiceValue; // Revenue is the total value of all services/products
   const netProfit = totalRevenue - totalCommissions - totalExpenses; // Net profit after deducting commissions and expenses
   const totalClients = new Set(filteredRecords.map(record => record.client.id)).size;
   
   // Calculate most used services
   const topServices = useMemo(() => {
-    const serviceCounts = filteredRecords.reduce((acc, record) => {
+    const serviceCounts = filteredRecords.reduce((acc: Record<string, number>, record) => {
       const serviceId = record.service.id;
       acc[serviceId] = (acc[serviceId] || 0) + 1;
       return acc;
@@ -153,12 +153,12 @@ export const useDashboardData = () => {
     const [serviceId, count] = entries[0];
     const service = filteredRecords.find(r => r.service.id === serviceId)?.service;
     
-    return service ? { name: service.name, count } : { name: 'Não disponível', count: 0 };
+    return service ? { name: service.name, count: Number(count) } : { name: 'Não disponível', count: 0 };
   }, [filteredRecords]);
 
   // Calculate top clients
   const topClient = useMemo(() => {
-    const clientCounts = filteredRecords.reduce((acc, record) => {
+    const clientCounts = filteredRecords.reduce((acc: Record<string, number>, record) => {
       const clientId = record.client.id;
       acc[clientId] = (acc[clientId] || 0) + 1;
       return acc;
@@ -172,20 +172,20 @@ export const useDashboardData = () => {
     const [clientId, count] = entries[0];
     const client = filteredRecords.find(r => r.client.id === clientId)?.client;
     
-    return client ? { name: client.name, count } : { name: 'Não disponível', count: 0 };
+    return client ? { name: client.name, count: Number(count) } : { name: 'Não disponível', count: 0 };
   }, [filteredRecords]);
   
   // Calculate payment method stats
   const paymentMethodStats = useMemo(() => {
-    const stats = filteredRecords.reduce((acc, record) => {
+    const stats = filteredRecords.reduce((acc: Record<string, number>, record) => {
       const method = record.paymentMethod || 'Não especificado';
-      acc[method] = (acc[method] || 0) + (record.serviceValue || record.service.price);
+      acc[method] = (acc[method] || 0) + Number(record.serviceValue || record.service.price || 0);
       return acc;
     }, {} as Record<string, number>);
     
     return Object.entries(stats).map(([method, amount]) => ({
       method, 
-      amount
+      amount: Number(amount)
     }));
   }, [filteredRecords]);
 
@@ -201,8 +201,8 @@ export const useDashboardData = () => {
       client: record.client.name,
       date: record.date,
       paymentMethod: record.paymentMethod || 'Não especificado',
-      commissionAmount: record.commissionAmount || 0,
-      serviceValue: record.serviceValue || record.service.price
+      commissionAmount: Number(record.commissionAmount || 0),
+      serviceValue: Number(record.serviceValue || record.service.price || 0)
     }));
   }, [filteredRecords]);
 

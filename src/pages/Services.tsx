@@ -57,7 +57,15 @@ const Services = () => {
         
         if (error) throw error;
         
-        setServicesList(data || []);
+        // Ensure type compatibility with Service interface
+        const typedServices = data?.map(service => ({
+          ...service,
+          type: service.type === 'produto' ? 'produto' as const : 'servico' as const,
+          price: Number(service.price),
+          commission: Number(service.commission)
+        })) || [];
+        
+        setServicesList(typedServices);
       } catch (error: any) {
         toast({
           title: "Erro ao carregar serviços",

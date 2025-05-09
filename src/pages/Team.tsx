@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/Layout/MainLayout';
 import { Button } from '@/components/ui/button';
@@ -39,10 +38,10 @@ const Team = () => {
           email: user.email,
           hasAccess: user.has_access,
           isManager: user.is_manager,
-          phone: user.phone || '',
-          profession: user.profession || '',
+          phone: user.phone || '',  // Provide default values for missing fields
+          profession: user.profession || '',  // Provide default values for missing fields
           password: '',  // Password is not returned from the database
-          avatar: user.avatar || '/placeholder.svg'
+          avatar: user.avatar || '/placeholder.svg'  // Provide default value for missing avatar field
         }));
         
         setTeamMembersList(transformedData);
