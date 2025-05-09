@@ -9,6 +9,7 @@ import PaymentMethodStats from '@/components/Dashboard/PaymentMethodStats';
 import QuantityStats from '@/components/Dashboard/QuantityStats';
 import ServiceRecordsTable from '@/components/Dashboard/ServiceRecordsTable';
 import { useDashboardData } from '@/hooks/useDashboardData';
+import { ServiceRecord } from '@/types';
 
 const Index = () => {
   const {
@@ -83,7 +84,7 @@ const Index = () => {
 
         {/* Services Records List */}
         <ServiceRecordsTable 
-          serviceRecordsList={serviceRecordsList}
+          serviceRecordsList={serviceRecordsList as unknown as ServiceRecord[]}
           totalCommissions={totalCommissions}
           totalServiceValue={totalServiceValue}
         />

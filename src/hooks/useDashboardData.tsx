@@ -7,10 +7,10 @@ import { Expense } from '@/types';
 
 // Mock expenses data
 const initialExpenses: Expense[] = [
-  { id: 1, name: 'Aluguel', description: 'Aluguel mensal do salão', amount: 2500 },
-  { id: 2, name: 'Água', description: 'Conta de água', amount: 150 },
-  { id: 3, name: 'Luz', description: 'Conta de energia elétrica', amount: 350 },
-  { id: 4, name: 'Internet', description: 'Serviço de internet', amount: 120 }
+  { id: "1", name: 'Aluguel', description: 'Aluguel mensal do salão', amount: 2500 },
+  { id: "2", name: 'Água', description: 'Conta de água', amount: 150 },
+  { id: "3", name: 'Luz', description: 'Conta de energia elétrica', amount: 350 },
+  { id: "4", name: 'Internet', description: 'Serviço de internet', amount: 120 }
 ];
 
 export const useDashboardData = () => {
@@ -24,7 +24,7 @@ export const useDashboardData = () => {
   // If user is not a manager, pre-filter by their ID
   useEffect(() => {
     if (currentUser && !currentUser.isManager) {
-      setSelectedProfessional(String(currentUser.id));
+      setSelectedProfessional(currentUser.id);
     }
   }, [currentUser]);
 
@@ -34,8 +34,7 @@ export const useDashboardData = () => {
     
     // Filter by professional if selected
     if (selectedProfessional && selectedProfessional !== 'all') {
-      const professionalId = parseInt(selectedProfessional);
-      records = records.filter(record => record.teamMember.id === professionalId);
+      records = records.filter(record => record.teamMember.id === selectedProfessional);
     } else if (currentUser && !currentUser.isManager) {
       // Non-managers can only see their own records
       records = records.filter(record => record.teamMember.id === currentUser.id);
@@ -89,7 +88,7 @@ export const useDashboardData = () => {
       const serviceId = record.service.id;
       acc[serviceId] = (acc[serviceId] || 0) + 1;
       return acc;
-    }, {} as Record<number, number>);
+    }, {} as Record<string, number>);
 
     // Get the service with most occurrences
     const entries = Object.entries(serviceCounts);
@@ -97,7 +96,7 @@ export const useDashboardData = () => {
     
     entries.sort((a, b) => b[1] - a[1]);
     const [serviceId, count] = entries[0];
-    const service = filteredRecords.find(r => r.service.id === parseInt(serviceId))?.service;
+    const service = filteredRecords.find(r => r.service.id === serviceId)?.service;
     
     return service ? { name: service.name, count } : { name: 'Não disponível', count: 0 };
   }, [filteredRecords]);
@@ -108,7 +107,7 @@ export const useDashboardData = () => {
       const clientId = record.client.id;
       acc[clientId] = (acc[clientId] || 0) + 1;
       return acc;
-    }, {} as Record<number, number>);
+    }, {} as Record<string, number>);
 
     // Get the client with most occurrences
     const entries = Object.entries(clientCounts);
@@ -116,7 +115,7 @@ export const useDashboardData = () => {
     
     entries.sort((a, b) => b[1] - a[1]);
     const [clientId, count] = entries[0];
-    const client = filteredRecords.find(r => r.client.id === parseInt(clientId))?.client;
+    const client = filteredRecords.find(r => r.client.id === clientId)?.client;
     
     return client ? { name: client.name, count } : { name: 'Não disponível', count: 0 };
   }, [filteredRecords]);

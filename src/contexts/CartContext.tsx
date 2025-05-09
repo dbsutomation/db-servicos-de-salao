@@ -6,8 +6,8 @@ import { useToast } from '@/hooks/use-toast';
 interface CartContextType {
   cartItems: CartItem[];
   addToCart: (service: Service) => void;
-  removeFromCart: (serviceId: number) => void;
-  updateQuantity: (serviceId: number, quantity: number) => void;
+  removeFromCart: (serviceId: string) => void;
+  updateQuantity: (serviceId: string, quantity: number) => void;
   clearCart: () => void;
   getCartTotal: () => number;
 }
@@ -43,9 +43,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         
         // Create a new cart item with default values
         const newItem: CartItem = {
-          id: Date.now(), // Use timestamp as a simple unique ID
+          id: Date.now().toString(), // Use timestamp as a simple unique ID, converted to string
           service,
-          client: { id: 0, name: '' }, // This will be set during checkout
+          client: { id: "", name: '' }, // This will be set during checkout
           quantity: 1
         };
         
@@ -54,7 +54,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const removeFromCart = (serviceId: number) => {
+  const removeFromCart = (serviceId: string) => {
     setCartItems(prevItems => {
       const itemToRemove = prevItems.find(item => item.service.id === serviceId);
       
@@ -70,7 +70,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const updateQuantity = (serviceId: number, quantity: number) => {
+  const updateQuantity = (serviceId: string, quantity: number) => {
     if (quantity <= 0) {
       removeFromCart(serviceId);
       return;

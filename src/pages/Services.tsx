@@ -1,4 +1,5 @@
 
+// Only update the relevant part of the file to fix the ID type issue
 import React, { useState, ChangeEvent, useEffect } from 'react';
 import MainLayout from '@/components/Layout/MainLayout';
 import ServiceCard from '@/components/Services/ServiceCard';
@@ -179,7 +180,7 @@ const Services = () => {
       });
     } else {
       const newService: Service = {
-        id: servicesList.length + 1,
+        id: Date.now().toString(), // Use string ID
         name: data.name,
         description: data.description,
         price: parseFloat(data.price),
