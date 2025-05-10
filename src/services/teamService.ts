@@ -37,6 +37,8 @@ export const fetchTeamMembers = async (): Promise<TeamMember[]> => {
 
 export const updateTeamMember = async (memberId: string, data: any): Promise<boolean> => {
   try {
+    console.log("Atualizando membro:", memberId, data);
+    
     // Preparar dados para atualização
     const updateData: any = {
       name: data.name,
@@ -68,7 +70,7 @@ export const updateTeamMember = async (memberId: string, data: any): Promise<boo
     
     return true;
   } catch (error: any) {
-    handleError(error, "ao salvar o membro da equipe");
+    handleError(error, "ao atualizar o membro da equipe");
     return false;
   }
 };
@@ -152,6 +154,8 @@ const handleError = (error: any, action: string): void => {
   } else if (error.code === '23514') {
     errorMessage = "Os dados fornecidos não atendem às restrições do banco de dados";
   }
+  
+  console.error("Erro:", error);
   
   toast({
     title: "Erro",

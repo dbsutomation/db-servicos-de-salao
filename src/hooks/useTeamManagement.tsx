@@ -33,19 +33,25 @@ export const useTeamManagement = () => {
   const handleSuccess = async (data: any) => {
     let success = false;
     
-    if (editingMember) {
-      success = await updateTeamMember(editingMember, data);
-    } else {
-      success = await createTeamMember(data);
-    }
-    
-    if (success) {
-      // Refresh the team members list
-      await refreshTeamMembers();
+    try {
+      if (editingMember) {
+        console.log("Atualizando membro existente:", editingMember);
+        success = await updateTeamMember(editingMember, data);
+      } else {
+        console.log("Criando novo membro");
+        success = await createTeamMember(data);
+      }
       
-      // Close the dialog and reset editing state
-      setDialogOpen(false);
-      setEditingMember(null);
+      if (success) {
+        // Refresh the team members list
+        await refreshTeamMembers();
+        
+        // Close the dialog and reset editing state
+        setDialogOpen(false);
+        setEditingMember(null);
+      }
+    } catch (error) {
+      console.error("Erro ao processar operação do membro:", error);
     }
   };
 
@@ -65,6 +71,7 @@ export const useTeamManagement = () => {
         return;
       }
       
+      console.log("Excluindo membro:", memberToDelete, member?.name);
       const success = await deleteTeamMember(memberToDelete, member?.name);
       
       if (success) {

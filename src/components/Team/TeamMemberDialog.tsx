@@ -18,6 +18,8 @@ const TeamMemberDialog = ({
   onSuccess,
   title
 }: TeamMemberDialogProps) => {
+  console.log("TeamMemberDialog - editingMember:", editingMember);
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
