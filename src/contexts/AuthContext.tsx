@@ -8,16 +8,18 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { authState, setAuthState, isLoading } = useAuthState();
-  const { login, logout, checkAccess } = useAuthActions(authState, setAuthState);
+  const { login, logout, checkAccess, isLoading: actionsLoading } = useAuthActions(authState, setAuthState);
+
+  const isAuthLoading = isLoading || actionsLoading;
 
   // Log do estado de autenticação quando muda
   useEffect(() => {
     console.log("AuthContext atualizado:", { 
       isAuthenticated: authState.isAuthenticated, 
       user: authState.currentUser?.email,
-      isLoading 
+      isLoading: isAuthLoading 
     });
-  }, [authState, isLoading]);
+  }, [authState, isAuthLoading]);
 
   return (
     <AuthContext.Provider value={{ 
@@ -25,7 +27,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login, 
       logout, 
       checkAccess,
-      isLoading
+      isLoading: isAuthLoading
     }}>
       {children}
     </AuthContext.Provider>

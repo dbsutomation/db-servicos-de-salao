@@ -33,12 +33,13 @@ export const useAuthActions = (
         return false;
       }
       
-      if (data.user) {
-        console.log("Login bem-sucedido para:", data.user.email);
-        return true;
-      }
+      console.log("Login bem-sucedido para:", data.user?.email);
+      toast({
+        title: "Login bem-sucedido",
+        description: "Bem-vindo de volta!",
+      });
       
-      return false;
+      return true;
     } catch (error: any) {
       console.error("Erro no login:", error);
       toast({
@@ -55,13 +56,15 @@ export const useAuthActions = (
   const logout = async () => {
     try {
       setIsLoading(true);
+      console.log("Realizando logout");
       await supabase.auth.signOut();
       setAuthState({ isAuthenticated: false, currentUser: null });
-      navigate('/login', { replace: true });
       toast({
         title: "Logout realizado",
         description: "Você saiu do sistema.",
       });
+      // Navigate after state is updated
+      setTimeout(() => navigate('/login', { replace: true }), 0);
     } catch (error: any) {
       console.error("Erro ao fazer logout:", error);
       toast({

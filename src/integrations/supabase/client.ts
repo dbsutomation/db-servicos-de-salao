@@ -15,12 +15,21 @@ export const supabase = createClient<Database>(
     auth: {
       persistSession: true,
       autoRefreshToken: true,
-      storage: localStorage
+      storage: localStorage,
+      detectSessionInUrl: true
     }
   }
 );
 
 // Add debug logging for auth state changes
 supabase.auth.onAuthStateChange((event, session) => {
-  console.log("Auth event:", event, "Session:", session?.user?.email || "No user");
+  console.log("Client Auth event:", event, "Session:", session?.user?.email || "No user");
 });
+
+// Initialize auth state from URL
+(async () => {
+  const { error } = await supabase.auth.initialize();
+  if (error) {
+    console.error("Error initializing auth:", error);
+  }
+})();

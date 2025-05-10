@@ -14,7 +14,7 @@ export const useAuthState = () => {
   
   const { toast } = useToast();
 
-  // Função assíncrona para buscar dados do usuário
+  // Função para buscar dados do usuário
   const fetchUserData = async (userId: string) => {
     try {
       console.log("Fetching user data for:", userId);
@@ -27,6 +27,7 @@ export const useAuthState = () => {
         
       if (error) {
         console.error('Erro ao buscar dados do usuário:', error);
+        setIsLoading(false);
         return null;
       }
       
@@ -43,6 +44,7 @@ export const useAuthState = () => {
           });
           await supabase.auth.signOut();
           setAuthState({ isAuthenticated: false, currentUser: null });
+          setIsLoading(false);
           return null;
         }
         
@@ -64,38 +66,50 @@ export const useAuthState = () => {
       return null;
     } catch (error) {
       console.error('Erro ao buscar dados do usuário:', error);
+      setIsLoading(false);
       return null;
     }
   };
 
   useEffect(() => {
+    let mounted = true;
     console.log("Setting up auth state listener");
     setIsLoading(true);
     
-    // Set up auth state listener FIRST to avoid missing events
+    // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, newSession) => {
+      async (event, newSession) => {
         console.log("Auth event in hook:", event);
+        
+        if (!mounted) return;
         
         // Handle auth state change
         if (newSession?.user) {
           console.log("Auth state changed, user is authenticated:", newSession.user.id);
-          // Use setTimeout to prevent recursion
+          
+          // Fetch user data, but don't call any Supabase functions inside the callback
+          const userId = newSession.user.id;
           setTimeout(async () => {
-            const teamMember = await fetchUserData(newSession.user.id);
-            if (teamMember) {
+            if (!mounted) return;
+            
+            const teamMember = await fetchUserData(userId);
+            if (teamMember && mounted) {
               console.log("Setting auth state with team member:", teamMember.email);
               setAuthState({
                 isAuthenticated: true,
                 currentUser: teamMember
               });
+            } else if (mounted) {
+              setAuthState({ isAuthenticated: false, currentUser: null });
             }
-            setIsLoading(false);
+            if (mounted) setIsLoading(false);
           }, 0);
         } else {
           console.log("Auth state changed, user is not authenticated");
-          setAuthState({ isAuthenticated: false, currentUser: null });
-          setIsLoading(false);
+          if (mounted) {
+            setAuthState({ isAuthenticated: false, currentUser: null });
+            setIsLoading(false);
+          }
         }
       }
     );
@@ -106,33 +120,35 @@ export const useAuthState = () => {
         console.log("Checking current session");
         const { data: { session } } = await supabase.auth.getSession();
         
-        if (session?.user) {
+        if (session?.user && mounted) {
           const userId = session.user.id;
           console.log("Current session exists, user is authenticated:", userId);
-          const teamMember = await fetchUserData(userId);
           
-          if (teamMember) {
+          const teamMember = await fetchUserData(userId);
+          if (teamMember && mounted) {
             console.log("Setting auth state with team member from session check:", teamMember.email);
             setAuthState({
               isAuthenticated: true,
               currentUser: teamMember
             });
           }
-        } else {
+        } else if (mounted) {
           console.log("No current session, user is not authenticated");
           setAuthState({ isAuthenticated: false, currentUser: null });
         }
         
-        setIsLoading(false);
+        if (mounted) setIsLoading(false);
       } catch (error) {
         console.error('Erro ao verificar sessão:', error);
-        setIsLoading(false);
+        if (mounted) setIsLoading(false);
       }
     };
 
+    // Call after setting up the listener
     checkCurrentSession();
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
   }, []);

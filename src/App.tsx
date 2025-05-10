@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { CartProvider } from "./contexts/CartContext";
 import Index from "./pages/Index";
@@ -27,11 +28,19 @@ const queryClient = new QueryClient({
 // Protected route component
 const ProtectedRoute = ({ children, requiredRoutes }: { children: JSX.Element, requiredRoutes: string[] }) => {
   const { isAuthenticated, checkAccess, isLoading } = useAuth();
+  const [isChecking, setIsChecking] = useState(true);
   
   console.log("ProtectedRoute: isAuthenticated =", isAuthenticated, "isLoading =", isLoading);
   
+  useEffect(() => {
+    // Wait for auth state to stabilize
+    if (!isLoading) {
+      setIsChecking(false);
+    }
+  }, [isLoading]);
+  
   // Enquanto carrega, mostra indicador de carregamento
-  if (isLoading) {
+  if (isLoading || isChecking) {
     return <div className="flex justify-center items-center h-screen">
       <div className="w-16 h-16 border-4 border-t-salon-purple border-gray-200 rounded-full animate-spin"></div>
     </div>;
@@ -59,7 +68,7 @@ const AuthenticatedApp = () => {
     <CartProvider>
       <Routes>
         <Route path="/login" element={
-          isAuthenticated ? <Navigate to="/" replace /> : <Login />
+          isAuthenticated && !isLoading ? <Navigate to="/" replace /> : <Login />
         } />
         <Route path="/" element={
           <ProtectedRoute requiredRoutes={["/"]}>

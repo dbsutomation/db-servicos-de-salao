@@ -29,11 +29,11 @@ const Login = () => {
 
   // Redirecionar se já estiver autenticado
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !isLoading) {
       console.log("Login: User is authenticated, redirecting to /");
       navigate('/', { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, isLoading, navigate]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -52,11 +52,7 @@ const Login = () => {
         
         if (success) {
           console.log("Login successful, waiting for auth state to update");
-          toast({
-            title: "Login bem-sucedido",
-            description: "Bem-vindo de volta!",
-          });
-          // Não precisamos chamar navigate aqui, o useEffect acima cuidará disso
+          // Auth state update will trigger the useEffect above for redirection
         }
       } else {
         // Registro
@@ -81,6 +77,7 @@ const Login = () => {
         setIsLogin(true);
       }
     } catch (error: any) {
+      console.error("Login error:", error);
       toast({
         title: isLogin ? "Erro no login" : "Erro no registro",
         description: error.message || "Ocorreu um erro. Verifique suas credenciais.",
@@ -158,7 +155,7 @@ const Login = () => {
             <Button
               type="submit"
               className="w-full bg-salon-purple hover:bg-salon-dark-purple"
-              disabled={isSubmitting || isLoading}
+              disabled={isSubmitting}
             >
               {isSubmitting ? 'Processando...' : isLogin ? 'Entrar' : 'Cadastrar'}
             </Button>
