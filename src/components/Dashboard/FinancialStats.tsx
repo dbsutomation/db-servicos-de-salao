@@ -18,6 +18,9 @@ const FinancialStats: React.FC<FinancialStatsProps> = ({
 }) => {
   const { currentUser } = useAuth();
   const isManager = currentUser?.isManager;
+  
+  // Definir a cor de fundo baseada no lucro líquido
+  const profitBackgroundColor = netProfit >= 0 ? "#F2FCE2" : "#FEC6A1";
 
   return (
     <>
@@ -63,7 +66,7 @@ const FinancialStats: React.FC<FinancialStatsProps> = ({
         
         {isManager && (
           <Card className="shadow-md border-2 border-gray-100">
-            <CardHeader className="bg-[#F2FCE2]">
+            <CardHeader style={{ backgroundColor: profitBackgroundColor }}>
               <CardDescription>Lucro Líquido</CardDescription>
               <CardTitle className="text-3xl">
                 {new Intl.NumberFormat('pt-BR', {

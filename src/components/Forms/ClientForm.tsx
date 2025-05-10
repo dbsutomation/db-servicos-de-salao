@@ -6,7 +6,8 @@ import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { clients } from '@/data/mockData';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -24,6 +25,7 @@ interface ClientFormProps {
 }
 
 const ClientForm = ({ onSuccess, clientId }: ClientFormProps) => {
+  const { toast } = useToast();
   const form = useForm<ClientFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -35,17 +37,36 @@ const ClientForm = ({ onSuccess, clientId }: ClientFormProps) => {
 
   // Populate form when editing an existing client
   useEffect(() => {
-    if (clientId) {
-      const client = clients.find(c => c.id === clientId);
-      if (client) {
-        form.reset({
-          name: client.name,
-          phone: client.phone || '',
-          email: client.email || ''
-        });
+    const fetchClientData = async () => {
+      if (clientId) {
+        try {
+          const { data, error } = await supabase
+            .from('clients')
+            .select('*')
+            .eq('id', clientId)
+            .single();
+
+          if (error) throw error;
+          
+          if (data) {
+            form.reset({
+              name: data.name,
+              phone: data.phone || '',
+              email: data.email || ''
+            });
+          }
+        } catch (error: any) {
+          toast({
+            title: "Erro ao carregar dados do cliente",
+            description: error.message || "Não foi possível carregar os dados do cliente",
+            variant: "destructive"
+          });
+        }
       }
-    }
-  }, [clientId, form]);
+    };
+
+    fetchClientData();
+  }, [clientId, form, toast]);
 
   const onSubmit = (data: ClientFormValues) => {
     onSuccess(data);

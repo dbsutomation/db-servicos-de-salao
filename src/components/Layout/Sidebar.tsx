@@ -1,10 +1,12 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { LogOut } from 'lucide-react';
+import { LogOut, ShoppingCart } from 'lucide-react';
 import SidebarLink from './SidebarLink';
 import UserProfile from './UserProfile';
 import { NavItem } from './types';
+import { useCart } from '@/contexts/CartContext';
+import { Badge } from '@/components/ui/badge';
 
 interface SidebarProps {
   filteredNavItems: NavItem[];
@@ -21,6 +23,34 @@ const Sidebar = ({
   isMobile = false,
   toggleMobileMenu = () => {}
 }: SidebarProps) => {
+  const { cartItems } = useCart();
+  // Calcular o total de itens no carrinho
+  const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
+  
+  // Função para renderizar os itens de navegação com badge para o carrinho
+  const renderNavItems = () => {
+    return filteredNavItems.map((item) => (
+      <div key={item.path} className="relative">
+        <SidebarLink
+          path={item.path}
+          label={item.label}
+          icon={item.icon}
+          onClick={isMobile ? toggleMobileMenu : undefined}
+        />
+        
+        {/* Badge para o carrinho */}
+        {item.path === '/cart' && totalItems > 0 && (
+          <Badge 
+            variant="destructive" 
+            className="absolute -top-1 -right-1 h-5 w-5 text-xs flex items-center justify-center p-0 rounded-full"
+          >
+            {totalItems}
+          </Badge>
+        )}
+      </div>
+    ));
+  };
+
   return (
     <div className="flex flex-col h-full">
       <div className="px-4 py-6 border-b-2 border-gray-100 flex justify-between items-center">
@@ -35,15 +65,7 @@ const Sidebar = ({
       </div>
 
       <nav className="flex-1 px-2 py-4 space-y-2">
-        {filteredNavItems.map((item) => (
-          <SidebarLink
-            key={item.path}
-            path={item.path}
-            label={item.label}
-            icon={item.icon}
-            onClick={isMobile ? toggleMobileMenu : undefined}
-          />
-        ))}
+        {renderNavItems()}
         
         <Button
           variant="ghost"

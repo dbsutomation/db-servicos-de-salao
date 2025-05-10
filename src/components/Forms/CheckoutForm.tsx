@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -152,10 +151,8 @@ const CheckoutForm = ({ onSuccess }: CheckoutFormProps) => {
       // Clear the cart
       clearCart();
       
-      // Call onSuccess callback
-      if (onSuccess) {
-        onSuccess();
-      }
+      // Navegar para a página de serviços em vez de chamar onSuccess
+      navigate('/services');
     } catch (error: any) {
       toast({
         title: "Erro ao registrar serviços",
