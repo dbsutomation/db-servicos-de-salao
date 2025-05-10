@@ -27,27 +27,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log("Inicializando AuthContext...");
+    
     // Configurar listener para mudanças de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+      async (event, newSession) => {
+        console.log("Evento de autenticação:", event);
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
         
-        if (session?.user) {
+        if (newSession?.user) {
+          console.log("Usuário autenticado encontrado:", newSession.user.email);
           // Buscar informações adicionais do usuário do banco de dados
           setTimeout(async () => {
             try {
+              console.log("Buscando dados adicionais do usuário:", newSession.user.id);
               const { data, error } = await supabase
                 .from('users')
                 .select('*')
-                .eq('id', session.user.id)
+                .eq('id', newSession.user.id)
                 .single();
                 
-              if (error) throw error;
+              if (error) {
+                console.error('Erro ao buscar dados do usuário:', error);
+                throw error;
+              }
               
               if (data) {
+                console.log("Dados do usuário encontrados:", data);
                 // Verificar se o usuário tem acesso
                 if (!data.has_access) {
+                  console.warn("Usuário sem permissão de acesso");
                   toast({
                     title: "Acesso negado",
                     description: "Sua conta não tem permissão para acessar o sistema.",
@@ -64,18 +74,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   id: data.id,
                   name: data.name,
                   email: data.email,
-                  profession: '',  // Esses campos não existem na tabela users ainda
-                  phone: '',       // podemos adicioná-los depois se necessário
+                  profession: data.profession || '',
+                  phone: data.phone || '',
                   password: '',
                   hasAccess: data.has_access,
                   isManager: data.is_manager,
-                  avatar: ''
+                  avatar: data.avatar || ''
                 };
                 
+                console.log("Usuário autenticado com sucesso:", teamMember.name);
                 setAuthState({
                   isAuthenticated: true,
                   currentUser: teamMember
                 });
+              } else {
+                console.error("Dados do usuário não encontrados");
               }
             } catch (error) {
               console.error('Erro ao buscar dados do usuário:', error);
@@ -84,6 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
           }, 0);
         } else {
+          console.log("Nenhum usuário autenticado");
           setAuthState({ isAuthenticated: false, currentUser: null });
           setIsLoading(false);
         }
@@ -93,13 +107,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Verificar sessão atual
     const checkSession = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
+        console.log("Verificando sessão existente...");
+        const { data: { session: existingSession }, error } = await supabase.auth.getSession();
         
-        if (error) throw error;
+        if (error) {
+          console.error('Erro ao verificar sessão:', error);
+          throw error;
+        }
         
-        if (session) {
-          setSession(session);
-          setUser(session.user);
+        if (existingSession) {
+          console.log("Sessão existente encontrada:", existingSession.user.email);
+          setSession(existingSession);
+          setUser(existingSession.user);
+        } else {
+          console.log("Nenhuma sessão existente encontrada");
         }
       } catch (error) {
         console.error('Erro ao verificar sessão:', error);
@@ -111,6 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     checkSession();
 
     return () => {
+      console.log("Limpando listener de autenticação");
       subscription.unsubscribe();
     };
   }, [navigate, toast]);
@@ -118,12 +140,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       setIsLoading(true);
+      console.log("Tentativa de login para:", email);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
       
       if (error) {
+        console.error("Erro no login:", error);
         toast({
           title: "Falha no login",
           description: error.message,
@@ -133,6 +157,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       
       if (data.user) {
+        console.log("Login bem-sucedido para:", data.user.email);
         toast({
           title: "Login bem-sucedido",
           description: "Bem-vindo de volta!",
@@ -142,6 +167,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       return false;
     } catch (error: any) {
+      console.error("Erro inesperado no login:", error);
       toast({
         title: "Erro no login",
         description: error.message ?? "Ocorreu um erro inesperado",
@@ -156,6 +182,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       setIsLoading(true);
+      console.log("Iniciando logout...");
       await supabase.auth.signOut();
       setAuthState({ isAuthenticated: false, currentUser: null });
       navigate('/login');
@@ -163,7 +190,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         title: "Logout realizado",
         description: "Você saiu do sistema.",
       });
+      console.log("Logout bem-sucedido");
     } catch (error: any) {
+      console.error("Erro no logout:", error);
       toast({
         title: "Erro ao sair",
         description: error.message ?? "Ocorreu um erro inesperado",

@@ -27,6 +27,29 @@ const Login = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Verificar a conexão com o Supabase
+    const checkConnection = async () => {
+      try {
+        console.log('Verificando conexão com Supabase...');
+        const { data, error } = await supabase.from('users').select('count').limit(1);
+        
+        if (error) {
+          console.error('Erro na conexão com Supabase:', error);
+          toast({
+            title: "Erro de conexão",
+            description: "Não foi possível conectar ao banco de dados. Verifique sua conexão com a internet.",
+            variant: "destructive",
+          });
+        } else {
+          console.log('Conexão com Supabase estabelecida com sucesso.');
+        }
+      } catch (err) {
+        console.error('Erro ao verificar conexão:', err);
+      }
+    };
+
+    checkConnection();
+
     // Redirecionar para a página inicial se já estiver autenticado
     if (isAuthenticated) {
       navigate('/');
@@ -44,12 +67,15 @@ const Login = () => {
 
   const onSubmit = async (values: LoginFormValues) => {
     setIsLoading(true);
+    console.log('Tentando fazer login com:', values.email);
     try {
       const success = await login(values.email, values.password);
+      console.log('Resultado do login:', success);
       if (success) {
         navigate('/');
       }
     } catch (error: any) {
+      console.error('Erro completo durante login:', error);
       toast({
         title: "Erro ao fazer login",
         description: error.message || "Ocorreu um erro inesperado",
@@ -85,6 +111,7 @@ const Login = () => {
     
     setIsLoading(true);
     try {
+      console.log('Tentando cadastrar usuário:', email);
       // Primeiro, crie o usuário na autenticação do Supabase
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
@@ -97,6 +124,7 @@ const Login = () => {
       });
       
       if (authError) {
+        console.error('Erro na autenticação:', authError);
         toast({
           title: "Erro no cadastro",
           description: authError.message,
@@ -108,6 +136,7 @@ const Login = () => {
       // Se a autenticação for bem-sucedida, o trigger no Supabase deve criar o usuário na tabela users
       // ou podemos inserir manualmente aqui para garantir
       if (authData.user) {
+        console.log('Usuário autenticado criado, ID:', authData.user.id);
         const { error: usersError } = await supabase
           .from('users')
           .insert({
@@ -121,6 +150,8 @@ const Login = () => {
         if (usersError) {
           console.error("Erro ao inserir na tabela users:", usersError);
           // Podemos continuar mesmo com esse erro, já que o usuário foi criado na autenticação
+        } else {
+          console.log('Usuário inserido na tabela users com sucesso');
         }
       }
       
@@ -131,6 +162,7 @@ const Login = () => {
       
       setIsSignUp(false);
     } catch (error: any) {
+      console.error('Erro completo durante cadastro:', error);
       toast({
         title: "Erro no cadastro",
         description: error.message || "Ocorreu um erro inesperado",
