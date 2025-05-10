@@ -80,11 +80,11 @@ const CheckoutForm = ({ onSuccess }: CheckoutFormProps) => {
           email: member.email,
           phone: member.phone || '',
           profession: member.profession || '',
-          password: '', // This is a placeholder as we don't get passwords from the database
+          password: '', // This is a placeholder since we don't get passwords from the database
           hasAccess: member.has_access,
           isManager: member.is_manager,
           avatar: member.avatar || ''
-        })) || [];
+        })) as TeamMember[];
         
         setTeamMembers(mappedTeamData);
         
