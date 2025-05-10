@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -24,13 +24,15 @@ const Login = () => {
   const navigate = useNavigate();
   const { isAuthenticated, login, isLoading } = useAuth();
   const { toast } = useToast();
+  const redirectedRef = useRef(false);
 
-  console.log("Login component rendered, isAuthenticated:", isAuthenticated, "isLoading:", isLoading);
+  console.log("[Login] Login component rendered, isAuthenticated:", isAuthenticated, "isLoading:", isLoading);
 
   // Redirecionar se já estiver autenticado
   useEffect(() => {
-    if (isAuthenticated && !isLoading) {
-      console.log("Login: User is authenticated, redirecting to /");
+    if (isAuthenticated && !isLoading && !redirectedRef.current) {
+      console.log("[Login] User is authenticated, redirecting to /");
+      redirectedRef.current = true;
       navigate('/', { replace: true });
     }
   }, [isAuthenticated, isLoading, navigate]);
@@ -44,14 +46,16 @@ const Login = () => {
   });
 
   const onSubmit = async (values: FormValues) => {
+    if (isSubmitting) return;
+    
     setIsSubmitting(true);
     try {
       if (isLogin) {
-        console.log("Attempting login for:", values.email);
+        console.log("[Login] Attempting login for:", values.email);
         const success = await login(values.email, values.password);
         
         if (success) {
-          console.log("Login successful, waiting for auth state to update");
+          console.log("[Login] Login successful, waiting for auth state to update");
           // Auth state update will trigger the useEffect above for redirection
         }
       } else {
@@ -77,7 +81,7 @@ const Login = () => {
         setIsLogin(true);
       }
     } catch (error: any) {
-      console.error("Login error:", error);
+      console.error("[Login] Login error:", error);
       toast({
         title: isLogin ? "Erro no login" : "Erro no registro",
         description: error.message || "Ocorreu um erro. Verifique suas credenciais.",
@@ -126,6 +130,7 @@ const Login = () => {
                       type="email" 
                       {...field} 
                       autoComplete={isLogin ? "username" : "email"} 
+                      disabled={isSubmitting}
                     />
                   </FormControl>
                   <FormMessage />
@@ -145,6 +150,7 @@ const Login = () => {
                       type="password" 
                       {...field} 
                       autoComplete={isLogin ? "current-password" : "new-password"} 
+                      disabled={isSubmitting}
                     />
                   </FormControl>
                   <FormMessage />
@@ -167,6 +173,7 @@ const Login = () => {
             type="button" 
             onClick={() => setIsLogin(!isLogin)} 
             className="text-salon-purple hover:underline text-sm"
+            disabled={isSubmitting}
           >
             {isLogin ? 'Não tem uma conta? Cadastre-se' : 'Já tem uma conta? Entre'}
           </button>

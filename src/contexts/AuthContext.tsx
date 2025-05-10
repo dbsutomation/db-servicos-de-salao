@@ -14,7 +14,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Log do estado de autenticação quando muda
   useEffect(() => {
-    console.log("AuthContext atualizado:", { 
+    console.log("[AuthContext] AuthContext atualizado:", { 
       isAuthenticated: authState.isAuthenticated, 
       user: authState.currentUser?.email,
       isLoading: isAuthLoading 

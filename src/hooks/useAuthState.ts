@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { User } from '@supabase/supabase-js';
 import { TeamMember, AuthState } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,13 +11,14 @@ export const useAuthState = () => {
     currentUser: null
   });
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const isMounted = useRef<boolean>(true);
   
   const { toast } = useToast();
 
   // Função para buscar dados do usuário
   const fetchUserData = async (userId: string) => {
     try {
-      console.log("Fetching user data for:", userId);
+      console.log("[useAuthState] Fetching user data for:", userId);
       
       const { data, error } = await supabase
         .from('users')
@@ -26,25 +27,31 @@ export const useAuthState = () => {
         .single();
         
       if (error) {
-        console.error('Erro ao buscar dados do usuário:', error);
-        setIsLoading(false);
+        console.error('[useAuthState] Erro ao buscar dados do usuário:', error);
+        
+        if (isMounted.current) {
+          setIsLoading(false);
+        }
         return null;
       }
       
       if (data) {
-        console.log("User data fetched successfully:", data);
+        console.log("[useAuthState] User data fetched successfully:", data);
         
         // Verificar se o usuário tem acesso
         if (!data.has_access) {
-          console.log("User does not have access");
+          console.log("[useAuthState] User does not have access");
           toast({
             title: "Acesso negado",
             description: "Sua conta não tem permissão para acessar o sistema.",
             variant: "destructive",
           });
           await supabase.auth.signOut();
-          setAuthState({ isAuthenticated: false, currentUser: null });
-          setIsLoading(false);
+          
+          if (isMounted.current) {
+            setAuthState({ isAuthenticated: false, currentUser: null });
+            setIsLoading(false);
+          }
           return null;
         }
         
@@ -65,48 +72,51 @@ export const useAuthState = () => {
       }
       return null;
     } catch (error) {
-      console.error('Erro ao buscar dados do usuário:', error);
-      setIsLoading(false);
+      console.error('[useAuthState] Erro ao buscar dados do usuário:', error);
+      
+      if (isMounted.current) {
+        setIsLoading(false);
+      }
       return null;
     }
   };
 
   useEffect(() => {
-    let mounted = true;
-    console.log("Setting up auth state listener");
+    isMounted.current = true;
+    console.log("[useAuthState] Setting up auth state listener");
     setIsLoading(true);
     
     // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, newSession) => {
-        console.log("Auth event in hook:", event);
+        console.log("[useAuthState] Auth event in hook:", event);
         
-        if (!mounted) return;
+        if (!isMounted.current) return;
         
         // Handle auth state change
         if (newSession?.user) {
-          console.log("Auth state changed, user is authenticated:", newSession.user.id);
+          console.log("[useAuthState] Auth state changed, user is authenticated:", newSession.user.id);
           
           // Fetch user data, but don't call any Supabase functions inside the callback
           const userId = newSession.user.id;
           setTimeout(async () => {
-            if (!mounted) return;
+            if (!isMounted.current) return;
             
             const teamMember = await fetchUserData(userId);
-            if (teamMember && mounted) {
-              console.log("Setting auth state with team member:", teamMember.email);
+            if (teamMember && isMounted.current) {
+              console.log("[useAuthState] Setting auth state with team member:", teamMember.email);
               setAuthState({
                 isAuthenticated: true,
                 currentUser: teamMember
               });
-            } else if (mounted) {
+            } else if (isMounted.current) {
               setAuthState({ isAuthenticated: false, currentUser: null });
             }
-            if (mounted) setIsLoading(false);
-          }, 0);
+            if (isMounted.current) setIsLoading(false);
+          }, 10);
         } else {
-          console.log("Auth state changed, user is not authenticated");
-          if (mounted) {
+          console.log("[useAuthState] Auth state changed, user is not authenticated");
+          if (isMounted.current) {
             setAuthState({ isAuthenticated: false, currentUser: null });
             setIsLoading(false);
           }
@@ -117,30 +127,30 @@ export const useAuthState = () => {
     // Check current session
     const checkCurrentSession = async () => {
       try {
-        console.log("Checking current session");
+        console.log("[useAuthState] Checking current session");
         const { data: { session } } = await supabase.auth.getSession();
         
-        if (session?.user && mounted) {
+        if (session?.user && isMounted.current) {
           const userId = session.user.id;
-          console.log("Current session exists, user is authenticated:", userId);
+          console.log("[useAuthState] Current session exists, user is authenticated:", userId);
           
           const teamMember = await fetchUserData(userId);
-          if (teamMember && mounted) {
-            console.log("Setting auth state with team member from session check:", teamMember.email);
+          if (teamMember && isMounted.current) {
+            console.log("[useAuthState] Setting auth state with team member from session check:", teamMember.email);
             setAuthState({
               isAuthenticated: true,
               currentUser: teamMember
             });
           }
-        } else if (mounted) {
-          console.log("No current session, user is not authenticated");
+        } else if (isMounted.current) {
+          console.log("[useAuthState] No current session, user is not authenticated");
           setAuthState({ isAuthenticated: false, currentUser: null });
         }
         
-        if (mounted) setIsLoading(false);
+        if (isMounted.current) setIsLoading(false);
       } catch (error) {
-        console.error('Erro ao verificar sessão:', error);
-        if (mounted) setIsLoading(false);
+        console.error('[useAuthState] Erro ao verificar sessão:', error);
+        if (isMounted.current) setIsLoading(false);
       }
     };
 
@@ -148,7 +158,7 @@ export const useAuthState = () => {
     checkCurrentSession();
 
     return () => {
-      mounted = false;
+      isMounted.current = false;
       subscription.unsubscribe();
     };
   }, []);

@@ -16,7 +16,7 @@ export const useAuthActions = (
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       setIsLoading(true);
-      console.log("Tentando login para:", email);
+      console.log("[useAuthActions] Tentando login para:", email);
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -24,7 +24,7 @@ export const useAuthActions = (
       });
       
       if (error) {
-        console.error("Erro de login:", error);
+        console.error("[useAuthActions] Erro de login:", error);
         toast({
           title: "Falha no login",
           description: error.message,
@@ -33,7 +33,7 @@ export const useAuthActions = (
         return false;
       }
       
-      console.log("Login bem-sucedido para:", data.user?.email);
+      console.log("[useAuthActions] Login bem-sucedido para:", data.user?.email);
       toast({
         title: "Login bem-sucedido",
         description: "Bem-vindo de volta!",
@@ -41,7 +41,7 @@ export const useAuthActions = (
       
       return true;
     } catch (error: any) {
-      console.error("Erro no login:", error);
+      console.error("[useAuthActions] Erro no login:", error);
       toast({
         title: "Erro no login",
         description: error.message ?? "Ocorreu um erro inesperado",
@@ -56,17 +56,23 @@ export const useAuthActions = (
   const logout = async () => {
     try {
       setIsLoading(true);
-      console.log("Realizando logout");
-      await supabase.auth.signOut();
+      console.log("[useAuthActions] Realizando logout");
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        throw error;
+      }
+      
       setAuthState({ isAuthenticated: false, currentUser: null });
       toast({
         title: "Logout realizado",
         description: "Você saiu do sistema.",
       });
+      
       // Navigate after state is updated
-      setTimeout(() => navigate('/login', { replace: true }), 0);
+      navigate('/login', { replace: true });
     } catch (error: any) {
-      console.error("Erro ao fazer logout:", error);
+      console.error("[useAuthActions] Erro ao fazer logout:", error);
       toast({
         title: "Erro ao sair",
         description: error.message ?? "Ocorreu um erro inesperado",
@@ -80,7 +86,7 @@ export const useAuthActions = (
   const checkAccess = (requiredRoutes: string[]): boolean => {
     // Se não está autenticado, não tem acesso
     if (!authState.isAuthenticated || !authState.currentUser) {
-      console.log("Usuário não autenticado ou sem dados de perfil");
+      console.log("[useAuthActions] Usuário não autenticado ou sem dados de perfil");
       return false;
     }
     
