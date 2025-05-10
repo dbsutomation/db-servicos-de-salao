@@ -28,11 +28,15 @@ const queryClient = new QueryClient({
 const ProtectedRoute = ({ children, requiredRoutes }: { children: JSX.Element, requiredRoutes: string[] }) => {
   const { isAuthenticated, checkAccess } = useAuth();
   
+  console.log("ProtectedRoute: isAuthenticated =", isAuthenticated);
+  
   if (!isAuthenticated) {
+    console.log("Usuário não autenticado, redirecionando para login");
     return <Navigate to="/login" replace />;
   }
   
   if (!checkAccess(requiredRoutes)) {
+    console.log("Usuário sem acesso a rota", requiredRoutes);
     return <Navigate to="/" replace />;
   }
   
@@ -42,6 +46,7 @@ const ProtectedRoute = ({ children, requiredRoutes }: { children: JSX.Element, r
 // Auth wrapper that uses the context
 const AuthenticatedApp = () => {
   const { isAuthenticated } = useAuth();
+  console.log("AuthenticatedApp: isAuthenticated =", isAuthenticated);
 
   return (
     <CartProvider>

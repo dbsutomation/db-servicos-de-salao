@@ -16,12 +16,15 @@ export const useAuthActions = (
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       setIsLoading(true);
+      console.log("Tentando login para:", email);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
       
       if (error) {
+        console.error("Erro de login:", error);
         toast({
           title: "Falha no login",
           description: error.message,
@@ -31,15 +34,21 @@ export const useAuthActions = (
       }
       
       if (data.user) {
+        console.log("Login bem-sucedido para:", data.user.email);
         toast({
           title: "Login bem-sucedido",
           description: "Bem-vindo de volta!",
         });
+        
+        // Forçamos a navegação para a home aqui também
+        // para garantir que o usuário seja redirecionado
+        navigate('/', { replace: true });
         return true;
       }
       
       return false;
     } catch (error: any) {
+      console.error("Erro no login:", error);
       toast({
         title: "Erro no login",
         description: error.message ?? "Ocorreu um erro inesperado",
@@ -56,12 +65,13 @@ export const useAuthActions = (
       setIsLoading(true);
       await supabase.auth.signOut();
       setAuthState({ isAuthenticated: false, currentUser: null });
-      navigate('/login');
+      navigate('/login', { replace: true });
       toast({
         title: "Logout realizado",
         description: "Você saiu do sistema.",
       });
     } catch (error: any) {
+      console.error("Erro ao fazer logout:", error);
       toast({
         title: "Erro ao sair",
         description: error.message ?? "Ocorreu um erro inesperado",
@@ -75,6 +85,7 @@ export const useAuthActions = (
   const checkAccess = (requiredRoutes: string[]): boolean => {
     // Se não está autenticado, não tem acesso
     if (!authState.isAuthenticated || !authState.currentUser) {
+      console.log("Usuário não autenticado ou sem dados de perfil");
       return false;
     }
     

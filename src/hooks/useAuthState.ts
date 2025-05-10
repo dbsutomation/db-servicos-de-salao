@@ -18,138 +18,102 @@ export const useAuthState = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  // Função assíncrona para buscar dados do usuário
+  const fetchUserData = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single();
+        
+      if (error) {
+        console.error('Erro ao buscar dados do usuário:', error);
+        return null;
+      }
+      
+      if (data) {
+        // Verificar se o usuário tem acesso
+        if (!data.has_access) {
+          toast({
+            title: "Acesso negado",
+            description: "Sua conta não tem permissão para acessar o sistema.",
+            variant: "destructive",
+          });
+          await supabase.auth.signOut();
+          setAuthState({ isAuthenticated: false, currentUser: null });
+          navigate('/login');
+          return null;
+        }
+        
+        // Converter para o formato TeamMember
+        const teamMember: TeamMember = {
+          id: data.id,
+          name: data.name,
+          email: data.email,
+          profession: data.profession || '',
+          phone: data.phone || '',
+          password: '',
+          hasAccess: data.has_access,
+          isManager: data.is_manager,
+          avatar: data.avatar || ''
+        };
+        
+        return teamMember;
+      }
+      return null;
+    } catch (error) {
+      console.error('Erro ao buscar dados do usuário:', error);
+      return null;
+    }
+  };
+
   useEffect(() => {
+    // Função para atualizar o estado de autenticação
+    const updateAuthState = async (currentSession: Session | null) => {
+      if (currentSession?.user) {
+        // Buscar informações adicionais do usuário
+        const teamMember = await fetchUserData(currentSession.user.id);
+        
+        if (teamMember) {
+          setAuthState({
+            isAuthenticated: true,
+            currentUser: teamMember
+          });
+        } else {
+          setAuthState({
+            isAuthenticated: true, // Ainda autenticado, mas sem dados completos
+            currentUser: null
+          });
+        }
+      } else {
+        setAuthState({ isAuthenticated: false, currentUser: null });
+      }
+      setIsLoading(false);
+    };
+
     // Configurar listener para mudanças de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, newSession) => {
+      (event, newSession) => {
         console.log("Auth event:", event);
         setSession(newSession);
         setUser(newSession?.user ?? null);
         
-        if (newSession?.user) {
-          // Buscar informações adicionais do usuário de forma segura
-          setTimeout(async () => {
-            try {
-              const { data, error } = await supabase
-                .from('users')
-                .select('*')
-                .eq('id', newSession.user.id)
-                .single();
-                
-              if (error) {
-                console.error('Erro ao buscar dados do usuário:', error);
-                throw error;
-              }
-              
-              if (data) {
-                // Verificar se o usuário tem acesso
-                if (!data.has_access) {
-                  toast({
-                    title: "Acesso negado",
-                    description: "Sua conta não tem permissão para acessar o sistema.",
-                    variant: "destructive",
-                  });
-                  await supabase.auth.signOut();
-                  setAuthState({ isAuthenticated: false, currentUser: null });
-                  navigate('/login');
-                  return;
-                }
-                
-                // Converter para o formato TeamMember
-                const teamMember: TeamMember = {
-                  id: data.id,
-                  name: data.name,
-                  email: data.email,
-                  profession: data.profession || '',
-                  phone: data.phone || '',
-                  password: '',
-                  hasAccess: data.has_access,
-                  isManager: data.is_manager,
-                  avatar: data.avatar || ''
-                };
-                
-                setAuthState({
-                  isAuthenticated: true,
-                  currentUser: teamMember
-                });
-              }
-            } catch (error) {
-              console.error('Erro ao buscar dados do usuário:', error);
-            } finally {
-              setIsLoading(false);
-            }
-          }, 0);
-        } else {
-          setAuthState({ isAuthenticated: false, currentUser: null });
-          setIsLoading(false);
-        }
+        // Usa setTimeout para evitar problemas de recursão
+        setTimeout(() => {
+          updateAuthState(newSession);
+        }, 0);
       }
     );
 
     // Verificar sessão atual
     const checkSession = async () => {
       try {
-        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
         
-        if (error) throw error;
-        
-        if (currentSession) {
-          setSession(currentSession);
-          setUser(currentSession.user);
-          
-          // Usar o mesmo código para buscar dados do usuário, mas como uma função separada
-          // para evitar duplicação
-          if (currentSession.user) {
-            try {
-              const { data, error: userError } = await supabase
-                .from('users')
-                .select('*')
-                .eq('id', currentSession.user.id)
-                .single();
-                
-              if (userError) throw userError;
-              
-              if (data) {
-                if (!data.has_access) {
-                  toast({
-                    title: "Acesso negado",
-                    description: "Sua conta não tem permissão para acessar o sistema.",
-                    variant: "destructive",
-                  });
-                  await supabase.auth.signOut();
-                  setAuthState({ isAuthenticated: false, currentUser: null });
-                  navigate('/login');
-                  return;
-                }
-                
-                const teamMember: TeamMember = {
-                  id: data.id,
-                  name: data.name,
-                  email: data.email,
-                  profession: data.profession || '',
-                  phone: data.phone || '',
-                  password: '',
-                  hasAccess: data.has_access,
-                  isManager: data.is_manager,
-                  avatar: data.avatar || ''
-                };
-                
-                setAuthState({
-                  isAuthenticated: true,
-                  currentUser: teamMember
-                });
-              }
-            } catch (error) {
-              console.error('Erro ao buscar dados do usuário:', error);
-            } finally {
-              setIsLoading(false);
-            }
-          } else {
-            setIsLoading(false);
-          }
-        } else {
-          setIsLoading(false);
-        }
+        await updateAuthState(currentSession);
       } catch (error) {
         console.error('Erro ao verificar sessão:', error);
         setIsLoading(false);

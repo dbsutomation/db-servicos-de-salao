@@ -10,4 +10,5 @@ export interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   checkAccess: (requiredRoutes: string[]) => boolean;
+  isLoading?: boolean;
 }

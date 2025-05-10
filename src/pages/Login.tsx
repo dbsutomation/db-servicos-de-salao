@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -24,6 +24,14 @@ const Login = () => {
   const navigate = useNavigate();
   const { isAuthenticated, login } = useAuth();
 
+  // Se já estiver autenticado, redirecionar para a home
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      console.log("Usuário autenticado, redirecionando para /");
+      navigate('/', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -32,21 +40,16 @@ const Login = () => {
     },
   });
 
-  // Redirecionar se já estiver logado
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/');
-    }
-  }, [isAuthenticated, navigate]);
-
   const onSubmit = async (values: FormValues) => {
     setIsLoading(true);
     try {
       if (isLogin) {
-        // Login
+        // Login usando a função de contexto
         const success = await login(values.email, values.password);
+        
         if (success) {
-          navigate('/');
+          console.log("Login bem-sucedido, redirecionando...");
+          // O redirecionamento agora é tratado pelo useEffect acima
         }
       } else {
         // Registro
