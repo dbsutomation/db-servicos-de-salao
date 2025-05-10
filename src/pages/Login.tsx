@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -24,15 +24,13 @@ const Login = () => {
   const navigate = useNavigate();
   const { isAuthenticated, login, isLoading } = useAuth();
   const { toast } = useToast();
-  const redirectedRef = useRef(false);
 
-  console.log("[Login] Login component rendered, isAuthenticated:", isAuthenticated, "isLoading:", isLoading);
+  console.log("[Login] Página de login renderizada:", { isAuthenticated, isLoading });
 
   // Redirecionar se já estiver autenticado
   useEffect(() => {
-    if (isAuthenticated && !isLoading && !redirectedRef.current) {
-      console.log("[Login] User is authenticated, redirecting to /");
-      redirectedRef.current = true;
+    if (isAuthenticated && !isLoading) {
+      console.log("[Login] Usuário autenticado, redirecionando para /");
       navigate('/', { replace: true });
     }
   }, [isAuthenticated, isLoading, navigate]);
@@ -51,12 +49,12 @@ const Login = () => {
     setIsSubmitting(true);
     try {
       if (isLogin) {
-        console.log("[Login] Attempting login for:", values.email);
+        console.log("[Login] Tentando login para:", values.email);
         const success = await login(values.email, values.password);
         
         if (success) {
-          console.log("[Login] Login successful, waiting for auth state to update");
-          // Auth state update will trigger the useEffect above for redirection
+          console.log("[Login] Login bem-sucedido, redirecionando");
+          // O redirecionamento será feito pelo useEffect acima
         }
       } else {
         // Registro
@@ -81,7 +79,7 @@ const Login = () => {
         setIsLogin(true);
       }
     } catch (error: any) {
-      console.error("[Login] Login error:", error);
+      console.error("[Login] Erro:", error);
       toast({
         title: isLogin ? "Erro no login" : "Erro no registro",
         description: error.message || "Ocorreu um erro. Verifique suas credenciais.",

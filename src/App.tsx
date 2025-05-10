@@ -4,8 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { AuthProvider } from "./contexts/AuthContext";
 import { CartProvider } from "./contexts/CartContext";
 import Index from "./pages/Index";
 import Services from "./pages/Services";
@@ -25,87 +24,7 @@ const queryClient = new QueryClient({
   }
 });
 
-// Protected route component
-const ProtectedRoute = ({ children, requiredRoutes }: { children: JSX.Element, requiredRoutes: string[] }) => {
-  const { isAuthenticated, checkAccess, isLoading } = useAuth();
-  const [isChecking, setIsChecking] = useState(true);
-  
-  console.log("ProtectedRoute: isAuthenticated =", isAuthenticated, "isLoading =", isLoading);
-  
-  useEffect(() => {
-    // Wait for auth state to stabilize
-    if (!isLoading) {
-      setIsChecking(false);
-    }
-  }, [isLoading]);
-  
-  // Enquanto carrega, mostra indicador de carregamento
-  if (isLoading || isChecking) {
-    return <div className="flex justify-center items-center h-screen">
-      <div className="w-16 h-16 border-4 border-t-salon-purple border-gray-200 rounded-full animate-spin"></div>
-    </div>;
-  }
-  
-  if (!isAuthenticated) {
-    console.log("User not authenticated, redirecting to login");
-    return <Navigate to="/login" replace />;
-  }
-  
-  if (!checkAccess(requiredRoutes)) {
-    console.log("User doesn't have access to route", requiredRoutes);
-    return <Navigate to="/" replace />;
-  }
-  
-  return children;
-};
-
-// Routes component que será usado dentro de AuthProvider
-const AppRoutes = () => {
-  const { isAuthenticated, isLoading } = useAuth();
-  console.log("AppRoutes: isAuthenticated =", isAuthenticated, "isLoading =", isLoading);
-
-  return (
-    <CartProvider>
-      <Routes>
-        <Route path="/login" element={
-          isAuthenticated && !isLoading ? <Navigate to="/" replace /> : <Login />
-        } />
-        <Route path="/" element={
-          <ProtectedRoute requiredRoutes={["/"]}>
-            <Index />
-          </ProtectedRoute>
-        } />
-        <Route path="/services" element={
-          <ProtectedRoute requiredRoutes={["/services"]}>
-            <Services />
-          </ProtectedRoute>
-        } />
-        <Route path="/clients" element={
-          <ProtectedRoute requiredRoutes={["/clients"]}>
-            <Clients />
-          </ProtectedRoute>
-        } />
-        <Route path="/team" element={
-          <ProtectedRoute requiredRoutes={["/team"]}>
-            <Team />
-          </ProtectedRoute>
-        } />
-        <Route path="/records" element={
-          <ProtectedRoute requiredRoutes={["/records"]}>
-            <Records />
-          </ProtectedRoute>
-        } />
-        <Route path="/cart" element={
-          <ProtectedRoute requiredRoutes={["/cart"]}>
-            <Cart />
-          </ProtectedRoute>
-        } />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </CartProvider>
-  );
-};
-
+// Layout da aplicação com estrutura compartilhada entre todas as páginas autenticadas
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <BrowserRouter>
@@ -113,7 +32,18 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <AppRoutes />
+          <CartProvider>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/" element={<Index />} />
+              <Route path="/services" element={<Services />} />
+              <Route path="/clients" element={<Clients />} />
+              <Route path="/team" element={<Team />} />
+              <Route path="/records" element={<Records />} />
+              <Route path="/cart" element={<Cart />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </CartProvider>
         </TooltipProvider>
       </AuthProvider>
     </BrowserRouter>
