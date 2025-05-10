@@ -37,22 +37,37 @@ export const fetchTeamMembers = async (): Promise<TeamMember[]> => {
 
 export const updateTeamMember = async (memberId: string, data: any): Promise<boolean> => {
   try {
-    console.log("Atualizando membro:", memberId, data);
+    if (!memberId) {
+      throw new Error("ID do membro não fornecido para atualização");
+    }
+    
+    console.log("Atualizando membro com ID:", memberId);
+    console.log("Dados para atualização:", data);
     
     // Preparar dados para atualização
-    const updateData: any = {
+    const updateData = {
       name: data.name,
       email: data.email,
-      phone: data.phone,
-      profession: data.profession,
+      phone: data.phone || null,
+      profession: data.profession || null,
       has_access: data.hasAccess,
       is_manager: data.isManager
     };
     
-    // If the password was provided, handle it separately for security
-    if (data.password && data.password.trim() !== '') {
-      console.log("Senha nova detectada, atualizando...");
-      // In a real production scenario, password updates would be handled more securely
+    // Verificar se o membro existe antes de atualizar
+    const { data: existingMember, error: checkError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('id', memberId)
+      .single();
+      
+    if (checkError) {
+      console.error("Erro ao verificar membro existente:", checkError);
+      throw new Error("Membro não encontrado");
+    }
+    
+    if (!existingMember) {
+      throw new Error("Membro não encontrado para atualização");
     }
     
     // Update member in Supabase
@@ -61,7 +76,12 @@ export const updateTeamMember = async (memberId: string, data: any): Promise<boo
       .update(updateData)
       .eq('id', memberId);
       
-    if (error) throw error;
+    if (error) {
+      console.error("Erro na operação de atualização:", error);
+      throw error;
+    }
+    
+    console.log("Membro atualizado com sucesso:", memberId);
     
     toast({
       title: "Membro atualizado",
@@ -70,6 +90,7 @@ export const updateTeamMember = async (memberId: string, data: any): Promise<boo
     
     return true;
   } catch (error: any) {
+    console.error("Erro completo na atualização:", error);
     handleError(error, "ao atualizar o membro da equipe");
     return false;
   }
@@ -77,23 +98,31 @@ export const updateTeamMember = async (memberId: string, data: any): Promise<boo
 
 export const createTeamMember = async (data: any): Promise<boolean> => {
   try {
+    console.log("Criando novo membro com dados:", data);
+    
     // Prepare data for insertion
-    const insertData: any = {
+    const insertData = {
       name: data.name,
       email: data.email,
-      phone: data.phone,
-      profession: data.profession,
+      phone: data.phone || null,
+      profession: data.profession || null,
       has_access: data.hasAccess,
       is_manager: data.isManager
       // Password would be handled separately in a real scenario
     };
     
     // Add new team member to Supabase
-    const { error } = await supabase
+    const { data: newMember, error } = await supabase
       .from('users')
-      .insert(insertData);
+      .insert(insertData)
+      .select();
       
-    if (error) throw error;
+    if (error) {
+      console.error("Erro na operação de inserção:", error);
+      throw error;
+    }
+    
+    console.log("Novo membro criado:", newMember);
     
     toast({
       title: "Membro adicionado",
@@ -102,6 +131,7 @@ export const createTeamMember = async (data: any): Promise<boolean> => {
     
     return true;
   } catch (error: any) {
+    console.error("Erro completo na criação:", error);
     handleError(error, "ao salvar o membro da equipe");
     return false;
   }
@@ -109,7 +139,27 @@ export const createTeamMember = async (data: any): Promise<boolean> => {
 
 export const deleteTeamMember = async (memberId: string, memberName?: string): Promise<boolean> => {
   try {
-    console.log("Excluindo membro:", memberId);
+    if (!memberId) {
+      throw new Error("ID do membro não fornecido para exclusão");
+    }
+    
+    console.log("Excluindo membro com ID:", memberId);
+    
+    // Verificar se o membro existe antes de excluir
+    const { data: existingMember, error: checkError } = await supabase
+      .from('users')
+      .select('id, name')
+      .eq('id', memberId)
+      .single();
+      
+    if (checkError) {
+      console.error("Erro ao verificar membro existente:", checkError);
+      throw new Error("Membro não encontrado");
+    }
+    
+    if (!existingMember) {
+      throw new Error("Membro não encontrado para exclusão");
+    }
     
     // Delete from Supabase
     const { error } = await supabase
@@ -117,7 +167,12 @@ export const deleteTeamMember = async (memberId: string, memberName?: string): P
       .delete()
       .eq('id', memberId);
       
-    if (error) throw error;
+    if (error) {
+      console.error("Erro na operação de exclusão:", error);
+      throw error;
+    }
+    
+    console.log("Membro excluído com sucesso:", memberId);
     
     if (memberName) {
       toast({
@@ -128,6 +183,7 @@ export const deleteTeamMember = async (memberId: string, memberName?: string): P
     
     return true;
   } catch (error: any) {
+    console.error("Erro completo na exclusão:", error);
     let errorMessage = error.message || "Ocorreu um erro ao excluir o membro da equipe";
     
     // Handling specific deletion errors
@@ -155,7 +211,7 @@ const handleError = (error: any, action: string): void => {
     errorMessage = "Os dados fornecidos não atendem às restrições do banco de dados";
   }
   
-  console.error("Erro:", error);
+  console.error("Erro detalhado:", error);
   
   toast({
     title: "Erro",

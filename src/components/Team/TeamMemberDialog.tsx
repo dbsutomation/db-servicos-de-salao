@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import TeamMemberForm from '@/components/Forms/TeamMember';
 
 interface TeamMemberDialogProps {
@@ -25,6 +25,9 @@ const TeamMemberDialog = ({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>
+            {editingMember ? 'Edite as informações do membro da equipe.' : 'Adicione um novo membro à equipe.'}
+          </DialogDescription>
         </DialogHeader>
         <TeamMemberForm onSuccess={onSuccess} teamMemberId={editingMember} />
       </DialogContent>

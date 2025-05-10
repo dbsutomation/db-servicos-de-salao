@@ -1,9 +1,10 @@
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { supabase } from '@/integrations/supabase/client';
 import { teamMemberFormSchema, TeamMemberFormValues } from './validationSchema';
+import { toast } from '@/hooks/use-toast';
 
 interface UseTeamMemberFormProps {
   teamMemberId?: string | null;
@@ -12,6 +13,7 @@ interface UseTeamMemberFormProps {
 
 const useTeamMemberForm = ({ teamMemberId, onSuccess }: UseTeamMemberFormProps) => {
   const isEditing = !!teamMemberId;
+  const [isLoading, setIsLoading] = useState(false);
   const schema = teamMemberFormSchema(isEditing);
   
   const form = useForm<TeamMemberFormValues>({
@@ -30,6 +32,7 @@ const useTeamMemberForm = ({ teamMemberId, onSuccess }: UseTeamMemberFormProps) 
   // Populate form when editing an existing team member
   useEffect(() => {
     if (teamMemberId) {
+      setIsLoading(true);
       console.log("Carregando dados do membro:", teamMemberId);
       
       const fetchTeamMember = async () => {
@@ -42,6 +45,11 @@ const useTeamMemberForm = ({ teamMemberId, onSuccess }: UseTeamMemberFormProps) 
           
           if (error) {
             console.error('Error fetching team member:', error);
+            toast({
+              title: "Erro ao carregar dados",
+              description: "Não foi possível carregar os dados do membro selecionado.",
+              variant: "destructive"
+            });
             return;
           }
           
@@ -60,6 +68,8 @@ const useTeamMemberForm = ({ teamMemberId, onSuccess }: UseTeamMemberFormProps) 
           }
         } catch (error) {
           console.error('Error in fetchTeamMember:', error);
+        } finally {
+          setIsLoading(false);
         }
       };
 
@@ -75,6 +85,7 @@ const useTeamMemberForm = ({ teamMemberId, onSuccess }: UseTeamMemberFormProps) 
   return {
     form,
     isEditing,
+    isLoading,
     handleSubmit: form.handleSubmit(handleSubmit)
   };
 };
