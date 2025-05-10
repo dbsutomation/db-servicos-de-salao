@@ -21,21 +21,25 @@ export const useAuthState = () => {
   useEffect(() => {
     // Configurar listener para mudanças de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+      async (event, newSession) => {
+        console.log("Auth event:", event);
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
         
-        if (session?.user) {
-          // Buscar informações adicionais do usuário do banco de dados
+        if (newSession?.user) {
+          // Buscar informações adicionais do usuário de forma segura
           setTimeout(async () => {
             try {
               const { data, error } = await supabase
                 .from('users')
                 .select('*')
-                .eq('id', session.user.id)
+                .eq('id', newSession.user.id)
                 .single();
                 
-              if (error) throw error;
+              if (error) {
+                console.error('Erro ao buscar dados do usuário:', error);
+                throw error;
+              }
               
               if (data) {
                 // Verificar se o usuário tem acesso
@@ -85,17 +89,69 @@ export const useAuthState = () => {
     // Verificar sessão atual
     const checkSession = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
+        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
         
         if (error) throw error;
         
-        if (session) {
-          setSession(session);
-          setUser(session.user);
+        if (currentSession) {
+          setSession(currentSession);
+          setUser(currentSession.user);
+          
+          // Usar o mesmo código para buscar dados do usuário, mas como uma função separada
+          // para evitar duplicação
+          if (currentSession.user) {
+            try {
+              const { data, error: userError } = await supabase
+                .from('users')
+                .select('*')
+                .eq('id', currentSession.user.id)
+                .single();
+                
+              if (userError) throw userError;
+              
+              if (data) {
+                if (!data.has_access) {
+                  toast({
+                    title: "Acesso negado",
+                    description: "Sua conta não tem permissão para acessar o sistema.",
+                    variant: "destructive",
+                  });
+                  await supabase.auth.signOut();
+                  setAuthState({ isAuthenticated: false, currentUser: null });
+                  navigate('/login');
+                  return;
+                }
+                
+                const teamMember: TeamMember = {
+                  id: data.id,
+                  name: data.name,
+                  email: data.email,
+                  profession: data.profession || '',
+                  phone: data.phone || '',
+                  password: '',
+                  hasAccess: data.has_access,
+                  isManager: data.is_manager,
+                  avatar: data.avatar || ''
+                };
+                
+                setAuthState({
+                  isAuthenticated: true,
+                  currentUser: teamMember
+                });
+              }
+            } catch (error) {
+              console.error('Erro ao buscar dados do usuário:', error);
+            } finally {
+              setIsLoading(false);
+            }
+          } else {
+            setIsLoading(false);
+          }
+        } else {
+          setIsLoading(false);
         }
       } catch (error) {
         console.error('Erro ao verificar sessão:', error);
-      } finally {
         setIsLoading(false);
       }
     };

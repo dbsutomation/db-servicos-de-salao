@@ -15,18 +15,25 @@ import Cart from "./pages/Cart";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false
+    }
+  }
+});
 
 // Protected route component
 const ProtectedRoute = ({ children, requiredRoutes }: { children: JSX.Element, requiredRoutes: string[] }) => {
   const { isAuthenticated, checkAccess } = useAuth();
   
   if (!isAuthenticated) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" replace />;
   }
   
   if (!checkAccess(requiredRoutes)) {
-    return <Navigate to="/" />;
+    return <Navigate to="/" replace />;
   }
   
   return children;
@@ -34,10 +41,14 @@ const ProtectedRoute = ({ children, requiredRoutes }: { children: JSX.Element, r
 
 // Auth wrapper that uses the context
 const AuthenticatedApp = () => {
+  const { isAuthenticated } = useAuth();
+
   return (
     <CartProvider>
       <Routes>
-        <Route path="/login" element={<Login />} />
+        <Route path="/login" element={
+          isAuthenticated ? <Navigate to="/" replace /> : <Login />
+        } />
         <Route path="/" element={
           <ProtectedRoute requiredRoutes={["/"]}>
             <Index />

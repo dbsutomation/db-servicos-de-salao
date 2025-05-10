@@ -22,7 +22,7 @@ const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, login } = useAuth();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -44,17 +44,10 @@ const Login = () => {
     try {
       if (isLogin) {
         // Login
-        const { error } = await supabase.auth.signInWithPassword({
-          email: values.email,
-          password: values.password,
-        });
-
-        if (error) throw error;
-        
-        toast({
-          title: "Login realizado com sucesso",
-          description: "Bem-vindo de volta!",
-        });
+        const success = await login(values.email, values.password);
+        if (success) {
+          navigate('/');
+        }
       } else {
         // Registro
         const { error } = await supabase.auth.signUp({
@@ -71,8 +64,11 @@ const Login = () => {
 
         toast({
           title: "Registro realizado com sucesso",
-          description: "Sua conta foi criada e você será redirecionado em instantes.",
+          description: "Sua conta foi criada. Por favor, faça login para continuar.",
         });
+        
+        // Mude para o formulário de login após o registro bem-sucedido
+        setIsLogin(true);
       }
     } catch (error: any) {
       toast({
