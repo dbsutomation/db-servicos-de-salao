@@ -25,7 +25,7 @@ const formSchema = z.object({
   }),
   password: z.string().min(6, {
     message: 'Senha deve ter pelo menos 6 caracteres'
-  }),
+  }).optional().or(z.literal('')),
   hasAccess: z.boolean(),
   isManager: z.boolean()
 });
@@ -59,7 +59,7 @@ const TeamMemberForm = ({ onSuccess, teamMemberId }: TeamMemberFormProps) => {
       phone: '',
       email: '',
       password: '',
-      hasAccess: true,
+      hasAccess: false,
       isManager: false
     }
   });
@@ -67,28 +67,36 @@ const TeamMemberForm = ({ onSuccess, teamMemberId }: TeamMemberFormProps) => {
   // Populate form when editing an existing team member
   useEffect(() => {
     if (teamMemberId) {
+      console.log("Carregando dados do membro:", teamMemberId);
+      
       const fetchTeamMember = async () => {
-        const { data, error } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', teamMemberId)
-          .single();
-        
-        if (error) {
-          console.error('Error fetching team member:', error);
-          return;
-        }
-        
-        if (data) {
-          form.reset({
-            name: data.name,
-            profession: data.profession || '',
-            phone: data.phone || '',
-            email: data.email,
-            password: '', // Password is not fetched from the database
-            hasAccess: data.has_access,
-            isManager: data.is_manager
-          });
+        try {
+          const { data, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', teamMemberId)
+            .single();
+          
+          if (error) {
+            console.error('Error fetching team member:', error);
+            return;
+          }
+          
+          if (data) {
+            console.log("Dados do membro carregados:", data);
+            
+            form.reset({
+              name: data.name,
+              profession: data.profession || '',
+              phone: data.phone || '',
+              email: data.email,
+              password: '', // Password is not fetched from the database
+              hasAccess: data.has_access,
+              isManager: data.is_manager
+            });
+          }
+        } catch (error) {
+          console.error('Error in fetchTeamMember:', error);
         }
       };
 
@@ -97,8 +105,8 @@ const TeamMemberForm = ({ onSuccess, teamMemberId }: TeamMemberFormProps) => {
   }, [teamMemberId, form]);
 
   const onSubmit = (data: TeamMemberFormValues) => {
+    console.log("Dados do formulário:", data);
     onSuccess(data);
-    form.reset();
   };
 
   return (
@@ -180,7 +188,7 @@ const TeamMemberForm = ({ onSuccess, teamMemberId }: TeamMemberFormProps) => {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Senha</FormLabel>
+              <FormLabel>{teamMemberId ? 'Nova Senha (opcional)' : 'Senha'}</FormLabel>
               <FormControl>
                 <Input type="password" placeholder="******" {...field} />
               </FormControl>

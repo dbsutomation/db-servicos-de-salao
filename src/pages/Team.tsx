@@ -62,6 +62,8 @@ const Team = () => {
   const handleSuccess = async (data: any) => {
     try {
       if (editingMember) {
+        console.log("Atualizando membro:", editingMember, data);
+        
         // Update existing team member in Supabase
         const { error } = await supabase
           .from('users')
@@ -158,6 +160,8 @@ const Team = () => {
       }
       
       try {
+        console.log("Excluindo membro:", memberToDelete);
+        
         // Delete from Supabase
         const { error } = await supabase
           .from('users')

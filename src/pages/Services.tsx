@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Form, FormField, FormItem, FormLabel, FormControl } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useForm } from 'react-hook-form';
-import { Plus, Pencil, Camera, Image } from 'lucide-react';
+import { Plus, Pencil, Camera } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Service } from '@/types';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, AlertDialogTitle, AlertDialogDescription, AlertDialogAction, AlertDialogCancel } from '@/components/ui/alert-dialog';
@@ -123,17 +123,6 @@ const Services = () => {
     fileInput.type = 'file';
     fileInput.accept = 'image/*';
     fileInput.capture = 'environment';
-    fileInput.onchange = (e) => {
-      const event = e as unknown as ChangeEvent<HTMLInputElement>;
-      handleImageUpload(event);
-    };
-    fileInput.click();
-  };
-
-  const handleGallerySelection = () => {
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = 'image/*';
     fileInput.onchange = (e) => {
       const event = e as unknown as ChangeEvent<HTMLInputElement>;
       handleImageUpload(event);
@@ -471,37 +460,8 @@ const Services = () => {
                           className="flex gap-2 items-center"
                         >
                           <Camera size={18} />
-                          Câmera
+                          Imagem
                         </Button>
-                        
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          onClick={handleGallerySelection}
-                          className="flex gap-2 items-center"
-                        >
-                          <Image size={18} />
-                          Galeria
-                        </Button>
-                        
-                        <label htmlFor="file-upload" className="cursor-pointer">
-                          <Button 
-                            type="button" 
-                            variant="outline" 
-                            className="flex gap-2 items-center"
-                            onClick={() => document.getElementById('file-upload')?.click()}
-                          >
-                            <Image size={18} />
-                            Arquivo
-                          </Button>
-                          <input
-                            id="file-upload"
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={handleImageUpload}
-                          />
-                        </label>
                       </div>
                       <input type="hidden" {...field} />
                     </div>
