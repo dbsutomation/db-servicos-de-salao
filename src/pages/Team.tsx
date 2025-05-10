@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import MainLayout from '@/components/Layout/MainLayout';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Search, Edit, Trash2, Plus, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
