@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { useTeamData } from './useTeamData';
@@ -8,7 +8,7 @@ import {
   createTeamMember,
   updateTeamMember, 
   deleteTeamMember 
-} from '@/services/teamService';
+} from '@/services/team';
 
 export const useTeamManagement = () => {
   const { currentUser } = useAuth();

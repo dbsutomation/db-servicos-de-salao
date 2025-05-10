@@ -1,7 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { TeamMember } from '@/types';
-import { fetchTeamMembers } from '@/services/teamService';
+import { fetchTeamMembers } from '@/services/team';
 
 export const useTeamData = () => {
   const [teamMembersList, setTeamMembersList] = useState<TeamMember[]>([]);
