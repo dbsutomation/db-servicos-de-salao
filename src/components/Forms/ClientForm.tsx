@@ -1,32 +1,31 @@
 
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
 
+// Schema de validação para o formulário
 const formSchema = z.object({
-  name: z.string().min(2, {
-    message: 'Nome deve ter pelo menos 2 caracteres'
-  }),
+  name: z.string().min(3, { message: 'O nome deve ter pelo menos 3 caracteres' }),
   phone: z.string().optional(),
   email: z.string().email({ message: 'Email inválido' }).optional().or(z.literal(''))
 });
 
-type ClientFormValues = z.infer<typeof formSchema>;
+type FormValues = z.infer<typeof formSchema>;
 
 interface ClientFormProps {
-  onSuccess: (data: ClientFormValues) => void;
   clientId?: string | null;
+  onSuccess: (data: FormValues) => void;
 }
 
-const ClientForm = ({ onSuccess, clientId }: ClientFormProps) => {
-  const { toast } = useToast();
-  const form = useForm<ClientFormValues>({
+const ClientForm = ({ clientId, onSuccess }: ClientFormProps) => {
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: '',
@@ -35,17 +34,18 @@ const ClientForm = ({ onSuccess, clientId }: ClientFormProps) => {
     }
   });
 
-  // Populate form when editing an existing client
+  // Carregar dados do cliente se estiver editando
   useEffect(() => {
-    const fetchClientData = async () => {
-      if (clientId) {
+    if (clientId) {
+      setIsLoading(true);
+      const fetchClient = async () => {
         try {
           const { data, error } = await supabase
             .from('clients')
             .select('*')
             .eq('id', clientId)
             .single();
-
+            
           if (error) throw error;
           
           if (data) {
@@ -55,27 +55,24 @@ const ClientForm = ({ onSuccess, clientId }: ClientFormProps) => {
               email: data.email || ''
             });
           }
-        } catch (error: any) {
-          toast({
-            title: "Erro ao carregar dados do cliente",
-            description: error.message || "Não foi possível carregar os dados do cliente",
-            variant: "destructive"
-          });
+        } catch (error) {
+          console.error('Erro ao carregar cliente:', error);
+        } finally {
+          setIsLoading(false);
         }
-      }
-    };
+      };
+      
+      fetchClient();
+    }
+  }, [clientId, form]);
 
-    fetchClientData();
-  }, [clientId, form, toast]);
-
-  const onSubmit = (data: ClientFormValues) => {
+  const onSubmit = (data: FormValues) => {
     onSuccess(data);
-    form.reset();
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="name"
@@ -83,7 +80,7 @@ const ClientForm = ({ onSuccess, clientId }: ClientFormProps) => {
             <FormItem>
               <FormLabel>Nome</FormLabel>
               <FormControl>
-                <Input placeholder="Nome do cliente" {...field} />
+                <Input placeholder="Nome do cliente" {...field} disabled={isLoading} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -97,7 +94,7 @@ const ClientForm = ({ onSuccess, clientId }: ClientFormProps) => {
             <FormItem>
               <FormLabel>Telefone</FormLabel>
               <FormControl>
-                <Input placeholder="(00) 00000-0000" {...field} />
+                <Input placeholder="(00) 00000-0000" {...field} disabled={isLoading} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -111,15 +108,17 @@ const ClientForm = ({ onSuccess, clientId }: ClientFormProps) => {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input type="email" placeholder="exemplo@email.com" {...field} />
+                <Input placeholder="email@exemplo.com" {...field} disabled={isLoading} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        
-        <div className="flex justify-end space-x-2">
-          <Button type="submit">{clientId ? 'Salvar' : 'Adicionar'}</Button>
+
+        <div className="flex justify-end pt-4">
+          <Button type="submit" disabled={isLoading}>
+            {clientId ? 'Salvar' : 'Adicionar'}
+          </Button>
         </div>
       </form>
     </Form>

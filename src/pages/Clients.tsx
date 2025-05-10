@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/Layout/MainLayout';
 import { Button } from '@/components/ui/button';
@@ -34,7 +33,15 @@ const Clients = () => {
         
         if (error) throw error;
         
-        setClientsList(data || []);
+        // Map to Client interface
+        const mappedClients = data?.map(client => ({
+          id: client.id,
+          name: client.name,
+          phone: client.phone || '',
+          email: client.email || ''
+        })) || [];
+        
+        setClientsList(mappedClients);
       } catch (error: any) {
         toast({
           title: "Erro ao carregar clientes",
@@ -95,8 +102,15 @@ const Clients = () => {
         if (error) throw error;
         
         if (data && data[0]) {
-          // Add to local state
-          setClientsList(prevClients => [...prevClients, data[0] as Client]);
+          // Map to Client interface and add to local state
+          const newClient: Client = {
+            id: data[0].id,
+            name: data[0].name,
+            phone: data[0].phone || '',
+            email: data[0].email || ''
+          };
+          
+          setClientsList(prevClients => [...prevClients, newClient]);
           
           toast({
             title: "Cliente adicionado",

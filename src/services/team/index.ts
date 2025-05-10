@@ -2,115 +2,111 @@
 import { supabase } from '@/integrations/supabase/client';
 import { TeamMember } from '@/types';
 
-// Fetch all team members from the users table
-export const fetchTeamMembers = async (): Promise<TeamMember[]> => {
-  try {
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .order('name');
-
-    if (error) throw error;
-
-    return data.map(user => ({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      profession: user.profession || '',
-      phone: user.phone || '',
-      password: '', // We don't store or receive password from DB for security
-      hasAccess: user.has_access,
-      isManager: user.is_manager,
-      avatar: user.avatar || ''
-    }));
-  } catch (error) {
-    console.error('Error fetching team members:', error);
-    throw error;
-  }
-};
-
-// Create a new user with authentication and in users table
-export const createTeamMember = async (teamMember: Omit<TeamMember, 'id'>): Promise<string> => {
-  try {
-    // First create the auth user
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-      email: teamMember.email,
-      password: teamMember.password,
-      email_confirm: true, // Auto confirm the email
-      user_metadata: { name: teamMember.name }
-    });
-
-    if (authError) throw authError;
-
-    const userId = authData.user.id;
-
-    // Then update the users table with additional fields
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({
-        name: teamMember.name,
-        email: teamMember.email,
-        phone: teamMember.phone,
-        profession: teamMember.profession,
-        has_access: teamMember.hasAccess,
-        is_manager: teamMember.isManager,
-        avatar: teamMember.avatar
-      })
-      .eq('id', userId);
-
-    if (updateError) throw updateError;
-
-    return userId;
-  } catch (error) {
-    console.error('Error creating team member:', error);
-    throw error;
-  }
-};
-
-// Update an existing team member
-export const updateTeamMember = async (teamMember: TeamMember): Promise<void> => {
-  try {
-    // Update user info in the users table
-    const { error } = await supabase
-      .from('users')
-      .update({
-        name: teamMember.name,
-        email: teamMember.email,
-        phone: teamMember.phone,
-        profession: teamMember.profession,
-        has_access: teamMember.hasAccess,
-        is_manager: teamMember.isManager,
-        avatar: teamMember.avatar
-      })
-      .eq('id', teamMember.id);
-
-    if (error) throw error;
+export async function fetchTeamMembers() {
+  const { data, error } = await supabase
+    .from('users')
+    .select('*');
     
-    // If password was provided, update it in auth
-    if (teamMember.password) {
-      const { error: authError } = await supabase.auth.admin.updateUserById(
-        teamMember.id,
-        { password: teamMember.password }
-      );
-      
-      if (authError) throw authError;
+  if (error) {
+    throw error;
+  }
+  
+  // Transform to TeamMember interface
+  const teamMembers = data.map(user => ({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    profession: user.profession || '',
+    phone: user.phone || '',
+    password: '', // Não incluímos senha em resultados de consulta
+    hasAccess: user.has_access,
+    isManager: user.is_manager,
+    avatar: user.avatar || ''
+  }));
+  
+  return teamMembers;
+}
+
+export async function createTeamMember(member: TeamMember) {
+  // Primeiro, criar o usuário na autenticação do Supabase
+  const { data: authData, error: authError } = await supabase.auth.signUp({
+    email: member.email,
+    password: member.password,
+    options: {
+      data: {
+        name: member.name,
+      }
     }
-  } catch (error) {
-    console.error('Error updating team member:', error);
-    throw error;
+  });
+  
+  if (authError) {
+    throw authError;
   }
-};
-
-// Delete a team member
-export const deleteTeamMember = async (id: string): Promise<void> => {
-  try {
-    // When deleting an auth user, the trigger will automatically
-    // delete the record from users table due to the CASCADE constraint
-    const { error } = await supabase.auth.admin.deleteUser(id);
+  
+  // O trigger já vai criar o registro na tabela users,
+  // mas precisamos atualizar com os dados adicionais
+  const { error: updateError } = await supabase
+    .from('users')
+    .update({
+      name: member.name,
+      profession: member.profession,
+      phone: member.phone,
+      has_access: member.hasAccess,
+      is_manager: member.isManager,
+      avatar: member.avatar
+    })
+    .eq('id', authData.user!.id);
     
-    if (error) throw error;
-  } catch (error) {
-    console.error('Error deleting team member:', error);
+  if (updateError) {
+    throw updateError;
+  }
+  
+  return {
+    ...member,
+    id: authData.user!.id
+  };
+}
+
+export async function updateTeamMember(member: TeamMember) {
+  const { error } = await supabase
+    .from('users')
+    .update({
+      name: member.name,
+      profession: member.profession,
+      phone: member.phone,
+      has_access: member.hasAccess,
+      is_manager: member.isManager,
+      avatar: member.avatar
+    })
+    .eq('id', member.id);
+    
+  if (error) {
     throw error;
   }
-};
+  
+  // Se uma nova senha foi fornecida, atualizar no auth
+  if (member.password && member.password.trim() !== '') {
+    const { error: passwordError } = await supabase.auth.admin.updateUserById(
+      member.id,
+      { password: member.password }
+    );
+    
+    if (passwordError) {
+      throw passwordError;
+    }
+  }
+  
+  return member;
+}
+
+export async function deleteTeamMember(memberId: string) {
+  // Deletar o usuário na auth do Supabase
+  // O trigger de delete cascade vai remover o registro na tabela users
+  const { error } = await supabase.auth.admin.deleteUser(memberId);
+  
+  if (error) {
+    throw error;
+  }
+  
+  return true;
+}

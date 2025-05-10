@@ -9,7 +9,199 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      clients: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      expenses: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      service_records: {
+        Row: {
+          client_id: string
+          commission_amount: number
+          created_at: string
+          date: string
+          id: string
+          payment_method: string | null
+          professional_id: string
+          service_id: string
+          service_value: number
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          commission_amount: number
+          created_at?: string
+          date?: string
+          id?: string
+          payment_method?: string | null
+          professional_id: string
+          service_id: string
+          service_value: number
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          commission_amount?: number
+          created_at?: string
+          date?: string
+          id?: string
+          payment_method?: string | null
+          professional_id?: string
+          service_id?: string
+          service_value?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_records_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_records_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_records_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      services: {
+        Row: {
+          category: string | null
+          commission: number
+          created_at: string
+          description: string | null
+          id: string
+          image: string | null
+          name: string
+          price: number
+          type: string | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          commission?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          image?: string | null
+          name: string
+          price: number
+          type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          commission?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          image?: string | null
+          name?: string
+          price?: number
+          type?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      users: {
+        Row: {
+          avatar: string | null
+          created_at: string
+          email: string
+          has_access: boolean
+          id: string
+          is_manager: boolean
+          name: string
+          phone: string | null
+          profession: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar?: string | null
+          created_at?: string
+          email: string
+          has_access?: boolean
+          id: string
+          is_manager?: boolean
+          name: string
+          phone?: string | null
+          profession?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar?: string | null
+          created_at?: string
+          email?: string
+          has_access?: boolean
+          id?: string
+          is_manager?: boolean
+          name?: string
+          phone?: string | null
+          profession?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
