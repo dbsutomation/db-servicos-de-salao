@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { User, Session } from '@supabase/supabase-js';
+import { User } from '@supabase/supabase-js';
 import { TeamMember, AuthState } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -10,8 +10,6 @@ export const useAuthState = () => {
     isAuthenticated: false,
     currentUser: null
   });
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   
   const { toast } = useToast();
@@ -72,30 +70,27 @@ export const useAuthState = () => {
 
   useEffect(() => {
     console.log("Setting up auth state listener");
+    setIsLoading(true);
     
     // Set up auth state listener FIRST to avoid missing events
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, newSession) => {
         console.log("Auth event in hook:", event);
-        setSession(newSession);
-        setUser(newSession?.user ?? null);
         
-        // Avoid triggering fetches in the auth event handler directly
-        // Use setTimeout to prevent recursion
+        // Handle auth state change
         if (newSession?.user) {
-          setTimeout(() => {
-            const userId = newSession.user.id;
-            console.log("Auth state changed, user is authenticated:", userId);
-            fetchUserData(userId).then(teamMember => {
-              if (teamMember) {
-                console.log("Setting auth state with team member:", teamMember.email);
-                setAuthState({
-                  isAuthenticated: true,
-                  currentUser: teamMember
-                });
-              }
-              setIsLoading(false);
-            });
+          console.log("Auth state changed, user is authenticated:", newSession.user.id);
+          // Use setTimeout to prevent recursion
+          setTimeout(async () => {
+            const teamMember = await fetchUserData(newSession.user.id);
+            if (teamMember) {
+              console.log("Setting auth state with team member:", teamMember.email);
+              setAuthState({
+                isAuthenticated: true,
+                currentUser: teamMember
+              });
+            }
+            setIsLoading(false);
           }, 0);
         } else {
           console.log("Auth state changed, user is not authenticated");
@@ -109,13 +104,10 @@ export const useAuthState = () => {
     const checkCurrentSession = async () => {
       try {
         console.log("Checking current session");
-        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        const { data: { session } } = await supabase.auth.getSession();
         
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-        
-        if (currentSession?.user) {
-          const userId = currentSession.user.id;
+        if (session?.user) {
+          const userId = session.user.id;
           console.log("Current session exists, user is authenticated:", userId);
           const teamMember = await fetchUserData(userId);
           

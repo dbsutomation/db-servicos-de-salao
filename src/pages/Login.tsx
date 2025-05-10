@@ -20,21 +20,20 @@ type FormValues = z.infer<typeof formSchema>;
 
 const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
-  const { isAuthenticated, login, isLoading: authLoading } = useAuth();
+  const { isAuthenticated, login, isLoading } = useAuth();
+  const { toast } = useToast();
 
-  console.log("Login component rendered, isAuthenticated:", isAuthenticated, "authLoading:", authLoading);
+  console.log("Login component rendered, isAuthenticated:", isAuthenticated, "isLoading:", isLoading);
 
-  // Se já estiver autenticado, redirecionar para a home
+  // Redirecionar se já estiver autenticado
   useEffect(() => {
-    if (isAuthenticated && !authLoading) {
+    if (isAuthenticated) {
       console.log("Login: User is authenticated, redirecting to /");
       navigate('/', { replace: true });
     }
-  }, [isAuthenticated, authLoading, navigate]);
-
-  const { toast } = useToast();
+  }, [isAuthenticated, navigate]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -45,20 +44,19 @@ const Login = () => {
   });
 
   const onSubmit = async (values: FormValues) => {
-    setIsLoading(true);
+    setIsSubmitting(true);
     try {
       if (isLogin) {
-        // Login usando a função de contexto
         console.log("Attempting login for:", values.email);
         const success = await login(values.email, values.password);
         
         if (success) {
-          console.log("Login successful, will be redirected by useEffect");
-          // O redirecionamento agora é tratado pelo useEffect acima
+          console.log("Login successful, waiting for auth state to update");
           toast({
             title: "Login bem-sucedido",
             description: "Bem-vindo de volta!",
           });
+          // Não precisamos chamar navigate aqui, o useEffect acima cuidará disso
         }
       } else {
         // Registro
@@ -89,9 +87,21 @@ const Login = () => {
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
+
+  // Renderizar indicador de carregamento enquanto verifica a sessão
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-t-salon-purple border-gray-200 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Verificando autenticação...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-100 p-4">
@@ -148,9 +158,9 @@ const Login = () => {
             <Button
               type="submit"
               className="w-full bg-salon-purple hover:bg-salon-dark-purple"
-              disabled={isLoading || authLoading}
+              disabled={isSubmitting || isLoading}
             >
-              {isLoading || authLoading ? 'Processando...' : isLogin ? 'Entrar' : 'Cadastrar'}
+              {isSubmitting ? 'Processando...' : isLogin ? 'Entrar' : 'Cadastrar'}
             </Button>
           </form>
         </Form>

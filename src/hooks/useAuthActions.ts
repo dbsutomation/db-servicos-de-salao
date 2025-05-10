@@ -35,8 +35,6 @@ export const useAuthActions = (
       
       if (data.user) {
         console.log("Login bem-sucedido para:", data.user.email);
-        // Não precisamos fazer mais nada aqui - o useAuthState vai atualizar o contexto
-        // e o useEffect no Login.tsx vai cuidar do redirecionamento
         return true;
       }
       

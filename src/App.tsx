@@ -30,18 +30,20 @@ const ProtectedRoute = ({ children, requiredRoutes }: { children: JSX.Element, r
   
   console.log("ProtectedRoute: isAuthenticated =", isAuthenticated, "isLoading =", isLoading);
   
-  // Enquanto carrega, não redireciona ainda
+  // Enquanto carrega, mostra indicador de carregamento
   if (isLoading) {
-    return <div className="flex justify-center items-center h-screen">Carregando...</div>;
+    return <div className="flex justify-center items-center h-screen">
+      <div className="w-16 h-16 border-4 border-t-salon-purple border-gray-200 rounded-full animate-spin"></div>
+    </div>;
   }
   
   if (!isAuthenticated) {
-    console.log("Usuário não autenticado, redirecionando para login");
+    console.log("User not authenticated, redirecting to login");
     return <Navigate to="/login" replace />;
   }
   
   if (!checkAccess(requiredRoutes)) {
-    console.log("Usuário sem acesso a rota", requiredRoutes);
+    console.log("User doesn't have access to route", requiredRoutes);
     return <Navigate to="/" replace />;
   }
   
@@ -52,11 +54,6 @@ const ProtectedRoute = ({ children, requiredRoutes }: { children: JSX.Element, r
 const AuthenticatedApp = () => {
   const { isAuthenticated, isLoading } = useAuth();
   console.log("AuthenticatedApp: isAuthenticated =", isAuthenticated, "isLoading =", isLoading);
-
-  // Enquanto carrega, mostra indicador de carregamento
-  if (isLoading) {
-    return <div className="flex justify-center items-center h-screen">Carregando...</div>;
-  }
 
   return (
     <CartProvider>
