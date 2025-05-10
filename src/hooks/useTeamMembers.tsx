@@ -13,9 +13,6 @@ import {
 export const useTeamMembers = () => {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   
   const { toast } = useToast();
   const { currentUser } = useAuth();
@@ -41,25 +38,16 @@ export const useTeamMembers = () => {
     loadTeamMembers();
   }, [loadTeamMembers]);
 
-  const handleAddMember = () => {
-    setSelectedMember(null);
-    setDialogOpen(true);
-  };
-
-  const handleEditMember = (member: TeamMember) => {
-    setSelectedMember({...member, password: ''}); // Clear password for security
-    setDialogOpen(true);
-  };
-
-  const handleDeleteClick = (member: TeamMember) => {
-    setSelectedMember(member);
-    setDeleteDialogOpen(true);
-  };
-
   const handleCreateOrUpdate = async (member: TeamMember) => {
     setIsLoading(true);
     try {
       if (member.id) {
+        // Check if user can edit this member
+        const canEdit = currentUser?.isManager || member.id === currentUser?.id;
+        if (!canEdit) {
+          throw new Error("Você não tem permissão para editar este membro");
+        }
+        
         // Update existing member
         await updateTeamMember(member);
         toast({
@@ -67,6 +55,11 @@ export const useTeamMembers = () => {
           description: "Membro atualizado com sucesso",
         });
       } else {
+        // Check if user can create new members
+        if (!currentUser?.isManager) {
+          throw new Error("Apenas gerentes podem adicionar novos membros");
+        }
+        
         // Create new member
         await createTeamMember(member);
         toast({
@@ -74,7 +67,6 @@ export const useTeamMembers = () => {
           description: "Membro adicionado com sucesso",
         });
       }
-      setDialogOpen(false);
       await loadTeamMembers(); // Reload the list after changes
     } catch (error: any) {
       console.error('Error creating/updating team member:', error);
@@ -83,22 +75,40 @@ export const useTeamMembers = () => {
         description: error.message || "Ocorreu um erro ao processar o membro da equipe",
         variant: "destructive",
       });
+      throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleConfirmDelete = async () => {
-    if (!selectedMember) return;
+  const handleConfirmDelete = async (memberId: string) => {
+    // Check if user can delete members
+    if (!currentUser?.isManager) {
+      toast({
+        title: "Erro",
+        description: "Apenas gerentes podem excluir membros da equipe",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Prevent deleting yourself
+    if (currentUser?.id === memberId) {
+      toast({
+        title: "Erro",
+        description: "Você não pode excluir sua própria conta",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsLoading(true);
     try {
-      await deleteTeamMember(selectedMember.id);
+      await deleteTeamMember(memberId);
       toast({
         title: "Sucesso",
         description: "Membro removido com sucesso",
       });
-      setDeleteDialogOpen(false);
       await loadTeamMembers(); // Reload the list after deletion
     } catch (error: any) {
       console.error('Error deleting team member:', error);
@@ -107,47 +117,18 @@ export const useTeamMembers = () => {
         description: error.message || "Não foi possível remover o membro da equipe",
         variant: "destructive",
       });
+      throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Check if the user can edit a specific member
-  const canEditMember = (memberId: string): boolean => {
-    // If user is manager, they can edit anyone
-    if (currentUser?.isManager) {
-      return true;
-    }
-    // Non-managers can only edit themselves
-    return currentUser?.id === memberId;
-  };
-
-  // Check if the user can delete a specific member
-  const canDeleteMember = (memberId: string): boolean => {
-    // Prevent deleting yourself
-    if (currentUser?.id === memberId) {
-      return false;
-    }
-    // Only managers can delete other users
-    return currentUser?.isManager === true;
-  };
-
   return {
     teamMembers,
     isLoading,
-    selectedMember,
-    setSelectedMember,
-    dialogOpen,
-    setDialogOpen,
-    deleteDialogOpen,
-    setDeleteDialogOpen,
-    handleAddMember,
-    handleEditMember,
-    handleDeleteClick,
+    loadTeamMembers,
     handleCreateOrUpdate,
     handleConfirmDelete,
-    canEditMember,
-    canDeleteMember,
   };
 };
 
