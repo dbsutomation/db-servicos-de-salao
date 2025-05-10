@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { TeamMember } from '@/types';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { 
   fetchTeamMembers, 
   createTeamMember, 
@@ -17,6 +18,7 @@ export const useTeamMembers = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   
   const { toast } = useToast();
+  const { currentUser } = useAuth();
 
   const loadTeamMembers = useCallback(async () => {
     setIsLoading(true);
@@ -110,6 +112,26 @@ export const useTeamMembers = () => {
     }
   };
 
+  // Check if the user can edit a specific member
+  const canEditMember = (memberId: string): boolean => {
+    // If user is manager, they can edit anyone
+    if (currentUser?.isManager) {
+      return true;
+    }
+    // Non-managers can only edit themselves
+    return currentUser?.id === memberId;
+  };
+
+  // Check if the user can delete a specific member
+  const canDeleteMember = (memberId: string): boolean => {
+    // Prevent deleting yourself
+    if (currentUser?.id === memberId) {
+      return false;
+    }
+    // Only managers can delete other users
+    return currentUser?.isManager === true;
+  };
+
   return {
     teamMembers,
     isLoading,
@@ -124,6 +146,8 @@ export const useTeamMembers = () => {
     handleDeleteClick,
     handleCreateOrUpdate,
     handleConfirmDelete,
+    canEditMember,
+    canDeleteMember,
   };
 };
 

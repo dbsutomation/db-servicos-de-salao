@@ -28,6 +28,8 @@ const Team = () => {
     handleDeleteClick,
     handleCreateOrUpdate,
     handleConfirmDelete,
+    canEditMember,
+    canDeleteMember,
   } = useTeamMembers();
 
   // Filter team members based on search query
@@ -39,40 +41,48 @@ const Team = () => {
 
   return (
     <MainLayout>
-      <Card>
-        <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0 pb-2">
-          <CardTitle className="text-2xl">Equipe</CardTitle>
-          <div className="w-full sm:w-auto flex flex-col sm:flex-row gap-2">
-            <div className="relative w-full sm:w-64">
+      <div className="flex flex-col gap-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold">Equipe</h1>
+          <div className="flex gap-2">
+            <div className="relative w-64">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
               <Input
                 placeholder="Buscar membros..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 w-full"
+                className="pl-8"
               />
             </div>
             {currentUser?.isManager && (
               <Button 
                 onClick={handleAddMember}
-                className="bg-salon-purple hover:bg-salon-dark-purple w-full sm:w-auto"
+                className="bg-salon-purple hover:bg-salon-dark-purple"
               >
                 <UserPlus className="mr-2" size={18} />
                 Adicionar Membro
               </Button>
             )}
           </div>
-        </CardHeader>
-        <CardContent>
-          <TeamList 
-            members={filteredTeamMembers} 
-            onEdit={handleEditMember} 
-            onDelete={handleDeleteClick} 
-            isLoading={isLoading}
-            currentUserId={currentUser?.id}
-          />
-        </CardContent>
-      </Card>
+        </div>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Lista de Membros</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <TeamList 
+              members={filteredTeamMembers} 
+              onEdit={handleEditMember} 
+              onDelete={handleDeleteClick} 
+              isLoading={isLoading}
+              currentUserId={currentUser?.id}
+              canEditMember={canEditMember}
+              canDeleteMember={canDeleteMember}
+            />
+          </CardContent>
+        </Card>
+      </div>
 
       <TeamMemberDialog
         open={dialogOpen}
