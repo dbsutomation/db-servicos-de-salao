@@ -1,220 +1,30 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import MainLayout from '@/components/Layout/MainLayout';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Edit, Plus, Trash2 } from 'lucide-react';
-import TeamMemberForm from '@/components/Forms/TeamMemberForm';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { toast } from '@/hooks/use-toast';
+import { Plus } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { TeamMember } from '@/types';
-import { supabase } from '@/integrations/supabase/client';
+import useTeamManagement from '@/hooks/useTeamManagement';
+import TeamList from '@/components/Team/TeamList';
+import DeleteConfirmDialog from '@/components/Team/DeleteConfirmDialog';
+import TeamMemberDialog from '@/components/Team/TeamMemberDialog';
 
 const Team = () => {
   const { currentUser } = useAuth();
-  const [teamMembersList, setTeamMembersList] = useState<TeamMember[]>([]);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingMember, setEditingMember] = useState<string | null>(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [memberToDelete, setMemberToDelete] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  // Fetch team members from Supabase
-  const fetchTeamMembers = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*');
-      
-      if (error) throw error;
-      
-      // Transform data to match TeamMember type
-      const transformedData = data.map(user => ({
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        hasAccess: user.has_access,
-        isManager: user.is_manager,
-        phone: user.phone || '',  // Use empty string if phone is null
-        profession: user.profession || '',  // Use empty string if profession is null
-        password: '',  // Password is not returned from the database
-        avatar: user.avatar || '/placeholder.svg'  // Use placeholder if avatar is null
-      }));
-      
-      setTeamMembersList(transformedData);
-    } catch (error: any) {
-      toast({
-        title: "Erro ao carregar equipe",
-        description: error.message || "Não foi possível carregar os membros da equipe",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchTeamMembers();
-  }, []);
-
-  const handleSuccess = async (data: any) => {
-    try {
-      if (editingMember) {
-        console.log("Atualizando membro:", editingMember, data);
-        
-        // Preparar dados para atualização
-        const updateData: any = {
-          name: data.name,
-          email: data.email,
-          phone: data.phone,
-          profession: data.profession,
-          has_access: data.hasAccess,
-          is_manager: data.isManager
-        };
-        
-        // Se a senha foi fornecida, atualizar em uma chamada separada para segurança
-        if (data.password && data.password.trim() !== '') {
-          // Em um cenário real, você precisaria de um endpoint seguro para atualizar senhas
-          // Esta é uma simulação - em produção, isso seria feito de maneira mais segura
-          console.log("Senha nova detectada, atualizando...");
-          // Você poderia chamar uma função que lida com a atualização de senha
-        }
-        
-        // Atualizar membro no Supabase
-        const { error } = await supabase
-          .from('users')
-          .update(updateData)
-          .eq('id', editingMember);
-          
-        if (error) throw error;
-        
-        toast({
-          title: "Membro atualizado",
-          description: `${data.name} foi atualizado com sucesso.`
-        });
-        
-        // Refresh the team members list after updating
-        await fetchTeamMembers();
-        
-      } else {
-        // Preparar dados para inserção
-        const insertData: any = {
-          name: data.name,
-          email: data.email,
-          phone: data.phone,
-          profession: data.profession,
-          has_access: data.hasAccess,
-          is_manager: data.isManager
-          // Senha seria tratada separadamente em um caso real
-        };
-        
-        // Add new team member to Supabase
-        const { error } = await supabase
-          .from('users')
-          .insert(insertData);
-          
-        if (error) throw error;
-        
-        toast({
-          title: "Membro adicionado",
-          description: `${data.name} foi adicionado com sucesso.`
-        });
-        
-        // Refresh the team members list after adding
-        await fetchTeamMembers();
-      }
-      
-      // Close the dialog and reset editing state
-      setDialogOpen(false);
-      setEditingMember(null);
-      
-    } catch (error: any) {
-      let errorMessage = error.message || "Ocorreu um erro ao salvar o membro da equipe";
-      
-      // Tratamento específico para erros comuns
-      if (error.code === '23505') {
-        errorMessage = "Este email já está em uso por outro membro";
-      } else if (error.code === '23514') {
-        errorMessage = "Os dados fornecidos não atendem às restrições do banco de dados";
-      }
-      
-      toast({
-        title: "Erro",
-        description: errorMessage,
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleEdit = (memberId: string) => {
-    setEditingMember(memberId);
-    setDialogOpen(true);
-  };
-
-  const confirmDeleteMember = (memberId: string) => {
-    setMemberToDelete(memberId);
-    setDeleteDialogOpen(true);
-  };
-
-  const handleDeleteMember = async () => {
-    if (memberToDelete) {
-      const member = teamMembersList.find(m => m.id === memberToDelete);
-      
-      // Don't allow deleting yourself
-      if (member && member.id === currentUser?.id) {
-        toast({
-          title: "Operação não permitida",
-          description: "Você não pode excluir seu próprio perfil.",
-          variant: "destructive"
-        });
-        setDeleteDialogOpen(false);
-        setMemberToDelete(null);
-        return;
-      }
-      
-      try {
-        console.log("Excluindo membro:", memberToDelete);
-        
-        // Delete from Supabase
-        const { error } = await supabase
-          .from('users')
-          .delete()
-          .eq('id', memberToDelete);
-          
-        if (error) throw error;
-        
-        if (member) {
-          toast({
-            title: "Membro removido",
-            description: `${member.name} foi removido com sucesso.`
-          });
-        }
-        
-        // Refresh the team members list after deletion
-        await fetchTeamMembers();
-        
-      } catch (error: any) {
-        let errorMessage = error.message || "Ocorreu um erro ao excluir o membro da equipe";
-        
-        // Tratamento para erros específicos de exclusão
-        if (error.code === '23503') {
-          errorMessage = "Este membro não pode ser excluído pois possui registros associados";
-        }
-        
-        toast({
-          title: "Erro",
-          description: errorMessage,
-          variant: "destructive"
-        });
-      } finally {
-        setDeleteDialogOpen(false);
-        setMemberToDelete(null);
-      }
-    }
-  };
+  const {
+    teamMembersList,
+    dialogOpen,
+    setDialogOpen,
+    editingMember,
+    setEditingMember,
+    deleteDialogOpen,
+    setDeleteDialogOpen,
+    loading,
+    handleSuccess,
+    handleEdit,
+    confirmDeleteMember,
+    handleDeleteMember,
+  } = useTeamManagement();
 
   return (
     <MainLayout>
@@ -223,119 +33,43 @@ const Team = () => {
           <h1 className="text-3xl font-bold">Equipe</h1>
           
           {currentUser?.isManager && (
-            <Dialog open={dialogOpen} onOpenChange={(open) => {
-              setDialogOpen(open);
-              if (!open) setEditingMember(null);  // Reset editing state when closing dialog
-            }}>
-              <DialogTrigger asChild>
-                <Button 
-                  className="bg-salon-purple hover:bg-salon-dark-purple"
-                  onClick={() => setEditingMember(null)}
-                >
-                  <Plus className="mr-2" size={18} />
-                  Novo Membro
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>{editingMember ? 'Editar Membro' : 'Adicionar Novo Membro'}</DialogTitle>
-                </DialogHeader>
-                <TeamMemberForm onSuccess={handleSuccess} teamMemberId={editingMember} />
-              </DialogContent>
-            </Dialog>
+            <Button 
+              className="bg-salon-purple hover:bg-salon-dark-purple"
+              onClick={() => {
+                setEditingMember(null);
+                setDialogOpen(true);
+              }}
+            >
+              <Plus className="mr-2" size={18} />
+              Novo Membro
+            </Button>
           )}
         </div>
         
-        {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <p className="text-lg">Carregando membros da equipe...</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {teamMembersList.map((member) => (
-              <div
-                key={member.id}
-                className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100 flex flex-col"
-              >
-                <div className="p-6 flex items-start gap-4">
-                  <Avatar className="h-16 w-16">
-                    <AvatarImage src={member.avatar} alt={member.name} />
-                    <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  
-                  <div className="flex-1">
-                    <h3 className="font-medium text-lg">{member.name}</h3>
-                    <p className="text-gray-500">{member.profession}</p>
-                    
-                    <div className="mt-2 space-y-1 text-sm">
-                      <p><span className="font-medium">Email:</span> {member.email}</p>
-                      <p><span className="font-medium">Telefone:</span> {member.phone}</p>
-                    </div>
-                    
-                    <div className="mt-3 flex gap-2">
-                      {member.hasAccess && (
-                        <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                          Acesso ao Sistema
-                        </span>
-                      )}
-                      
-                      {member.isManager && (
-                        <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-800">
-                          Gerente
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {currentUser?.isManager && (
-                    <div className="flex flex-col gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEdit(member.id)}
-                        className="h-8 w-8"
-                      >
-                        <Edit size={16} />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => confirmDeleteMember(member.id)}
-                        className="h-8 w-8 text-destructive"
-                      >
-                        <Trash2 size={16} />
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-            
-            {teamMembersList.length === 0 && !loading && (
-              <div className="col-span-full text-center py-12 text-gray-500">
-                Nenhum membro da equipe cadastrado
-              </div>
-            )}
-          </div>
-        )}
+        <TeamList 
+          teamMembersList={teamMembersList} 
+          onEdit={handleEdit} 
+          onDelete={confirmDeleteMember} 
+          loading={loading} 
+        />
       </div>
 
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir este membro da equipe? Esta ação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteMember} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <TeamMemberDialog
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) setEditingMember(null);  // Reset editing state when closing dialog
+        }}
+        editingMember={editingMember}
+        onSuccess={handleSuccess}
+        title={editingMember ? 'Editar Membro' : 'Adicionar Novo Membro'}
+      />
+
+      <DeleteConfirmDialog 
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleDeleteMember}
+      />
     </MainLayout>
   );
 };
