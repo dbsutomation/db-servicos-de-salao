@@ -1,4 +1,5 @@
 
+import { useState, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { useTeamData } from './useTeamData';
@@ -30,7 +31,7 @@ export const useTeamManagement = () => {
     confirmDeleteMember
   } = useTeamDialog();
 
-  const handleSuccess = async (data: any) => {
+  const handleSuccess = useCallback(async (data: any) => {
     let success = false;
     
     try {
@@ -43,19 +44,21 @@ export const useTeamManagement = () => {
       }
       
       if (success) {
-        // Refresh the team members list
-        await refreshTeamMembers();
-        
-        // Close the dialog and reset editing state
+        // Close the dialog first to prevent state updates during render
         setDialogOpen(false);
         setEditingMember(null);
+        
+        // Then refresh the team members list after a brief timeout
+        setTimeout(() => {
+          refreshTeamMembers();
+        }, 100);
       }
     } catch (error) {
       console.error("Erro ao processar operação do membro:", error);
     }
-  };
+  }, [editingMember, setDialogOpen, setEditingMember, refreshTeamMembers]);
 
-  const handleDeleteMember = async () => {
+  const handleDeleteMember = useCallback(async () => {
     if (memberToDelete) {
       const member = teamMembersList.find(m => m.id === memberToDelete);
       
@@ -75,15 +78,21 @@ export const useTeamManagement = () => {
       const success = await deleteTeamMember(memberToDelete, member?.name);
       
       if (success) {
-        // Refresh the team members list
-        await refreshTeamMembers();
+        // Close dialog first
+        setDeleteDialogOpen(false);
+        setMemberToDelete(null);
+        
+        // Then refresh data after a brief timeout
+        setTimeout(() => {
+          refreshTeamMembers();
+        }, 100);
+      } else {
+        // Still reset state if delete failed
+        setDeleteDialogOpen(false);
+        setMemberToDelete(null);
       }
-      
-      // Reset state
-      setDeleteDialogOpen(false);
-      setMemberToDelete(null);
     }
-  };
+  }, [memberToDelete, teamMembersList, currentUser?.id, setDeleteDialogOpen, setMemberToDelete, refreshTeamMembers]);
 
   return {
     teamMembersList,

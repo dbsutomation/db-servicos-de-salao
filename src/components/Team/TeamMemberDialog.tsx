@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import TeamMemberForm from '@/components/Forms/TeamMember';
 
@@ -18,15 +18,15 @@ const TeamMemberDialog = ({
   onSuccess,
   title
 }: TeamMemberDialogProps) => {
-  console.log("TeamMemberDialog - editingMember:", editingMember);
+  // Remove excessive logging that's causing console spam
   
   return (
     <Dialog 
       open={open} 
       onOpenChange={(isOpen) => {
         if (!isOpen) {
-          // Small delay to ensure the form is reset after the dialog animation completes
-          setTimeout(() => onOpenChange(false), 10);
+          // When closing dialog, also reset form state
+          onOpenChange(false);
         } else {
           onOpenChange(true);
         }
@@ -39,6 +39,7 @@ const TeamMemberDialog = ({
             {editingMember ? 'Edite as informações do membro da equipe.' : 'Adicione um novo membro à equipe.'}
           </DialogDescription>
         </DialogHeader>
+        {/* Only render form when dialog is open to avoid unnecessary renders */}
         {open && (
           <TeamMemberForm 
             onSuccess={onSuccess} 

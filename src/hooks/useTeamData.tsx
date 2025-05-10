@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { TeamMember } from '@/types';
 import { fetchTeamMembers } from '@/services/teamService';
 
@@ -7,21 +7,23 @@ export const useTeamData = () => {
   const [teamMembersList, setTeamMembersList] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const loadTeamMembers = async () => {
+  // Use useCallback to prevent refreshTeamMembers from causing re-renders
+  const refreshTeamMembers = useCallback(async () => {
     setLoading(true);
-    const members = await fetchTeamMembers();
-    setTeamMembersList(members);
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    loadTeamMembers();
+    try {
+      const members = await fetchTeamMembers();
+      setTeamMembersList(members);
+    } catch (error) {
+      console.error("Error fetching team members:", error);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   return {
     teamMembersList,
     loading,
-    refreshTeamMembers: loadTeamMembers
+    refreshTeamMembers
   };
 };
 

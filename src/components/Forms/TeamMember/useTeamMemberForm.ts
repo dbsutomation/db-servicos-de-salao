@@ -32,6 +32,17 @@ const useTeamMemberForm = ({ teamMemberId, onSuccess }: UseTeamMemberFormProps) 
 
   // Populate form when editing an existing team member
   useEffect(() => {
+    // Clear form first to prevent stale data
+    form.reset({
+      name: '',
+      profession: '',
+      phone: '',
+      email: '',
+      password: '',
+      hasAccess: isEditing ? undefined : false,
+      isManager: false
+    });
+    
     if (teamMemberId) {
       setIsLoading(true);
       console.log("Carregando dados do membro:", teamMemberId);
@@ -51,6 +62,7 @@ const useTeamMemberForm = ({ teamMemberId, onSuccess }: UseTeamMemberFormProps) 
               description: "Não foi possível carregar os dados do membro selecionado.",
               variant: "destructive"
             });
+            setIsLoading(false);
             return;
           }
           
@@ -75,22 +87,11 @@ const useTeamMemberForm = ({ teamMemberId, onSuccess }: UseTeamMemberFormProps) 
       };
 
       fetchTeamMember();
-    } else {
-      // Reset form for new member
-      form.reset({
-        name: '',
-        profession: '',
-        phone: '',
-        email: '',
-        password: '',
-        hasAccess: false,
-        isManager: false
-      });
     }
-  }, [teamMemberId, form]);
+  }, [teamMemberId, form, isEditing]);
 
   const handleSubmit = (data: TeamMemberFormValues) => {
-    console.log("Dados do formulário:", data);
+    console.log("Form data submitted:", data);
     onSuccess(data);
   };
 

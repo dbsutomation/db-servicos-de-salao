@@ -1,6 +1,5 @@
 
-import { useState } from 'react';
-import { TeamMember } from '@/types';
+import { useState, useCallback } from 'react';
 
 export const useTeamDialog = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -8,15 +7,16 @@ export const useTeamDialog = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [memberToDelete, setMemberToDelete] = useState<string | null>(null);
 
-  const handleEdit = (memberId: string) => {
+  // Use useCallback to prevent handleEdit and confirmDeleteMember from causing re-renders
+  const handleEdit = useCallback((memberId: string) => {
     setEditingMember(memberId);
     setDialogOpen(true);
-  };
+  }, []);
 
-  const confirmDeleteMember = (memberId: string) => {
+  const confirmDeleteMember = useCallback((memberId: string) => {
     setMemberToDelete(memberId);
     setDeleteDialogOpen(true);
-  };
+  }, []);
 
   return {
     dialogOpen,

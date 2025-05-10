@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import MainLayout from '@/components/Layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
@@ -27,10 +27,17 @@ const Team = () => {
     refreshTeamMembers
   } = useTeamManagement();
 
-  // Refresh team members when the page loads
+  // Refresh team members when the page loads, but only once
   useEffect(() => {
+    // Initial data load
     refreshTeamMembers();
   }, [refreshTeamMembers]);
+
+  // Handler for adding new team member - memoized to prevent re-renders
+  const handleAddMember = useCallback(() => {
+    setEditingMember(null);
+    setDialogOpen(true);
+  }, [setEditingMember, setDialogOpen]);
 
   return (
     <MainLayout>
@@ -41,10 +48,7 @@ const Team = () => {
           {currentUser?.isManager && (
             <Button 
               className="bg-salon-purple hover:bg-salon-dark-purple"
-              onClick={() => {
-                setEditingMember(null);
-                setDialogOpen(true);
-              }}
+              onClick={handleAddMember}
             >
               <Plus className="mr-2" size={18} />
               Novo Membro
