@@ -4,7 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "./contexts/AuthContext";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { CartProvider } from "./contexts/CartContext";
 import Index from "./pages/Index";
 import Services from "./pages/Services";
@@ -15,16 +15,65 @@ import Cart from "./pages/Cart";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false
-    }
-  }
-});
+const queryClient = new QueryClient();
 
-// Layout da aplicação com estrutura compartilhada entre todas as páginas autenticadas
+// Protected route component
+const ProtectedRoute = ({ children, requiredRoutes }: { children: JSX.Element, requiredRoutes: string[] }) => {
+  const { isAuthenticated, checkAccess } = useAuth();
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/login" />;
+  }
+  
+  if (!checkAccess(requiredRoutes)) {
+    return <Navigate to="/" />;
+  }
+  
+  return children;
+};
+
+// Auth wrapper that uses the context
+const AuthenticatedApp = () => {
+  return (
+    <CartProvider>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/" element={
+          <ProtectedRoute requiredRoutes={["/"]}>
+            <Index />
+          </ProtectedRoute>
+        } />
+        <Route path="/services" element={
+          <ProtectedRoute requiredRoutes={["/services"]}>
+            <Services />
+          </ProtectedRoute>
+        } />
+        <Route path="/clients" element={
+          <ProtectedRoute requiredRoutes={["/clients"]}>
+            <Clients />
+          </ProtectedRoute>
+        } />
+        <Route path="/team" element={
+          <ProtectedRoute requiredRoutes={["/team"]}>
+            <Team />
+          </ProtectedRoute>
+        } />
+        <Route path="/records" element={
+          <ProtectedRoute requiredRoutes={["/records"]}>
+            <Records />
+          </ProtectedRoute>
+        } />
+        <Route path="/cart" element={
+          <ProtectedRoute requiredRoutes={["/cart"]}>
+            <Cart />
+          </ProtectedRoute>
+        } />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </CartProvider>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <BrowserRouter>
@@ -32,18 +81,7 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <CartProvider>
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route path="/" element={<Index />} />
-              <Route path="/services" element={<Services />} />
-              <Route path="/clients" element={<Clients />} />
-              <Route path="/team" element={<Team />} />
-              <Route path="/records" element={<Records />} />
-              <Route path="/cart" element={<Cart />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </CartProvider>
+          <AuthenticatedApp />
         </TooltipProvider>
       </AuthProvider>
     </BrowserRouter>

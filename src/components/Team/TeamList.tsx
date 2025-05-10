@@ -1,123 +1,97 @@
 
 import React from 'react';
+import { Edit, Trash2 } from 'lucide-react';
 import { TeamMember } from '@/types';
-import { User, Edit, Trash2, Check, X, UserCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface TeamListProps {
-  members: TeamMember[];
-  onEdit: (member: TeamMember) => void;
-  onDelete: (member: TeamMember) => void;
-  isLoading: boolean;
-  currentUserId?: string;
-  canEditMember: (memberId: string) => boolean;
-  canDeleteMember: (memberId: string) => boolean;
+  teamMembersList: TeamMember[];
+  onEdit: (memberId: string) => void;
+  onDelete: (memberId: string) => void;
+  loading: boolean;
 }
 
-const TeamList = ({ 
-  members, 
-  onEdit, 
-  onDelete, 
-  isLoading, 
-  currentUserId,
-  canEditMember,
-  canDeleteMember 
-}: TeamListProps) => {
-  if (isLoading) {
+const TeamList = ({ teamMembersList, onEdit, onDelete, loading }: TeamListProps) => {
+  const { currentUser } = useAuth();
+  
+  if (loading) {
     return (
-      <div className="py-8 text-center">
-        <p>Carregando membros da equipe...</p>
+      <div className="flex justify-center items-center h-64">
+        <p className="text-lg">Carregando membros da equipe...</p>
       </div>
     );
   }
-
-  if (!members || members.length === 0) {
+  
+  if (teamMembersList.length === 0) {
     return (
-      <div className="py-8 text-center text-muted-foreground">
-        <p>Nenhum membro encontrado na equipe.</p>
+      <div className="col-span-full text-center py-12 text-gray-500">
+        Nenhum membro da equipe cadastrado
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Nome</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Profissão</TableHead>
-            <TableHead>Telefone</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Gerente</TableHead>
-            <TableHead className="text-right">Ações</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {members.map((member) => (
-            <TableRow key={member.id} className={member.id === currentUserId ? 'bg-gray-50' : ''}>
-              <TableCell className="font-medium flex items-center gap-2">
-                <User className="text-gray-500" size={16} />
-                <div>
-                  {member.name}
-                  {member.id === currentUserId && (
-                    <Badge variant="outline" className="ml-2 text-xs">
-                      Você
-                    </Badge>
-                  )}
-                </div>
-              </TableCell>
-              <TableCell>{member.email}</TableCell>
-              <TableCell>{member.profession || "-"}</TableCell>
-              <TableCell>{member.phone || "-"}</TableCell>
-              <TableCell>
-                {member.hasAccess ? (
-                  <span className="flex items-center gap-1 text-green-600">
-                    <Check size={16} /> Ativo
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-1 text-red-600">
-                    <X size={16} /> Inativo
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {teamMembersList.map((member) => (
+        <div
+          key={member.id}
+          className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100 flex flex-col"
+        >
+          <div className="p-6 flex items-start gap-4">
+            <Avatar className="h-16 w-16">
+              <AvatarImage src={member.avatar} alt={member.name} />
+              <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+            </Avatar>
+            
+            <div className="flex-1">
+              <h3 className="font-medium text-lg">{member.name}</h3>
+              <p className="text-gray-500">{member.profession}</p>
+              
+              <div className="mt-2 space-y-1 text-sm">
+                <p><span className="font-medium">Email:</span> {member.email}</p>
+                <p><span className="font-medium">Telefone:</span> {member.phone}</p>
+              </div>
+              
+              <div className="mt-3 flex gap-2">
+                {member.hasAccess && (
+                  <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                    Acesso ao Sistema
                   </span>
                 )}
-              </TableCell>
-              <TableCell>
-                {member.isManager ? (
-                  <span className="flex items-center gap-1 text-purple-600">
-                    <UserCheck size={16} /> Sim
+                
+                {member.isManager && (
+                  <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                    Gerente
                   </span>
-                ) : (
-                  <span>Não</span>
                 )}
-              </TableCell>
-              <TableCell className="text-right">
-                <div className="flex justify-end gap-2">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => onEdit(member)}
-                    disabled={!canEditMember(member.id)}
-                    className="text-blue-600 hover:text-blue-800"
-                  >
-                    <Edit size={16} />
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => onDelete(member)}
-                    disabled={!canDeleteMember(member.id)}
-                    className="text-red-600 hover:text-red-800"
-                  >
-                    <Trash2 size={16} />
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+              </div>
+            </div>
+            
+            {currentUser?.isManager && (
+              <div className="flex flex-col gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onEdit(member.id)}
+                  className="h-8 w-8"
+                >
+                  <Edit size={16} />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onDelete(member.id)}
+                  className="h-8 w-8 text-destructive"
+                >
+                  <Trash2 size={16} />
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      ))}
     </div>
   );
 };

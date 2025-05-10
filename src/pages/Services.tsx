@@ -59,14 +59,10 @@ const Services = () => {
         
         // Ensure type compatibility with Service interface
         const typedServices = data?.map(service => ({
-          id: service.id,
-          name: service.name,
-          description: service.description || '',
+          ...service,
+          type: service.type === 'produto' ? 'produto' as const : 'servico' as const,
           price: Number(service.price),
-          commission: Number(service.commission),
-          image: service.image || '/placeholder.svg',
-          category: service.category || '',
-          type: service.type === 'produto' ? 'produto' as const : 'servico' as const
+          commission: Number(service.commission)
         })) || [];
         
         setServicesList(typedServices);
@@ -174,7 +170,7 @@ const Services = () => {
         setServicesList(prevServices => 
           prevServices.map(service => 
             service.id === editingService.id 
-              ? { ...service, ...serviceData, id: editingService.id }
+              ? { ...service, ...serviceData }
               : service
           )
         );
@@ -193,19 +189,8 @@ const Services = () => {
         if (error) throw error;
         
         if (newService && newService[0]) {
-          // Transform to Service interface and add to local state
-          const mappedService: Service = {
-            id: newService[0].id,
-            name: newService[0].name,
-            description: newService[0].description || '',
-            price: Number(newService[0].price),
-            commission: Number(newService[0].commission),
-            image: newService[0].image || '/placeholder.svg',
-            category: newService[0].category || '',
-            type: newService[0].type === 'produto' ? 'produto' as const : 'servico' as const
-          };
-          
-          setServicesList([...servicesList, mappedService]);
+          // Add to local state
+          setServicesList([...servicesList, newService[0] as Service]);
           
           toast({
             title: data.type === 'produto' ? "Produto adicionado" : "Serviço adicionado",

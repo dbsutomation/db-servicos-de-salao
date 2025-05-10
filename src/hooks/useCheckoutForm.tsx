@@ -65,15 +65,7 @@ export function useCheckoutForm() {
           
         if (teamError) throw teamError;
         
-        // Map clients data to match Client interface
-        const mappedClientsData = clientsData?.map(client => ({
-          id: client.id,
-          name: client.name,
-          phone: client.phone || '',
-          email: client.email || ''
-        })) as Client[];
-        
-        setClients(mappedClientsData || []);
+        setClients(clientsData || []);
         
         // Map the team data to match TeamMember interface
         const mappedTeamData = teamData?.map(member => ({
@@ -88,7 +80,7 @@ export function useCheckoutForm() {
           avatar: member.avatar || ''
         })) as TeamMember[];
         
-        setTeamMembers(mappedTeamData || []);
+        setTeamMembers(mappedTeamData);
         
         // Set current user as default team member if available
         if (currentUser?.id) {

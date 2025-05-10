@@ -70,7 +70,7 @@ export type Database = {
           created_at: string
           date: string
           id: string
-          payment_method: string | null
+          payment_method: string
           professional_id: string
           service_id: string
           service_value: number
@@ -82,7 +82,7 @@ export type Database = {
           created_at?: string
           date?: string
           id?: string
-          payment_method?: string | null
+          payment_method: string
           professional_id: string
           service_id: string
           service_value: number
@@ -94,7 +94,7 @@ export type Database = {
           created_at?: string
           date?: string
           id?: string
-          payment_method?: string | null
+          payment_method?: string
           professional_id?: string
           service_id?: string
           service_value?: number
@@ -126,7 +126,7 @@ export type Database = {
       }
       services: {
         Row: {
-          category: string | null
+          category: string
           commission: number
           created_at: string
           description: string | null
@@ -134,11 +134,11 @@ export type Database = {
           image: string | null
           name: string
           price: number
-          type: string | null
+          type: string
           updated_at: string
         }
         Insert: {
-          category?: string | null
+          category: string
           commission?: number
           created_at?: string
           description?: string | null
@@ -146,11 +146,11 @@ export type Database = {
           image?: string | null
           name: string
           price: number
-          type?: string | null
+          type?: string
           updated_at?: string
         }
         Update: {
-          category?: string | null
+          category?: string
           commission?: number
           created_at?: string
           description?: string | null
@@ -158,7 +158,7 @@ export type Database = {
           image?: string | null
           name?: string
           price?: number
-          type?: string | null
+          type?: string
           updated_at?: string
         }
         Relationships: []
@@ -181,7 +181,7 @@ export type Database = {
           created_at?: string
           email: string
           has_access?: boolean
-          id: string
+          id?: string
           is_manager?: boolean
           name: string
           phone?: string | null
@@ -207,14 +207,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_authenticated_user_id: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      is_manager: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never

@@ -1,120 +1,74 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import MainLayout from '@/components/Layout/MainLayout';
-import { Dialog } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { TeamMember } from '@/types';
-import useTeamMembers from '@/hooks/useTeamMembers';
-import TeamHeader from '@/components/Team/TeamHeader';
-import SearchBar from '@/components/Team/SearchBar';
-import TeamMembersList from '@/components/Team/TeamMembersList';
-import TeamMemberDialog from '@/components/Team/TeamMemberDialog';
+import useTeamManagement from '@/hooks/useTeamManagement';
+import TeamList from '@/components/Team/TeamList';
 import DeleteConfirmDialog from '@/components/Team/DeleteConfirmDialog';
+import TeamMemberDialog from '@/components/Team/TeamMemberDialog';
 
 const Team = () => {
   const { currentUser } = useAuth();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingMember, setEditingMember] = useState<string | null>(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [memberToDelete, setMemberToDelete] = useState<string | null>(null);
-  
   const {
-    teamMembers,
-    isLoading,
-    handleCreateOrUpdate,
-    handleConfirmDelete,
-  } = useTeamMembers();
-
-  const handleEdit = (memberId: string) => {
-    setEditingMember(memberId);
-    setDialogOpen(true);
-  };
-
-  const handleDelete = (memberId: string) => {
-    setMemberToDelete(memberId);
-    setDeleteDialogOpen(true);
-  };
-
-  const handleMemberSave = async (memberData: TeamMember) => {
-    try {
-      await handleCreateOrUpdate(memberData);
-      setDialogOpen(false);
-      setEditingMember(null);
-    } catch (error) {
-      console.error("Error saving member:", error);
-    }
-  };
-
-  const handleMemberDelete = async () => {
-    if (memberToDelete) {
-      try {
-        await handleConfirmDelete(memberToDelete);
-      } catch (error) {
-        console.error("Error deleting member:", error);
-      } finally {
-        setDeleteDialogOpen(false);
-        setMemberToDelete(null);
-      }
-    }
-  };
-
-  const canEditMember = (memberId: string): boolean => {
-    return currentUser?.isManager || memberId === currentUser?.id;
-  };
-
-  const canDeleteMember = (memberId: string): boolean => {
-    return currentUser?.isManager && memberId !== currentUser?.id;
-  };
-
-  // Find the currently editing member object
-  const selectedMember = editingMember 
-    ? teamMembers.find(m => m.id === editingMember) || null 
-    : null;
-
-  // Get the name of the member to be deleted
-  const memberToDeleteName = memberToDelete
-    ? teamMembers.find(m => m.id === memberToDelete)?.name
-    : undefined;
+    teamMembersList,
+    dialogOpen,
+    setDialogOpen,
+    editingMember,
+    setEditingMember,
+    deleteDialogOpen,
+    setDeleteDialogOpen,
+    loading,
+    handleSuccess,
+    handleEdit,
+    confirmDeleteMember,
+    handleDeleteMember,
+  } = useTeamManagement();
 
   return (
     <MainLayout>
       <div className="space-y-6">
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <TeamHeader 
-            onAddNewMember={() => setEditingMember(null)} 
-            canAddMembers={!!currentUser?.isManager} 
-          />
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <h1 className="text-3xl font-bold">Equipe</h1>
           
-          <TeamMemberDialog 
-            open={dialogOpen}
-            onOpenChange={setDialogOpen}
-            selectedMember={selectedMember}
-            onSubmit={handleMemberSave}
-            isLoading={isLoading}
-          />
-        </Dialog>
-
-        <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+          {currentUser?.isManager && (
+            <Button 
+              className="bg-salon-purple hover:bg-salon-dark-purple"
+              onClick={() => {
+                setEditingMember(null);
+                setDialogOpen(true);
+              }}
+            >
+              <Plus className="mr-2" size={18} />
+              Novo Membro
+            </Button>
+          )}
+        </div>
         
-        <TeamMembersList 
-          members={teamMembers}
-          isLoading={isLoading}
-          searchTerm={searchTerm}
-          currentUserId={currentUser?.id}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          canEditMember={canEditMember}
-          canDeleteMember={canDeleteMember}
+        <TeamList 
+          teamMembersList={teamMembersList} 
+          onEdit={handleEdit} 
+          onDelete={confirmDeleteMember} 
+          loading={loading} 
         />
       </div>
+
+      <TeamMemberDialog
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) setEditingMember(null);  // Reset editing state when closing dialog
+        }}
+        editingMember={editingMember}
+        onSuccess={handleSuccess}
+        title={editingMember ? 'Editar Membro' : 'Adicionar Novo Membro'}
+      />
 
       <DeleteConfirmDialog 
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
-        onConfirm={handleMemberDelete}
-        memberName={memberToDeleteName}
-        isLoading={isLoading}
+        onConfirm={handleDeleteMember}
       />
     </MainLayout>
   );

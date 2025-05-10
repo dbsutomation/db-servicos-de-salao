@@ -1,37 +1,35 @@
 
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { TeamMember } from '@/types';
-import TeamMemberForm from './TeamMemberForm';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import TeamMemberForm from '@/components/Forms/TeamMember';
 
 interface TeamMemberDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  selectedMember: TeamMember | null;
-  onSubmit: (data: TeamMember) => void;
-  isLoading: boolean;
+  editingMember: string | null;
+  onSuccess: (data: any) => void;
+  title: string;
 }
 
 const TeamMemberDialog = ({
   open,
   onOpenChange,
-  selectedMember,
-  onSubmit,
-  isLoading
+  editingMember,
+  onSuccess,
+  title
 }: TeamMemberDialogProps) => {
+  console.log("TeamMemberDialog - editingMember:", editingMember);
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle>
-            {selectedMember?.id ? 'Editar Membro da Equipe' : 'Adicionar Novo Membro'}
-          </DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>
+            {editingMember ? 'Edite as informações do membro da equipe.' : 'Adicione um novo membro à equipe.'}
+          </DialogDescription>
         </DialogHeader>
-        <TeamMemberForm 
-          member={selectedMember} 
-          onSubmit={onSubmit} 
-          isLoading={isLoading} 
-        />
+        <TeamMemberForm onSuccess={onSuccess} teamMemberId={editingMember} />
       </DialogContent>
     </Dialog>
   );

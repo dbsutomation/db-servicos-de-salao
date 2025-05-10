@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/Layout/MainLayout';
 import { Button } from '@/components/ui/button';
@@ -56,17 +57,7 @@ const Records = () => {
         }
 
         if (data) {
-          // Map to Expense interface
-          const mappedExpenses = data.map(expense => ({
-            id: expense.id,
-            name: expense.name,
-            description: expense.description || '',
-            amount: Number(expense.amount),
-            created_at: expense.created_at,
-            updated_at: expense.updated_at
-          }));
-          
-          setExpenses(mappedExpenses);
+          setExpenses(data as Expense[]);
         }
       } catch (error: any) {
         toast({
@@ -80,7 +71,7 @@ const Records = () => {
     };
 
     fetchExpenses();
-  }, []);
+  }, [toast]);
 
   const handleEditExpense = (expense: Expense) => {
     // Only managers can edit expenses
@@ -192,17 +183,8 @@ const Records = () => {
 
         if (error) throw error;
 
-        // Add to local state with proper interface mapping
-        const mappedExpense: Expense = {
-          id: newExpense.id,
-          name: newExpense.name,
-          description: newExpense.description || '',
-          amount: Number(newExpense.amount),
-          created_at: newExpense.created_at,
-          updated_at: newExpense.updated_at
-        };
-        
-        setExpenses([mappedExpense, ...expenses]);
+        // Add to local state
+        setExpenses([newExpense as Expense, ...expenses]);
         
         toast({
           title: "Despesa adicionada",
