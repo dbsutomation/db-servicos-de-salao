@@ -26,7 +26,8 @@ const useTeamMemberForm = ({ teamMemberId, onSuccess }: UseTeamMemberFormProps) 
       password: '',
       hasAccess: isEditing ? undefined : false, // Padrão false para novos membros
       isManager: false
-    }
+    },
+    mode: 'onChange' // Validate on change for better user feedback
   });
 
   // Populate form when editing an existing team member
@@ -74,6 +75,17 @@ const useTeamMemberForm = ({ teamMemberId, onSuccess }: UseTeamMemberFormProps) 
       };
 
       fetchTeamMember();
+    } else {
+      // Reset form for new member
+      form.reset({
+        name: '',
+        profession: '',
+        phone: '',
+        email: '',
+        password: '',
+        hasAccess: false,
+        isManager: false
+      });
     }
   }, [teamMemberId, form]);
 

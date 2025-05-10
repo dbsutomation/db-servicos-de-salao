@@ -99,6 +99,7 @@ export const useTeamManagement = () => {
     handleEdit,
     confirmDeleteMember,
     handleDeleteMember,
+    refreshTeamMembers
   };
 };
 

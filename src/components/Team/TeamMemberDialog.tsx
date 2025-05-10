@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import TeamMemberForm from '@/components/Forms/TeamMember';
 
@@ -21,7 +21,17 @@ const TeamMemberDialog = ({
   console.log("TeamMemberDialog - editingMember:", editingMember);
   
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog 
+      open={open} 
+      onOpenChange={(isOpen) => {
+        if (!isOpen) {
+          // Small delay to ensure the form is reset after the dialog animation completes
+          setTimeout(() => onOpenChange(false), 10);
+        } else {
+          onOpenChange(true);
+        }
+      }}
+    >
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
@@ -29,7 +39,13 @@ const TeamMemberDialog = ({
             {editingMember ? 'Edite as informações do membro da equipe.' : 'Adicione um novo membro à equipe.'}
           </DialogDescription>
         </DialogHeader>
-        <TeamMemberForm onSuccess={onSuccess} teamMemberId={editingMember} />
+        {open && (
+          <TeamMemberForm 
+            onSuccess={onSuccess} 
+            teamMemberId={editingMember} 
+            key={editingMember || 'new'} // This ensures the form rerenders when editingMember changes
+          />
+        )}
       </DialogContent>
     </Dialog>
   );

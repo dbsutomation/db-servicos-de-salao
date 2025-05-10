@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import MainLayout from '@/components/Layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
@@ -24,7 +24,13 @@ const Team = () => {
     handleEdit,
     confirmDeleteMember,
     handleDeleteMember,
+    refreshTeamMembers
   } = useTeamManagement();
+
+  // Refresh team members when the page loads
+  useEffect(() => {
+    refreshTeamMembers();
+  }, [refreshTeamMembers]);
 
   return (
     <MainLayout>
