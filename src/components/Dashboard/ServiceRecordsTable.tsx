@@ -5,7 +5,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFoo
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
-import { ServiceRecord } from '@/types';
 
 // Define a local type for the records the component will use
 interface DisplayServiceRecord {

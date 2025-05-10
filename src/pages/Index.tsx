@@ -4,12 +4,12 @@ import MainLayout from '@/components/Layout/MainLayout';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
-// Componentes do dashboard
-import { QuantityStats } from '@/components/Dashboard/QuantityStats';
-import { FinancialStats } from '@/components/Dashboard/FinancialStats';
-import { ServiceRecordsTable } from '@/components/Dashboard/ServiceRecordsTable';
-import { PaymentMethodStats } from '@/components/Dashboard/PaymentMethodStats';
-import { DashboardFilters } from '@/components/Dashboard/DashboardFilters';
+// Componentes do dashboard - import as default exports
+import QuantityStats from '@/components/Dashboard/QuantityStats';
+import FinancialStats from '@/components/Dashboard/FinancialStats';
+import ServiceRecordsTable from '@/components/Dashboard/ServiceRecordsTable';
+import PaymentMethodStats from '@/components/Dashboard/PaymentMethodStats';
+import DashboardFilters from '@/components/Dashboard/DashboardFilters';
 
 // Hook de dados do dashboard
 import { useDashboardData } from '@/hooks/useDashboardData';
@@ -17,7 +17,30 @@ import { useDashboardData } from '@/hooks/useDashboardData';
 const Index = () => {
   const navigate = useNavigate();
   const { isAuthenticated, isLoading } = useAuth();
-  const { dateRange, paymentMethod, onChangeFilters } = useDashboardData();
+  const { 
+    dateFilter, 
+    setDateFilter,
+    startDate,
+    setStartDate,
+    endDate,
+    setEndDate,
+    selectedProfessional,
+    setSelectedProfessional,
+    selectedType,
+    setSelectedType,
+    totalServices,
+    totalClients,
+    topServices,
+    topClient,
+    totalCommissions,
+    totalServiceValue,
+    totalRevenue,
+    netProfit,
+    totalExpenses,
+    paymentMethodStats,
+    serviceRecordsList,
+    loading
+  } = useDashboardData();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -50,27 +73,50 @@ const Index = () => {
           </div>
 
           <DashboardFilters
-            dateRange={dateRange}
-            paymentMethod={paymentMethod}
-            onChangeFilters={onChangeFilters}
+            dateFilter={dateFilter}
+            setDateFilter={setDateFilter}
+            startDate={startDate}
+            setStartDate={setStartDate}
+            endDate={endDate}
+            setEndDate={setEndDate}
+            selectedProfessional={selectedProfessional}
+            setSelectedProfessional={setSelectedProfessional}
+            selectedType={selectedType}
+            setSelectedType={setSelectedType}
           />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-          <QuantityStats />
+          <QuantityStats 
+            totalServices={totalServices}
+            totalClients={totalClients}
+            topServices={topServices}
+            topClient={topClient}
+          />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2">
-            <FinancialStats />
+            <FinancialStats 
+              totalRevenue={totalRevenue}
+              totalCommissions={totalCommissions}
+              totalExpenses={totalExpenses}
+              netProfit={netProfit}
+            />
           </div>
           <div>
-            <PaymentMethodStats />
+            <PaymentMethodStats 
+              paymentMethodStats={paymentMethodStats}
+            />
           </div>
         </div>
 
         <div>
-          <ServiceRecordsTable />
+          <ServiceRecordsTable 
+            serviceRecordsList={serviceRecordsList}
+            totalCommissions={totalCommissions}
+            totalServiceValue={totalServiceValue}
+          />
         </div>
       </div>
     </MainLayout>

@@ -1,6 +1,11 @@
 
 import { TeamMember } from '@/types';
 
+export interface AuthState {
+  isAuthenticated: boolean;
+  currentUser: TeamMember | null;
+}
+
 export interface AuthContextType {
   isAuthenticated: boolean;
   currentUser: TeamMember | null;

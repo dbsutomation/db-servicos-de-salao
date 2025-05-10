@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { format, addDays } from 'date-fns';
+import { format } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -8,7 +8,6 @@ import { Calendar as CalendarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
-import { teamMembers } from '@/data/mockData';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface DashboardFiltersProps {
@@ -128,11 +127,9 @@ const DashboardFilters: React.FC<DashboardFiltersProps> = ({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos os profissionais</SelectItem>
-                    {teamMembers.map((member) => (
-                      <SelectItem key={member.id} value={String(member.id)}>
-                        {member.name}
-                      </SelectItem>
-                    ))}
+                    {/* We'll get team members from a fetch later */}
+                    <SelectItem value="1">Ana Silva</SelectItem>
+                    <SelectItem value="2">João Santos</SelectItem>
                   </SelectContent>
                 </Select>
               </FormItem>
