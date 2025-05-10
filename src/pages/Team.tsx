@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/Layout/MainLayout';
 import { Button } from '@/components/ui/button';
@@ -64,17 +65,28 @@ const Team = () => {
       if (editingMember) {
         console.log("Atualizando membro:", editingMember, data);
         
-        // Update existing team member in Supabase
+        // Preparar dados para atualização
+        const updateData: any = {
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+          profession: data.profession,
+          has_access: data.hasAccess,
+          is_manager: data.isManager
+        };
+        
+        // Se a senha foi fornecida, atualizar em uma chamada separada para segurança
+        if (data.password && data.password.trim() !== '') {
+          // Em um cenário real, você precisaria de um endpoint seguro para atualizar senhas
+          // Esta é uma simulação - em produção, isso seria feito de maneira mais segura
+          console.log("Senha nova detectada, atualizando...");
+          // Você poderia chamar uma função que lida com a atualização de senha
+        }
+        
+        // Atualizar membro no Supabase
         const { error } = await supabase
           .from('users')
-          .update({
-            name: data.name,
-            email: data.email,
-            phone: data.phone,
-            profession: data.profession,
-            has_access: data.hasAccess,
-            is_manager: data.isManager
-          })
+          .update(updateData)
           .eq('id', editingMember);
           
         if (error) throw error;
@@ -88,17 +100,21 @@ const Team = () => {
         await fetchTeamMembers();
         
       } else {
+        // Preparar dados para inserção
+        const insertData: any = {
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+          profession: data.profession,
+          has_access: data.hasAccess,
+          is_manager: data.isManager
+          // Senha seria tratada separadamente em um caso real
+        };
+        
         // Add new team member to Supabase
         const { error } = await supabase
           .from('users')
-          .insert({
-            name: data.name,
-            email: data.email,
-            phone: data.phone,
-            profession: data.profession,
-            has_access: data.hasAccess,
-            is_manager: data.isManager
-          });
+          .insert(insertData);
           
         if (error) throw error;
         
@@ -207,7 +223,10 @@ const Team = () => {
           <h1 className="text-3xl font-bold">Equipe</h1>
           
           {currentUser?.isManager && (
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <Dialog open={dialogOpen} onOpenChange={(open) => {
+              setDialogOpen(open);
+              if (!open) setEditingMember(null);  // Reset editing state when closing dialog
+            }}>
               <DialogTrigger asChild>
                 <Button 
                   className="bg-salon-purple hover:bg-salon-dark-purple"

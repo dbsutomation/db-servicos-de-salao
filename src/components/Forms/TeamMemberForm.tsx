@@ -10,7 +10,8 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 
-const formSchema = z.object({
+// Esquema de validação adaptativo para permitir senha opcional na edição
+const formSchema = (isEditing: boolean) => z.object({
   name: z.string().min(2, {
     message: 'Nome deve ter pelo menos 2 caracteres'
   }),
@@ -23,14 +24,14 @@ const formSchema = z.object({
   email: z.string().email({
     message: 'Email deve ser válido'
   }),
-  password: z.string().min(6, {
-    message: 'Senha deve ter pelo menos 6 caracteres'
-  }).optional().or(z.literal('')),
+  password: isEditing 
+    ? z.string().min(6, { message: 'Senha deve ter pelo menos 6 caracteres' }).optional().or(z.literal(''))
+    : z.string().min(6, { message: 'Senha deve ter pelo menos 6 caracteres' }),
   hasAccess: z.boolean(),
   isManager: z.boolean()
 });
 
-type TeamMemberFormValues = z.infer<typeof formSchema>;
+type TeamMemberFormValues = z.infer<ReturnType<typeof formSchema>>;
 
 interface TeamMemberFormProps {
   onSuccess: (data: TeamMemberFormValues) => void;
@@ -51,15 +52,19 @@ const professions = [
 ];
 
 const TeamMemberForm = ({ onSuccess, teamMemberId }: TeamMemberFormProps) => {
+  // Configurar o schema baseado se é edição ou criação
+  const isEditing = !!teamMemberId;
+  const schema = formSchema(isEditing);
+  
   const form = useForm<TeamMemberFormValues>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       name: '',
       profession: '',
       phone: '',
       email: '',
       password: '',
-      hasAccess: false,
+      hasAccess: isEditing ? undefined : false, // Padrão false para novos membros
       isManager: false
     }
   });
@@ -86,10 +91,10 @@ const TeamMemberForm = ({ onSuccess, teamMemberId }: TeamMemberFormProps) => {
             console.log("Dados do membro carregados:", data);
             
             form.reset({
-              name: data.name,
+              name: data.name || '',
               profession: data.profession || '',
               phone: data.phone || '',
-              email: data.email,
+              email: data.email || '',
               password: '', // Password is not fetched from the database
               hasAccess: data.has_access,
               isManager: data.is_manager
