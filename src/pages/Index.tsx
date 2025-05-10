@@ -4,7 +4,7 @@ import MainLayout from '@/components/Layout/MainLayout';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
-// Componentes do dashboard - import as default exports
+// Componentes do dashboard - importados corretamente
 import QuantityStats from '@/components/Dashboard/QuantityStats';
 import FinancialStats from '@/components/Dashboard/FinancialStats';
 import ServiceRecordsTable from '@/components/Dashboard/ServiceRecordsTable';
