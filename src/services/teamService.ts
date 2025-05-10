@@ -101,8 +101,12 @@ export const createTeamMember = async (data: any): Promise<boolean> => {
   try {
     console.log("Criando novo membro com dados:", data);
     
-    // Prepare data for insertion
+    // Generate UUID for the new user
+    const id = crypto.randomUUID();
+    
+    // Prepare data for insertion with required id field
     const insertData = {
+      id: id,
       name: data.name,
       email: data.email,
       phone: data.phone || null,
