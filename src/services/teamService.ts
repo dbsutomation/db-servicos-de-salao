@@ -26,6 +26,7 @@ export const fetchTeamMembers = async (): Promise<TeamMember[]> => {
     
     return transformedData;
   } catch (error: any) {
+    console.error('Error fetching team members:', error);
     toast({
       title: "Erro ao carregar equipe",
       description: error.message || "Não foi possível carregar os membros da equipe",
