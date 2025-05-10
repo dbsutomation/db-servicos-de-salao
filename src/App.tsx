@@ -59,10 +59,10 @@ const ProtectedRoute = ({ children, requiredRoutes }: { children: JSX.Element, r
   return children;
 };
 
-// Auth wrapper that uses the context
-const AuthenticatedApp = () => {
+// Routes component que será usado dentro de AuthProvider
+const AppRoutes = () => {
   const { isAuthenticated, isLoading } = useAuth();
-  console.log("AuthenticatedApp: isAuthenticated =", isAuthenticated, "isLoading =", isLoading);
+  console.log("AppRoutes: isAuthenticated =", isAuthenticated, "isLoading =", isLoading);
 
   return (
     <CartProvider>
@@ -113,7 +113,7 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <AuthenticatedApp />
+          <AppRoutes />
         </TooltipProvider>
       </AuthProvider>
     </BrowserRouter>
