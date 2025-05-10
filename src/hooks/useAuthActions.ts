@@ -35,14 +35,8 @@ export const useAuthActions = (
       
       if (data.user) {
         console.log("Login bem-sucedido para:", data.user.email);
-        toast({
-          title: "Login bem-sucedido",
-          description: "Bem-vindo de volta!",
-        });
-        
-        // Forçamos a navegação para a home aqui também
-        // para garantir que o usuário seja redirecionado
-        navigate('/', { replace: true });
+        // Não precisamos fazer mais nada aqui - o useAuthState vai atualizar o contexto
+        // e o useEffect no Login.tsx vai cuidar do redirecionamento
         return true;
       }
       

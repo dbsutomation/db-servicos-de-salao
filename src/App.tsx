@@ -26,9 +26,14 @@ const queryClient = new QueryClient({
 
 // Protected route component
 const ProtectedRoute = ({ children, requiredRoutes }: { children: JSX.Element, requiredRoutes: string[] }) => {
-  const { isAuthenticated, checkAccess } = useAuth();
+  const { isAuthenticated, checkAccess, isLoading } = useAuth();
   
-  console.log("ProtectedRoute: isAuthenticated =", isAuthenticated);
+  console.log("ProtectedRoute: isAuthenticated =", isAuthenticated, "isLoading =", isLoading);
+  
+  // Enquanto carrega, não redireciona ainda
+  if (isLoading) {
+    return <div className="flex justify-center items-center h-screen">Carregando...</div>;
+  }
   
   if (!isAuthenticated) {
     console.log("Usuário não autenticado, redirecionando para login");
@@ -45,8 +50,13 @@ const ProtectedRoute = ({ children, requiredRoutes }: { children: JSX.Element, r
 
 // Auth wrapper that uses the context
 const AuthenticatedApp = () => {
-  const { isAuthenticated } = useAuth();
-  console.log("AuthenticatedApp: isAuthenticated =", isAuthenticated);
+  const { isAuthenticated, isLoading } = useAuth();
+  console.log("AuthenticatedApp: isAuthenticated =", isAuthenticated, "isLoading =", isLoading);
+
+  // Enquanto carrega, mostra indicador de carregamento
+  if (isLoading) {
+    return <div className="flex justify-center items-center h-screen">Carregando...</div>;
+  }
 
   return (
     <CartProvider>

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -9,7 +9,7 @@ import * as z from 'zod';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Digite um email válido' }),
@@ -22,15 +22,19 @@ const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { isAuthenticated, login } = useAuth();
+  const { isAuthenticated, login, isLoading: authLoading } = useAuth();
+
+  console.log("Login component rendered, isAuthenticated:", isAuthenticated, "authLoading:", authLoading);
 
   // Se já estiver autenticado, redirecionar para a home
-  React.useEffect(() => {
-    if (isAuthenticated) {
-      console.log("Usuário autenticado, redirecionando para /");
+  useEffect(() => {
+    if (isAuthenticated && !authLoading) {
+      console.log("Login: User is authenticated, redirecting to /");
       navigate('/', { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, authLoading, navigate]);
+
+  const { toast } = useToast();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -45,11 +49,16 @@ const Login = () => {
     try {
       if (isLogin) {
         // Login usando a função de contexto
+        console.log("Attempting login for:", values.email);
         const success = await login(values.email, values.password);
         
         if (success) {
-          console.log("Login bem-sucedido, redirecionando...");
+          console.log("Login successful, will be redirected by useEffect");
           // O redirecionamento agora é tratado pelo useEffect acima
+          toast({
+            title: "Login bem-sucedido",
+            description: "Bem-vindo de volta!",
+          });
         }
       } else {
         // Registro
@@ -139,9 +148,9 @@ const Login = () => {
             <Button
               type="submit"
               className="w-full bg-salon-purple hover:bg-salon-dark-purple"
-              disabled={isLoading}
+              disabled={isLoading || authLoading}
             >
-              {isLoading ? 'Processando...' : isLogin ? 'Entrar' : 'Cadastrar'}
+              {isLoading || authLoading ? 'Processando...' : isLogin ? 'Entrar' : 'Cadastrar'}
             </Button>
           </form>
         </Form>
