@@ -45,7 +45,6 @@ export const createTeamMember = async (teamMember: Omit<TeamMember, 'id'>): Prom
     const userId = authData.user.id;
 
     // Then update the users table with additional fields
-    // The trigger will automatically create a record, but we need to update it
     const { error: updateError } = await supabase
       .from('users')
       .update({
@@ -71,6 +70,7 @@ export const createTeamMember = async (teamMember: Omit<TeamMember, 'id'>): Prom
 // Update an existing team member
 export const updateTeamMember = async (teamMember: TeamMember): Promise<void> => {
   try {
+    // Update user info in the users table
     const { error } = await supabase
       .from('users')
       .update({
@@ -104,8 +104,8 @@ export const updateTeamMember = async (teamMember: TeamMember): Promise<void> =>
 // Delete a team member
 export const deleteTeamMember = async (id: string): Promise<void> => {
   try {
-    // When you delete the auth user, the trigger will automatically
-    // delete the record from users table if you set up cascading deletes
+    // When deleting an auth user, the trigger will automatically
+    // delete the record from users table due to the CASCADE constraint
     const { error } = await supabase.auth.admin.deleteUser(id);
     
     if (error) throw error;

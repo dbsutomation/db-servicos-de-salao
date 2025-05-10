@@ -24,12 +24,12 @@ export const useTeamMembers = () => {
       const data = await fetchTeamMembers();
       setTeamMembers(data);
     } catch (error) {
+      console.error('Error loading team members:', error);
       toast({
         title: "Erro",
         description: "Não foi possível carregar os membros da equipe",
         variant: "destructive",
       });
-      console.error(error);
     } finally {
       setIsLoading(false);
     }
@@ -73,8 +73,9 @@ export const useTeamMembers = () => {
         });
       }
       setDialogOpen(false);
-      loadTeamMembers();
+      await loadTeamMembers(); // Reload the list after changes
     } catch (error: any) {
+      console.error('Error creating/updating team member:', error);
       toast({
         title: "Erro",
         description: error.message || "Ocorreu um erro ao processar o membro da equipe",
@@ -96,11 +97,12 @@ export const useTeamMembers = () => {
         description: "Membro removido com sucesso",
       });
       setDeleteDialogOpen(false);
-      loadTeamMembers();
-    } catch (error) {
+      await loadTeamMembers(); // Reload the list after deletion
+    } catch (error: any) {
+      console.error('Error deleting team member:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível remover o membro da equipe",
+        description: error.message || "Não foi possível remover o membro da equipe",
         variant: "destructive",
       });
     } finally {
