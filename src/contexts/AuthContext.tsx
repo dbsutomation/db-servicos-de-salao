@@ -214,8 +214,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return true;
     }
     
-    // Não-gerentes só têm acesso a rotas específicas
-    const allowedRoutes = ['/', '/home', '/clients', '/services'];
+    // Não-gerentes têm acesso a rotas específicas
+    const allowedRoutes = ['/', '/home', '/clients', '/services', '/cart'];
     return requiredRoutes.some(route => allowedRoutes.includes(route));
   };
 

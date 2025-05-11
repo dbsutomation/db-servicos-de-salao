@@ -1,3 +1,4 @@
+
 import React, { useState, ChangeEvent, useEffect } from 'react';
 import MainLayout from '@/components/Layout/MainLayout';
 import ServiceCard from '@/components/Services/ServiceCard';
@@ -6,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Form, FormField, FormItem, FormLabel, FormControl } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useForm } from 'react-hook-form';
-import { Plus, Pencil, Camera } from 'lucide-react';
+import { Plus, Pencil, Camera, Search } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Service } from '@/types';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, AlertDialogTitle, AlertDialogDescription, AlertDialogAction, AlertDialogCancel } from '@/components/ui/alert-dialog';
@@ -28,6 +29,7 @@ const Services = () => {
   const { currentUser } = useAuth();
   const [open, setOpen] = useState(false);
   const [servicesList, setServicesList] = useState<Service[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -79,6 +81,13 @@ const Services = () => {
 
     fetchServices();
   }, []);
+
+  // Filter services based on search term
+  const filteredServices = servicesList.filter(service => 
+    service.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (service.description && service.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (service.category && service.category.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
 
   const handleEditService = (service: Service) => {
     // Only managers can edit services
@@ -271,6 +280,16 @@ const Services = () => {
             "Selecione os serviços ou produtos para adicionar ao carrinho."
           }
         </p>
+
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+          <Input 
+            placeholder="Buscar por nome, descrição ou categoria" 
+            className="pl-10 border-2 border-gray-200 shadow-sm bg-white"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
         
         {loading ? (
           <div className="flex justify-center items-center h-64">
@@ -278,7 +297,7 @@ const Services = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {servicesList.map((service) => (
+            {filteredServices.map((service) => (
               <div key={service.id} className="relative">
                 <ServiceCard 
                   service={service} 
@@ -294,9 +313,9 @@ const Services = () => {
               </div>
             ))}
             
-            {servicesList.length === 0 && !loading && (
+            {filteredServices.length === 0 && !loading && (
               <div className="col-span-full text-center py-12 text-gray-500 bg-white rounded-lg shadow-md border-2 border-gray-100">
-                Nenhum serviço ou produto cadastrado
+                {searchTerm ? 'Nenhum serviço ou produto encontrado' : 'Nenhum serviço ou produto cadastrado'}
               </div>
             )}
           </div>

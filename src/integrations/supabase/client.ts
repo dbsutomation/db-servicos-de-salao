@@ -6,10 +6,44 @@ import type { Database } from './types';
 const SUPABASE_URL = "https://mrccqqindgacgfreviwf.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1yY2NxcWluZGdhY2dmcmV2aXdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY5MDc1NzIsImV4cCI6MjA2MjQ4MzU3Mn0.0UshDKISFDYCQVVZ5tfSBaCMH2F6bF3SenjnD63bYw8";
 
+// Debug connection status
+console.log(`Initializing Supabase client with URL: ${SUPABASE_URL}`);
+
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
+    detectSessionInUrl: true
+  },
+  global: {
+    fetch: (...args) => {
+      console.log('Supabase fetch request:', args[0]);
+      return fetch(...args)
+        .then(response => {
+          if (!response.ok) {
+            console.error('Supabase fetch error:', response.status, response.statusText);
+          }
+          return response;
+        })
+        .catch(error => {
+          console.error('Supabase network error:', error);
+          throw error;
+        });
+    }
   }
 });
+
+// Test connection on load
+(async () => {
+  try {
+    const { error } = await supabase.from('users').select('count').limit(1);
+    if (error) {
+      console.error('Supabase connection test failed:', error);
+    } else {
+      console.log('Supabase connection test successful');
+    }
+  } catch (err) {
+    console.error('Supabase connection error:', err);
+  }
+})();

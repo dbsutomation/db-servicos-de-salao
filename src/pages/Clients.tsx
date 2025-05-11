@@ -219,26 +219,26 @@ const Clients = () => {
                 className="bg-white rounded-lg shadow-md border-2 border-gray-100 overflow-hidden flex flex-col"
               >
                 <div className="p-6 flex items-start gap-4">
-                  <Avatar className="h-16 w-16 bg-salon-purple/20">
+                  <Avatar className="h-16 w-16 flex-shrink-0 bg-salon-purple/20">
                     <AvatarFallback className="bg-salon-purple/20 text-salon-purple">
                       {client.name.charAt(0)}
                     </AvatarFallback>
                   </Avatar>
                   
-                  <div className="flex-1">
-                    <h3 className="font-medium text-lg">{client.name}</h3>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-medium text-lg truncate">{client.name}</h3>
                     
                     <div className="mt-2 space-y-1 text-sm">
                       {client.phone && (
-                        <p><span className="font-medium">Telefone:</span> {client.phone}</p>
+                        <p className="truncate"><span className="font-medium">Telefone:</span> {client.phone}</p>
                       )}
                       {client.email && (
-                        <p><span className="font-medium">Email:</span> {client.email}</p>
+                        <p className="truncate"><span className="font-medium">Email:</span> {client.email}</p>
                       )}
                     </div>
                   </div>
                   
-                  <div className="flex flex-col gap-1">
+                  <div className="flex flex-col gap-1 flex-shrink-0">
                     <Button
                       variant="ghost"
                       size="icon"

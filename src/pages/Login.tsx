@@ -177,7 +177,7 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl text-center font-bold">Gestão Salão</CardTitle>
+          <CardTitle className="text-2xl text-center font-bold">Acesso ao sistema</CardTitle>
           <CardDescription className="text-center">
             {isSignUp ? 'Crie sua conta para acessar o sistema' : 'Entre com suas credenciais para acessar o sistema'}
           </CardDescription>
@@ -245,23 +245,23 @@ const Login = () => {
                 {isLoading ? 'Cadastrando...' : 'Cadastrar'}
               </Button>
               <Button
-                variant="outline"
+                variant="link"
                 className="w-full"
                 onClick={() => setIsSignUp(false)}
                 disabled={isLoading}
               >
-                Voltar ao Login
+                Já tem acesso, faça login
               </Button>
             </>
           ) : (
             <>
               <Button 
-                variant="outline" 
+                variant="link" 
                 className="w-full" 
                 onClick={() => setIsSignUp(true)}
                 disabled={isLoading}
               >
-                Cadastrar-se
+                Não tem acesso, cadastre-se
               </Button>
               <p className="text-center text-sm text-gray-500">
                 Caso não possua acesso, entre em contato com o gerente.

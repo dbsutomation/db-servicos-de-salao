@@ -40,21 +40,21 @@ const TeamList = ({ teamMembersList, onEdit, onDelete, loading }: TeamListProps)
           className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100 flex flex-col"
         >
           <div className="p-6 flex items-start gap-4">
-            <Avatar className="h-16 w-16">
+            <Avatar className="h-16 w-16 flex-shrink-0">
               <AvatarImage src={member.avatar} alt={member.name} />
               <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
             </Avatar>
             
-            <div className="flex-1">
-              <h3 className="font-medium text-lg">{member.name}</h3>
-              <p className="text-gray-500">{member.profession}</p>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-medium text-lg truncate">{member.name}</h3>
+              <p className="text-gray-500 truncate">{member.profession}</p>
               
               <div className="mt-2 space-y-1 text-sm">
-                <p><span className="font-medium">Email:</span> {member.email}</p>
-                <p><span className="font-medium">Telefone:</span> {member.phone}</p>
+                <p className="truncate"><span className="font-medium">Email:</span> {member.email}</p>
+                <p className="truncate"><span className="font-medium">Telefone:</span> {member.phone}</p>
               </div>
               
-              <div className="mt-3 flex gap-2">
+              <div className="mt-3 flex gap-2 flex-wrap">
                 {member.hasAccess && (
                   <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">
                     Acesso ao Sistema
@@ -70,7 +70,7 @@ const TeamList = ({ teamMembersList, onEdit, onDelete, loading }: TeamListProps)
             </div>
             
             {currentUser?.isManager && (
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-1 flex-shrink-0">
                 <Button
                   variant="ghost"
                   size="icon"
