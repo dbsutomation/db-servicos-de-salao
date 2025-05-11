@@ -20,7 +20,7 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
 
   return (
     <Card className="overflow-hidden transition-shadow hover:shadow-md h-full flex flex-col">
-      <div className="aspect-video bg-muted overflow-hidden h-40">
+      <div className="aspect-video bg-muted overflow-hidden h-32">
         <img
           src={service.image}
           alt={service.name}
@@ -28,7 +28,7 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
         />
       </div>
       <div className="flex flex-col flex-grow">
-        <CardHeader className="pb-2">
+        <CardHeader className="pb-2 pt-3">
           <CardTitle className="text-lg font-semibold">{service.name}</CardTitle>
           <CardDescription className="text-sm text-gray-500 line-clamp-2">
             {service.description}
@@ -43,7 +43,7 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
             </div>
           </div>
         </CardContent>
-        <CardFooter className="pt-0">
+        <CardFooter className="pt-0 pb-4">
           <Button 
             onClick={() => addToCart(service)} 
             className="w-full bg-salon-purple hover:bg-salon-dark-purple"
