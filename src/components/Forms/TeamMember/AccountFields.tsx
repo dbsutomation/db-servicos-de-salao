@@ -26,19 +26,22 @@ const AccountFields = ({ form, isEditing }: AccountFieldsProps) => {
         )}
       />
       
-      <FormField
-        control={form.control}
-        name="password"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>{isEditing ? 'Nova Senha (opcional)' : 'Senha'}</FormLabel>
-            <FormControl>
-              <Input type="password" placeholder="******" {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      {/* Only show password field for new users, not when editing */}
+      {!isEditing && (
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Senha</FormLabel>
+              <FormControl>
+                <Input type="password" placeholder="******" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
     </>
   );
 };

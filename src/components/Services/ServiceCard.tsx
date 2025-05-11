@@ -19,8 +19,8 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
   }).format(service.price);
 
   return (
-    <Card className="overflow-hidden transition-shadow hover:shadow-md">
-      <div className="aspect-video bg-muted overflow-hidden">
+    <Card className="overflow-hidden transition-shadow hover:shadow-md max-w-xs mx-auto">
+      <div className="aspect-video bg-muted overflow-hidden h-40">
         <img
           src={service.image}
           alt={service.name}

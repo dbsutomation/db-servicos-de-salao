@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { TeamMember } from '@/types';
 import { toast } from '@/hooks/use-toast';
@@ -45,7 +44,7 @@ export const updateTeamMember = async (memberId: string, data: any): Promise<boo
     console.log("Atualizando membro com ID:", memberId);
     console.log("Dados para atualização:", data);
     
-    // Preparar dados para atualização
+    // Preparar dados para atualização - password is excluded as it's handled separately
     const updateData = {
       name: data.name,
       email: data.email,
@@ -86,7 +85,8 @@ export const updateTeamMember = async (memberId: string, data: any): Promise<boo
     
     toast({
       title: "Membro atualizado",
-      description: `${data.name} foi atualizado com sucesso.`
+      description: `${data.name} foi atualizado com sucesso.`,
+      duration: 5000,
     });
     
     return true;

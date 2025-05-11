@@ -19,6 +19,7 @@ const TeamMemberDialog = ({
   title
 }: TeamMemberDialogProps) => {
   console.log("TeamMemberDialog - editingMember:", editingMember);
+  const isEditing = !!editingMember;
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -26,7 +27,7 @@ const TeamMemberDialog = ({
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
-            {editingMember ? 'Edite as informações do membro da equipe.' : 'Adicione um novo membro à equipe.'}
+            {isEditing ? 'Edite as informações do membro da equipe.' : 'Adicione um novo membro à equipe.'}
           </DialogDescription>
         </DialogHeader>
         <TeamMemberForm onSuccess={onSuccess} teamMemberId={editingMember} />

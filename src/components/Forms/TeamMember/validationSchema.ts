@@ -16,8 +16,8 @@ export const teamMemberFormSchema = (isEditing: boolean) => z.object({
     message: 'Email deve ser válido'
   }),
   password: isEditing 
-    ? z.string().min(6, { message: 'Senha deve ter pelo menos 6 caracteres' }).optional().or(z.literal(''))
-    : z.string().min(6, { message: 'Senha deve ter pelo menos 6 caracteres' }),
+    ? z.string().optional() // Password is completely optional when editing
+    : z.string().min(6, { message: 'Senha deve ter pelo menos 6 caracteres' }), // Required with validation for new users
   hasAccess: z.boolean(),
   isManager: z.boolean()
 });
