@@ -19,7 +19,7 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
   }).format(service.price);
 
   return (
-    <Card className="overflow-hidden transition-shadow hover:shadow-md max-w-xs mx-auto">
+    <Card className="overflow-hidden transition-shadow hover:shadow-md max-w-xs mx-auto h-full flex flex-col">
       <div className="aspect-video bg-muted overflow-hidden h-40">
         <img
           src={service.image}
@@ -27,29 +27,31 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
           className="w-full h-full object-cover"
         />
       </div>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg">{service.name}</CardTitle>
-        <CardDescription className="text-sm line-clamp-2">
-          {service.description}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="pb-2">
-        <div className="flex justify-between items-center">
-          <p className="text-xl font-semibold text-salon-purple">{formattedPrice}</p>
-          <div className="flex items-center text-sm text-gray-500">
-            <Percent size={14} className="mr-1" />
-            <span>Comissão: {service.commission}%</span>
+      <div className="flex flex-col flex-grow">
+        <CardHeader className="pb-1">
+          <CardTitle className="text-lg font-semibold">{service.name}</CardTitle>
+          <CardDescription className="text-sm text-gray-500 line-clamp-2">
+            {service.description}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pb-2 flex-grow">
+          <div className="flex flex-col">
+            <p className="text-xl font-semibold text-salon-purple">{formattedPrice}</p>
+            <div className="flex items-center text-sm text-gray-500 mt-1">
+              <Percent size={14} className="mr-1" />
+              <span>Comissão: {service.commission}%</span>
+            </div>
           </div>
-        </div>
-      </CardContent>
-      <CardFooter>
-        <Button 
-          onClick={() => addToCart(service)} 
-          className="w-full bg-salon-purple hover:bg-salon-dark-purple"
-        >
-          <Plus size={16} className="mr-2" /> Adicionar
-        </Button>
-      </CardFooter>
+        </CardContent>
+        <CardFooter className="pt-2">
+          <Button 
+            onClick={() => addToCart(service)} 
+            className="w-full bg-salon-purple hover:bg-salon-dark-purple"
+          >
+            <Plus size={16} className="mr-2" /> Adicionar
+          </Button>
+        </CardFooter>
+      </div>
     </Card>
   );
 };
