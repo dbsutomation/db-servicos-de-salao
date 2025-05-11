@@ -257,7 +257,7 @@ const Services = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 max-w-5xl mx-auto">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">Serviços e Produtos</h1>
           {currentUser?.isManager && (
@@ -326,7 +326,7 @@ const Services = () => {
         if (!isOpen) resetForm();
         setOpen(isOpen);
       }}>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>{editingService ? 'Editar Item' : 'Adicionar Novo Item'}</DialogTitle>
             <DialogDescription>
