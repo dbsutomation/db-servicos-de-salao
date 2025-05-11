@@ -1,8 +1,6 @@
 
 import React from 'react';
 import MainLayout from '@/components/Layout/MainLayout';
-import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
 import DashboardFilters from '@/components/Dashboard/DashboardFilters';
 import FinancialStats from '@/components/Dashboard/FinancialStats';
 import PaymentMethodStats from '@/components/Dashboard/PaymentMethodStats';
@@ -54,12 +52,7 @@ const Index = () => {
               selectedType={selectedType}
               setSelectedType={setSelectedType}
             />
-            
-            <Link to="/services">
-              <Button className="bg-salon-purple hover:bg-salon-dark-purple shadow-md">
-                Novo Registro
-              </Button>
-            </Link>
+            {/* Removed the "Novo Registro" button */}
           </div>
         </div>
 

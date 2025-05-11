@@ -4,8 +4,19 @@ import { format } from 'date-fns';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
+import { Search, Edit, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { ServiceRecord } from '@/types';
+import { useAuth } from '@/contexts/AuthContext';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 // Define a local type for the records the component will use
 interface DisplayServiceRecord {
@@ -28,12 +39,34 @@ interface ServiceRecordsTableProps {
   totalServiceValue: number;
 }
 
+const formSchema = z.object({
+  paymentMethod: z.string().min(1, "Método de pagamento é obrigatório"),
+  serviceValue: z.coerce.number().min(0, "Valor deve ser maior ou igual a zero"),
+  commissionAmount: z.coerce.number().min(0, "Comissão deve ser maior ou igual a zero"),
+});
+
+type FormValues = z.infer<typeof formSchema>;
+
 const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({ 
   serviceRecordsList,
   totalCommissions,
   totalServiceValue
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const { currentUser } = useAuth();
+  const { toast } = useToast();
+  const [selectedRecord, setSelectedRecord] = useState<DisplayServiceRecord | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      paymentMethod: '',
+      serviceValue: 0,
+      commissionAmount: 0,
+    },
+  });
 
   // Função de filtro para a busca
   const filteredRecords = serviceRecordsList.filter(record => {
@@ -48,6 +81,103 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
       format(new Date(record.date), 'dd/MM/yyyy').includes(searchTerm)
     );
   });
+
+  const handleEdit = (record: DisplayServiceRecord) => {
+    if (!currentUser?.isManager) {
+      toast({
+        title: "Acesso negado",
+        description: "Apenas gerentes podem editar registros de serviços.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSelectedRecord(record);
+    form.reset({
+      paymentMethod: record.paymentMethod,
+      serviceValue: record.serviceValue,
+      commissionAmount: record.commissionAmount,
+    });
+    setEditDialogOpen(true);
+  };
+
+  const handleDelete = (record: DisplayServiceRecord) => {
+    if (!currentUser?.isManager) {
+      toast({
+        title: "Acesso negado",
+        description: "Apenas gerentes podem excluir registros de serviços.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSelectedRecord(record);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!selectedRecord) return;
+
+    try {
+      const { error } = await supabase
+        .from('service_records')
+        .delete()
+        .eq('id', selectedRecord.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Registro excluído",
+        description: "O registro de serviço foi removido com sucesso.",
+      });
+
+      // Force reload to update the list
+      window.location.reload();
+    } catch (error: any) {
+      toast({
+        title: "Erro ao excluir",
+        description: error.message || "Ocorreu um erro ao excluir o registro.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleteDialogOpen(false);
+      setSelectedRecord(null);
+    }
+  };
+
+  const onSubmit = async (data: FormValues) => {
+    if (!selectedRecord) return;
+
+    try {
+      const { error } = await supabase
+        .from('service_records')
+        .update({
+          payment_method: data.paymentMethod,
+          service_value: data.serviceValue,
+          commission_amount: data.commissionAmount,
+        })
+        .eq('id', selectedRecord.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Registro atualizado",
+        description: "O registro de serviço foi atualizado com sucesso.",
+      });
+
+      // Force reload to update the list
+      window.location.reload();
+    } catch (error: any) {
+      toast({
+        title: "Erro ao atualizar",
+        description: error.message || "Ocorreu um erro ao atualizar o registro.",
+        variant: "destructive",
+      });
+    } finally {
+      setEditDialogOpen(false);
+      setSelectedRecord(null);
+    }
+  };
 
   return (
     <div>
@@ -76,6 +206,7 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
               <TableHead>Pagamento</TableHead>
               <TableHead className="text-right">Comissão</TableHead>
               <TableHead className="text-right">Valor</TableHead>
+              {currentUser?.isManager && <TableHead className="text-center">Ações</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -100,11 +231,33 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
                     currency: 'BRL'
                   }).format(record.serviceValue)}
                 </TableCell>
+                {currentUser?.isManager && (
+                  <TableCell className="text-center">
+                    <div className="flex justify-center space-x-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleEdit(record)}
+                        className="h-8 w-8"
+                      >
+                        <Edit size={16} />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(record)}
+                        className="h-8 w-8 text-destructive"
+                      >
+                        <Trash2 size={16} />
+                      </Button>
+                    </div>
+                  </TableCell>
+                )}
               </TableRow>
             ))}
             {filteredRecords.length === 0 && (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-4 text-muted-foreground">
+                <TableCell colSpan={currentUser?.isManager ? 10 : 9} className="text-center py-4 text-muted-foreground">
                   {searchTerm ? "Nenhum resultado encontrado para a busca" : "Nenhum dado para o período selecionado"}
                 </TableCell>
               </TableRow>
@@ -112,7 +265,7 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
           </TableBody>
           <TableFooter>
             <TableRow>
-              <TableCell colSpan={7} className="font-bold">Total</TableCell>
+              <TableCell colSpan={currentUser?.isManager ? 7 : 6} className="font-bold">Total</TableCell>
               <TableCell className="text-right font-bold bg-[#ea384c]/20">
                 {new Intl.NumberFormat('pt-BR', {
                   style: 'currency', 
@@ -125,10 +278,104 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
                   currency: 'BRL'
                 }).format(totalServiceValue)}
               </TableCell>
+              {currentUser?.isManager && <TableCell></TableCell>}
             </TableRow>
           </TableFooter>
         </Table>
       </Card>
+
+      {/* Edit Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Registro</DialogTitle>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="paymentMethod"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Método de Pagamento</FormLabel>
+                    <Select 
+                      value={field.value} 
+                      onValueChange={field.onChange}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um método" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Dinheiro">Dinheiro</SelectItem>
+                        <SelectItem value="Cartão de Crédito">Cartão de Crédito</SelectItem>
+                        <SelectItem value="Cartão de Débito">Cartão de Débito</SelectItem>
+                        <SelectItem value="PIX">PIX</SelectItem>
+                        <SelectItem value="Transferência">Transferência</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="serviceValue"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Valor do Serviço</FormLabel>
+                    <FormControl>
+                      <Input type="number" step="0.01" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="commissionAmount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Valor da Comissão</FormLabel>
+                    <FormControl>
+                      <Input type="number" step="0.01" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setEditDialogOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button type="submit">Salvar</Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este registro de serviço? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

@@ -46,7 +46,7 @@ const Navbar = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => logout()}
+            onClick={logout}
             className="ml-1"
             title="Sair"
           >
