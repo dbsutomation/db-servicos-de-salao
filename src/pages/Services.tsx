@@ -256,7 +256,7 @@ const Services = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-6 max-w-5xl mx-auto">
+      <div className="container mx-auto px-4 space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">Serviços e Produtos</h1>
           {currentUser?.isManager && (

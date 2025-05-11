@@ -20,7 +20,7 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
 
   return (
     <Card className="overflow-hidden transition-shadow hover:shadow-md h-full flex flex-col">
-      <div className="aspect-video bg-muted overflow-hidden h-32">
+      <div className="w-full bg-muted overflow-hidden h-40">
         <img
           src={service.image}
           alt={service.name}
@@ -28,7 +28,7 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
         />
       </div>
       <div className="flex flex-col flex-grow">
-        <CardHeader className="pb-2 pt-3">
+        <CardHeader className="pb-2 pt-4">
           <CardTitle className="text-lg font-semibold">{service.name}</CardTitle>
           <CardDescription className="text-sm text-gray-500 line-clamp-2">
             {service.description}
