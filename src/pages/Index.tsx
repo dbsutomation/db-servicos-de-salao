@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import MainLayout from '@/components/Layout/MainLayout';
 import DashboardFilters from '@/components/Dashboard/DashboardFilters';
 import FinancialStats from '@/components/Dashboard/FinancialStats';
@@ -7,8 +7,12 @@ import PaymentMethodStats from '@/components/Dashboard/PaymentMethodStats';
 import QuantityStats from '@/components/Dashboard/QuantityStats';
 import ServiceRecordsTable from '@/components/Dashboard/ServiceRecordsTable';
 import { useDashboardData } from '@/hooks/useDashboardData';
+import { Button } from '@/components/ui/button';
+import { Eye, EyeOff } from 'lucide-react';
 
 const Index = () => {
+  const [showFinancialData, setShowFinancialData] = useState(true);
+
   const {
     dateFilter,
     setDateFilter,
@@ -34,6 +38,10 @@ const Index = () => {
     loading
   } = useDashboardData();
 
+  const toggleFinancialData = () => {
+    setShowFinancialData(!showFinancialData);
+  };
+
   return (
     <MainLayout>
       <div className="space-y-6">
@@ -52,7 +60,16 @@ const Index = () => {
               selectedType={selectedType}
               setSelectedType={setSelectedType}
             />
-            {/* Removed the "Novo Registro" button */}
+            {/* Botão para mostrar/esconder dados financeiros */}
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={toggleFinancialData}
+              className="ml-2" 
+              title={showFinancialData ? "Esconder dados financeiros" : "Mostrar dados financeiros"}
+            >
+              {showFinancialData ? <EyeOff size={18} /> : <Eye size={18} />}
+            </Button>
           </div>
         </div>
 
@@ -62,16 +79,20 @@ const Index = () => {
           </div>
         ) : (
           <>
-            {/* Financial Stats Cards */}
-            <FinancialStats 
-              totalRevenue={totalRevenue}
-              totalCommissions={totalCommissions}
-              totalExpenses={totalExpenses}
-              netProfit={netProfit}
-            />
+            {/* Financial Stats Cards - Conditional rendering based on showFinancialData */}
+            {showFinancialData && (
+              <FinancialStats 
+                totalRevenue={totalRevenue}
+                totalCommissions={totalCommissions}
+                totalExpenses={totalExpenses}
+                netProfit={netProfit}
+              />
+            )}
 
-            {/* Stats by payment method */}
-            <PaymentMethodStats paymentMethodStats={paymentMethodStats} />
+            {/* Stats by payment method - Conditional rendering based on showFinancialData */}
+            {showFinancialData && (
+              <PaymentMethodStats paymentMethodStats={paymentMethodStats} />
+            )}
 
             {/* Quantity Stats Cards */}
             <QuantityStats 
