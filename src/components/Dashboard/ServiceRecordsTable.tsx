@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { format as dateFormat } from 'date-fns';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
@@ -356,7 +355,7 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
                 {new Intl.NumberFormat('pt-BR', {
                   style: 'currency', 
                   currency: 'BRL'
-                }).format(searchTerm ? filteredTotalTips : totalTips)}
+                }).format(filteredTotalTips)}
               </TableCell>
               <TableCell className="text-right font-bold bg-[#F2FCE2]">
                 {new Intl.NumberFormat('pt-BR', {

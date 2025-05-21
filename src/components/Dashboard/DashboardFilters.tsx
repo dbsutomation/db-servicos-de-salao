@@ -8,8 +8,8 @@ import { Calendar as CalendarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
-import { teamMembers } from '@/data/mockData';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTeamData } from '@/hooks/useTeamData';
 
 interface DashboardFiltersProps {
   dateFilter: string;
@@ -37,6 +37,8 @@ const DashboardFilters: React.FC<DashboardFiltersProps> = ({
   setSelectedType
 }) => {
   const { currentUser } = useAuth();
+  const { teamMembersList, loading } = useTeamData();
+  
   const form = useForm({
     defaultValues: {
       professional: selectedProfessional || "all",
@@ -128,11 +130,15 @@ const DashboardFilters: React.FC<DashboardFiltersProps> = ({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos os profissionais</SelectItem>
-                    {teamMembers.map((member) => (
-                      <SelectItem key={member.id} value={String(member.id)}>
-                        {member.name}
-                      </SelectItem>
-                    ))}
+                    {loading ? (
+                      <SelectItem value="loading" disabled>Carregando...</SelectItem>
+                    ) : (
+                      teamMembersList.map((member) => (
+                        <SelectItem key={member.id} value={String(member.id)}>
+                          {member.name}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </FormItem>
