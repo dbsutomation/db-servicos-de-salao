@@ -31,6 +31,7 @@ const Index = () => {
     totalRevenue,
     netProfit,
     totalClients,
+    totalTips,
     topServices,
     topClient,
     paymentMethodStats,
@@ -113,6 +114,7 @@ const Index = () => {
               serviceRecordsList={serviceRecordsList}
               totalCommissions={totalCommissions}
               totalServiceValue={totalServiceValue}
+              totalTips={totalTips}
             />
           </>
         )}

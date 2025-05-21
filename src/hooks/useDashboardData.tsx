@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useMemo } from 'react';
 import { isAfter, isBefore, addDays, parseISO, format, startOfWeek, endOfWeek } from 'date-fns';
 import { fromZonedTime, toZonedTime } from 'date-fns-tz';
@@ -49,6 +50,7 @@ export const useDashboardData = () => {
             payment_method,
             commission_amount,
             service_value,
+            tip_amount,
             services:service_id (id, name, price, type, category),
             clients:client_id (id, name),
             users:professional_id (id, name, profession)
@@ -82,6 +84,7 @@ export const useDashboardData = () => {
             paymentMethod: record.payment_method,
             commissionAmount: Number(record.commission_amount || 0),
             serviceValue: Number(record.service_value || 0),
+            tipAmount: Number(record.tip_amount || 0),
             service: record.services,
             client: record.clients,
             teamMember: {
@@ -167,6 +170,7 @@ export const useDashboardData = () => {
   const totalCommissions = filteredRecords.reduce((total, record) => total + Number(record.commissionAmount || 0), 0);
   const totalServiceValue = filteredRecords.reduce((total, record) => total + Number(record.serviceValue || record.service?.price || 0), 0);
   const totalRevenue = totalServiceValue; // Revenue is the total value of all services/products
+  const totalTips = filteredRecords.reduce((total, record) => total + Number(record.tipAmount || 0), 0);
   const netProfit = totalRevenue - totalCommissions - totalExpenses; // Net profit after deducting commissions and expenses
   const totalClients = new Set(filteredRecords.map(record => record.client?.id)).size;
   
@@ -239,7 +243,8 @@ export const useDashboardData = () => {
       date: record.date,
       paymentMethod: record.paymentMethod || 'Não especificado',
       commissionAmount: Number(record.commissionAmount || 0),
-      serviceValue: Number(record.serviceValue || record.service?.price || 0)
+      serviceValue: Number(record.serviceValue || record.service?.price || 0),
+      tipAmount: Number(record.tipAmount || 0)
     }));
   }, [filteredRecords]);
 
@@ -261,6 +266,7 @@ export const useDashboardData = () => {
     totalRevenue,
     netProfit,
     totalClients,
+    totalTips,
     topServices,
     topClient,
     paymentMethodStats,
