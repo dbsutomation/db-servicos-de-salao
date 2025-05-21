@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { isAfter, isBefore, addDays, parseISO, format } from 'date-fns';
-import { zonedTimeToUtc, utcToZonedTime } from 'date-fns-tz';
+import { fromZonedTime, toZonedTime } from 'date-fns-tz';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Expense, ServiceRecord, Service, TeamMember, Client } from '@/types';
@@ -62,11 +62,11 @@ export const useDashboardData = () => {
           if (record.date) {
             // Convert UTC date from database to local date (America/Sao_Paulo)
             const utcDate = new Date(record.date);
-            const localDate = utcToZonedTime(utcDate, timeZone);
+            const localDate = toZonedTime(utcDate, timeZone);
             recordDate = format(localDate, 'yyyy-MM-dd');
           } else {
             const now = new Date();
-            const localNow = utcToZonedTime(now, timeZone);
+            const localNow = toZonedTime(now, timeZone);
             recordDate = format(localNow, 'yyyy-MM-dd');
           }
 
@@ -122,7 +122,7 @@ export const useDashboardData = () => {
     
     // Apply date filter
     if (dateFilter === 'today') {
-      const today = format(utcToZonedTime(new Date(), timeZone), 'yyyy-MM-dd');
+      const today = format(toZonedTime(new Date(), timeZone), 'yyyy-MM-dd');
       records = records.filter(record => record.date === today);
     } else if (dateFilter === 'week') {
       const oneWeekAgo = new Date();
