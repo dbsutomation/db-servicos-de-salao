@@ -1,6 +1,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
-import { isAfter, isBefore, addDays, parseISO } from 'date-fns';
+import { isAfter, isBefore, addDays, parseISO, format } from 'date-fns';
+import { zonedTimeToUtc, utcToZonedTime } from 'date-fns-tz';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Expense, ServiceRecord, Service, TeamMember, Client } from '@/types';
@@ -15,6 +16,9 @@ export const useDashboardData = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [serviceRecords, setServiceRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Timezone configuration for Brazil (UTC-3)
+  const timeZone = 'America/Sao_Paulo';
 
   // Fetch expenses and service records from Supabase
   useEffect(() => {
@@ -51,19 +55,35 @@ export const useDashboardData = () => {
         setExpenses(expensesData || []);
         
         // Transform the fetched data to match the expected structure
-        const formattedRecords = recordsData?.map((record: any) => ({
-          id: record.id,
-          date: record.date ? record.date.split('T')[0] : new Date().toISOString().split('T')[0],
-          paymentMethod: record.payment_method,
-          commissionAmount: Number(record.commission_amount || 0),
-          serviceValue: Number(record.service_value || 0),
-          service: record.services,
-          client: record.clients,
-          teamMember: {
-            ...record.users,
-            profession: record.users?.profession || 'Não especificado'
+        // Fix timezone issues by adjusting dates to local timezone
+        const formattedRecords = recordsData?.map((record: any) => {
+          // Adjust the date from UTC to local timezone (UTC-3)
+          let recordDate: string;
+          if (record.date) {
+            // Convert UTC date from database to local date (America/Sao_Paulo)
+            const utcDate = new Date(record.date);
+            const localDate = utcToZonedTime(utcDate, timeZone);
+            recordDate = format(localDate, 'yyyy-MM-dd');
+          } else {
+            const now = new Date();
+            const localNow = utcToZonedTime(now, timeZone);
+            recordDate = format(localNow, 'yyyy-MM-dd');
           }
-        })) || [];
+
+          return {
+            id: record.id,
+            date: recordDate,
+            paymentMethod: record.payment_method,
+            commissionAmount: Number(record.commission_amount || 0),
+            serviceValue: Number(record.service_value || 0),
+            service: record.services,
+            client: record.clients,
+            teamMember: {
+              ...record.users,
+              profession: record.users?.profession || 'Não especificado'
+            }
+          };
+        }) || [];
 
         setServiceRecords(formattedRecords);
       } catch (error: any) {
@@ -102,7 +122,7 @@ export const useDashboardData = () => {
     
     // Apply date filter
     if (dateFilter === 'today') {
-      const today = new Date().toISOString().split('T')[0];
+      const today = format(utcToZonedTime(new Date(), timeZone), 'yyyy-MM-dd');
       records = records.filter(record => record.date === today);
     } else if (dateFilter === 'week') {
       const oneWeekAgo = new Date();

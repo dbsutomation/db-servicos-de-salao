@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { format } from 'date-fns';
+import { format as dateFormat } from 'date-fns';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -17,6 +17,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { parseISO } from 'date-fns';
 
 // Define a local type for the records the component will use
 interface DisplayServiceRecord {
@@ -78,7 +79,7 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
       record.category.toLowerCase().includes(searchLower) ||
       record.client.toLowerCase().includes(searchLower) ||
       record.paymentMethod.toLowerCase().includes(searchLower) ||
-      format(new Date(record.date), 'dd/MM/yyyy').includes(searchTerm)
+      dateFormat(parseISO(record.date), 'dd/MM/yyyy').includes(searchTerm)
     );
   });
 
@@ -212,7 +213,7 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
           <TableBody>
             {filteredRecords.map((record) => (
               <TableRow key={record.id} className="border-b border-gray-200 hover:bg-gray-50">
-                <TableCell>{format(new Date(record.date), 'dd/MM/yyyy')}</TableCell>
+                <TableCell>{dateFormat(parseISO(record.date), 'dd/MM/yyyy')}</TableCell>
                 <TableCell>{record.professional}</TableCell>
                 <TableCell>{record.service}</TableCell>
                 <TableCell>{record.serviceType === 'produto' ? 'Produto' : 'Serviço'}</TableCell>
