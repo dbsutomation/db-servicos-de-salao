@@ -64,28 +64,32 @@ const PaymentMethodStats: React.FC<PaymentMethodStatsProps> = ({ paymentMethodSt
       {/* Credit Card Payment Details - Separate cards for payment types */}
       {(creditFullPayment > 0 || creditInstallmentPayment > 0) && (
         <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="shadow-md border-2 border-gray-100 bg-blue-50">
-            <CardHeader>
-              <CardDescription>Crédito À Vista</CardDescription>
-              <CardTitle className="text-2xl">
-                {new Intl.NumberFormat('pt-BR', {
-                  style: 'currency', 
-                  currency: 'BRL'
-                }).format(creditFullPayment)}
-              </CardTitle>
-            </CardHeader>
-          </Card>
-          <Card className="shadow-md border-2 border-gray-100 bg-blue-50">
-            <CardHeader>
-              <CardDescription>Crédito Parcelado</CardDescription>
-              <CardTitle className="text-2xl">
-                {new Intl.NumberFormat('pt-BR', {
-                  style: 'currency', 
-                  currency: 'BRL'
-                }).format(creditInstallmentPayment)}
-              </CardTitle>
-            </CardHeader>
-          </Card>
+          {creditFullPayment > 0 && (
+            <Card className="shadow-md border-2 border-gray-100 bg-blue-50">
+              <CardHeader>
+                <CardDescription>Crédito À Vista</CardDescription>
+                <CardTitle className="text-2xl">
+                  {new Intl.NumberFormat('pt-BR', {
+                    style: 'currency', 
+                    currency: 'BRL'
+                  }).format(creditFullPayment)}
+                </CardTitle>
+              </CardHeader>
+            </Card>
+          )}
+          {creditInstallmentPayment > 0 && (
+            <Card className="shadow-md border-2 border-gray-100 bg-blue-50">
+              <CardHeader>
+                <CardDescription>Crédito Parcelado</CardDescription>
+                <CardTitle className="text-2xl">
+                  {new Intl.NumberFormat('pt-BR', {
+                    style: 'currency', 
+                    currency: 'BRL'
+                  }).format(creditInstallmentPayment)}
+                </CardTitle>
+              </CardHeader>
+            </Card>
+          )}
         </div>
       )}
 
