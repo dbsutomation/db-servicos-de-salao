@@ -24,6 +24,8 @@ export const useDashboardData = () => {
   const [serviceRecords, setServiceRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Timezone configuration for Brazil (UTC-3)
+  
   // Fetch expenses and service records from Supabase
   useEffect(() => {
     const fetchData = async () => {
@@ -47,7 +49,6 @@ export const useDashboardData = () => {
             payment_method,
             commission_amount,
             service_value,
-            tip_amount,
             services:service_id (id, name, price, type, category),
             clients:client_id (id, name),
             users:professional_id (id, name, profession)
@@ -75,36 +76,12 @@ export const useDashboardData = () => {
             recordDate = format(localNow, 'yyyy-MM-dd');
           }
 
-          // Format payment method to include credit card type
-          let paymentMethod = record.payment_method || 'Não especificado';
-          
-          // For legacy records where credit card type wasn't stored,
-          // default to "À Vista" for credit card payments
-          if (paymentMethod === 'credit') {
-            paymentMethod = 'Cartão de Crédito (À Vista)';
-          } else if (paymentMethod.includes('credit_')) {
-            // For newer records with specific credit card type
-            const type = paymentMethod.split('_')[1];
-            if (type === 'full') {
-              paymentMethod = 'Cartão de Crédito (À Vista)';
-            } else if (type === 'installments') {
-              paymentMethod = 'Cartão de Crédito (Parcelado)';
-            }
-          } else if (paymentMethod === 'debit') {
-            paymentMethod = 'Cartão de Débito';
-          } else if (paymentMethod === 'cash') {
-            paymentMethod = 'Dinheiro';
-          } else if (paymentMethod === 'pix') {
-            paymentMethod = 'PIX';
-          }
-
           return {
             id: record.id,
             date: recordDate,
-            paymentMethod: paymentMethod,
+            paymentMethod: record.payment_method,
             commissionAmount: Number(record.commission_amount || 0),
             serviceValue: Number(record.service_value || 0),
-            tipAmount: Number(record.tip_amount || 0),
             service: record.services,
             client: record.clients,
             teamMember: {
@@ -189,7 +166,6 @@ export const useDashboardData = () => {
   const totalServices = filteredRecords.length;
   const totalCommissions = filteredRecords.reduce((total, record) => total + Number(record.commissionAmount || 0), 0);
   const totalServiceValue = filteredRecords.reduce((total, record) => total + Number(record.serviceValue || record.service?.price || 0), 0);
-  const totalTips = filteredRecords.reduce((total, record) => total + Number(record.tipAmount || 0), 0);
   const totalRevenue = totalServiceValue; // Revenue is the total value of all services/products
   const netProfit = totalRevenue - totalCommissions - totalExpenses; // Net profit after deducting commissions and expenses
   const totalClients = new Set(filteredRecords.map(record => record.client?.id)).size;
@@ -263,8 +239,7 @@ export const useDashboardData = () => {
       date: record.date,
       paymentMethod: record.paymentMethod || 'Não especificado',
       commissionAmount: Number(record.commissionAmount || 0),
-      serviceValue: Number(record.serviceValue || record.service?.price || 0),
-      tipAmount: Number(record.tipAmount || 0)
+      serviceValue: Number(record.serviceValue || record.service?.price || 0)
     }));
   }, [filteredRecords]);
 
@@ -283,7 +258,6 @@ export const useDashboardData = () => {
     totalServices,
     totalCommissions,
     totalServiceValue,
-    totalTips,
     totalRevenue,
     netProfit,
     totalClients,

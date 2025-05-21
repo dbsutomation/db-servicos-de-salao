@@ -74,7 +74,6 @@ export type Database = {
           professional_id: string
           service_id: string
           service_value: number
-          tip_amount: number | null
           updated_at: string
         }
         Insert: {
@@ -87,7 +86,6 @@ export type Database = {
           professional_id: string
           service_id: string
           service_value: number
-          tip_amount?: number | null
           updated_at?: string
         }
         Update: {
@@ -100,7 +98,6 @@ export type Database = {
           professional_id?: string
           service_id?: string
           service_value?: number
-          tip_amount?: number | null
           updated_at?: string
         }
         Relationships: [

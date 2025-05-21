@@ -23,7 +23,6 @@ const TipField = ({ form }: TipFieldProps) => {
               step="0.01"
               placeholder="0.00"
               {...field}
-              value={field.value || ''}
               onChange={(e) => {
                 const value = e.target.value === '' ? '0' : e.target.value;
                 field.onChange(parseFloat(value));

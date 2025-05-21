@@ -12,104 +12,31 @@ interface PaymentMethodStatsProps {
 }
 
 const PaymentMethodStats: React.FC<PaymentMethodStatsProps> = ({ paymentMethodStats }) => {
-  // Calculate credit payment totals
-  const creditFullPayment = paymentMethodStats
-    .filter(stat => stat.method === 'Cartão de Crédito (À Vista)')
-    .reduce((total, stat) => total + stat.amount, 0);
-
-  const creditInstallmentPayment = paymentMethodStats
-    .filter(stat => stat.method === 'Cartão de Crédito (Parcelado)')
-    .reduce((total, stat) => total + stat.amount, 0);
-
-  // Total credit card payments (both full and installment)
-  const totalCreditPayments = creditFullPayment + creditInstallmentPayment;
-
-  // Console logs para debug
-  console.log('PaymentMethodStats:', paymentMethodStats);
-  console.log('Credit à vista:', creditFullPayment);
-  console.log('Credit parcelado:', creditInstallmentPayment);
-  console.log('Total de pagamentos em crédito:', totalCreditPayments);
-
-  // Determinar se há pagamentos em cartão de crédito
-  const hasCreditPayments = totalCreditPayments > 0;
-  
   return (
     <>
       <h2 className="text-xl font-semibold">Pagamentos por Método</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Regular payment methods (excluding credit card) */}
-        {paymentMethodStats
-          .filter(stat => !stat.method.includes('Cartão de Crédito'))
-          .map(({method, amount}) => (
-            <Card key={method} className="shadow-md border-2 border-gray-100">
-              <CardHeader>
-                <CardDescription>Pagamentos em {method}</CardDescription>
-                <CardTitle className="text-2xl">
-                  {new Intl.NumberFormat('pt-BR', {
-                    style: 'currency', 
-                    currency: 'BRL'
-                  }).format(amount)}
-                </CardTitle>
-              </CardHeader>
-            </Card>
-          ))}
-
-        {/* Credit Card Payment - Consolidated Card */}
-        {hasCreditPayments && (
-          <Card className="shadow-md border-2 border-gray-100">
+        {paymentMethodStats.map(({method, amount}) => (
+          <Card key={method} className="shadow-md border-2 border-gray-100">
             <CardHeader>
-              <CardDescription>Pagamentos em Cartão de Crédito</CardDescription>
+              <CardDescription>Pagamentos em {method}</CardDescription>
               <CardTitle className="text-2xl">
                 {new Intl.NumberFormat('pt-BR', {
                   style: 'currency', 
                   currency: 'BRL'
-                }).format(totalCreditPayments)}
+                }).format(amount)}
               </CardTitle>
+            </CardHeader>
+          </Card>
+        ))}
+        {paymentMethodStats.length === 0 && (
+          <Card className="col-span-full shadow-md border-2 border-gray-100">
+            <CardHeader>
+              <CardDescription>Nenhum pagamento registrado no período</CardDescription>
             </CardHeader>
           </Card>
         )}
       </div>
-
-      {/* Credit Card Payment Details - Separate cards for payment types */}
-      {hasCreditPayments && (
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
-          {creditFullPayment > 0 && (
-            <Card className="shadow-md border-2 border-gray-100 bg-blue-50">
-              <CardHeader>
-                <CardDescription>Crédito À Vista</CardDescription>
-                <CardTitle className="text-2xl">
-                  {new Intl.NumberFormat('pt-BR', {
-                    style: 'currency', 
-                    currency: 'BRL'
-                  }).format(creditFullPayment)}
-                </CardTitle>
-              </CardHeader>
-            </Card>
-          )}
-          
-          {creditInstallmentPayment > 0 && (
-            <Card className="shadow-md border-2 border-gray-100 bg-blue-50">
-              <CardHeader>
-                <CardDescription>Crédito Parcelado</CardDescription>
-                <CardTitle className="text-2xl">
-                  {new Intl.NumberFormat('pt-BR', {
-                    style: 'currency', 
-                    currency: 'BRL'
-                  }).format(creditInstallmentPayment)}
-                </CardTitle>
-              </CardHeader>
-            </Card>
-          )}
-        </div>
-      )}
-
-      {paymentMethodStats.length === 0 && (
-        <Card className="col-span-full shadow-md border-2 border-gray-100">
-          <CardHeader>
-            <CardDescription>Nenhum pagamento registrado no período</CardDescription>
-          </CardHeader>
-        </Card>
-      )}
     </>
   );
 };

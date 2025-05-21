@@ -35,7 +35,6 @@ const Index = () => {
     topClient,
     paymentMethodStats,
     serviceRecordsList,
-    totalTips,
     loading
   } = useDashboardData();
 
@@ -114,7 +113,6 @@ const Index = () => {
               serviceRecordsList={serviceRecordsList}
               totalCommissions={totalCommissions}
               totalServiceValue={totalServiceValue}
-              totalTips={totalTips}
             />
           </>
         )}

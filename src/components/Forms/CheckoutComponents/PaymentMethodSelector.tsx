@@ -75,7 +75,7 @@ const PaymentMethodSelector = ({ form }: PaymentMethodSelectorProps) => {
               <FormControl>
                 <RadioGroup
                   onValueChange={field.onChange}
-                  value={field.value || 'full'}
+                  value={field.value || 'installments'}
                   className="grid grid-cols-2 gap-4"
                 >
                   <FormItem className="flex items-center space-x-3 space-y-0">
