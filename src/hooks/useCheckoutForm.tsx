@@ -24,13 +24,15 @@ export const formSchema = z.object({
   paymentMethod: z.enum(['debit', 'credit', 'cash', 'pix'], { 
     required_error: 'Selecione uma forma de pagamento' 
   }),
+  creditPaymentType: z.enum(['full', 'installments']).optional(),
+  tipAmount: z.number().min(0).default(0),
 });
 
 export type CheckoutFormValues = z.infer<typeof formSchema>;
 
 export function useCheckoutForm() {
   const { currentUser } = useAuth();
-  const { cartItems, clearCart } = useCart();
+  const { cartItems, clearCart, getCartTotal } = useCart();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [clients, setClients] = useState<Client[]>([]);
@@ -43,6 +45,7 @@ export function useCheckoutForm() {
       client: "",
       teamMember: "",
       paymentMethod: "pix",
+      tipAmount: 0,
     },
   });
 
@@ -101,6 +104,130 @@ export function useCheckoutForm() {
     fetchData();
   }, [currentUser, form, toast]);
 
+  // Handle printing functionality
+  const handlePrint = () => {
+    const formValues = form.getValues();
+    
+    if (!formValues.client || !formValues.teamMember) {
+      toast({
+        title: "Dados incompletos",
+        description: "Preencha o cliente e o profissional antes de imprimir",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Get the selected client and team member
+    const client = clients.find(c => c.id === formValues.client);
+    const teamMember = teamMembers.find(t => t.id === formValues.teamMember);
+    
+    // Prepare receipt data
+    const receiptData = {
+      client: client?.name || 'Cliente não selecionado',
+      professional: teamMember?.name || 'Profissional não selecionado',
+      items: cartItems.map(item => ({
+        name: item.service.name,
+        price: item.service.price,
+        quantity: item.quantity
+      })),
+      subtotal: getCartTotal(),
+      tip: formValues.tipAmount || 0,
+      total: getCartTotal() + (formValues.tipAmount || 0),
+      paymentMethod: paymentMethodLabels[formValues.paymentMethod],
+      creditPaymentType: formValues.paymentMethod === 'credit' 
+        ? (formValues.creditPaymentType === 'full' ? 'À Vista' : 'Parcelado')
+        : undefined,
+      date: new Date().toLocaleDateString('pt-BR')
+    };
+
+    // Print receipt
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Comprovante - GoldenSky JP56H</title>
+            <style>
+              body {
+                font-family: monospace;
+                padding: 20px;
+                width: 300px;
+                margin: 0 auto;
+              }
+              h2 {
+                text-align: center;
+                margin-bottom: 10px;
+              }
+              .item {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 5px;
+              }
+              .divider {
+                border-top: 1px dashed #000;
+                margin: 10px 0;
+              }
+              .total {
+                font-weight: bold;
+                text-align: right;
+                margin-top: 10px;
+              }
+              .info {
+                margin-bottom: 5px;
+              }
+            </style>
+          </head>
+          <body>
+            <h2>Comprovante para Conferência</h2>
+            <div class="info">Cliente: ${receiptData.client}</div>
+            <div class="info">Profissional: ${receiptData.professional}</div>
+            <div class="info">Data: ${receiptData.date}</div>
+            <div class="divider"></div>
+            ${receiptData.items.map(item => `
+              <div class="item">
+                <span>${item.quantity}x ${item.name}</span>
+                <span>R$ ${(item.price * item.quantity).toFixed(2)}</span>
+              </div>
+            `).join('')}
+            <div class="divider"></div>
+            <div class="item">
+              <span>Subtotal:</span>
+              <span>R$ ${receiptData.subtotal.toFixed(2)}</span>
+            </div>
+            <div class="item">
+              <span>Gorjeta:</span>
+              <span>R$ ${receiptData.tip.toFixed(2)}</span>
+            </div>
+            <div class="total">
+              <span>TOTAL: R$ ${receiptData.total.toFixed(2)}</span>
+            </div>
+            <div class="divider"></div>
+            <div class="info">Forma de pagamento: ${receiptData.paymentMethod}</div>
+            ${receiptData.creditPaymentType ? `<div class="info">Tipo: ${receiptData.creditPaymentType}</div>` : ''}
+            <div class="divider"></div>
+            <div style="text-align: center; margin-top: 20px;">
+              Obrigado pela preferência!
+            </div>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.focus();
+      // Trigger print
+      printWindow.print();
+      // Close after printing
+      printWindow.onafterprint = function() {
+        printWindow.close();
+      };
+    } else {
+      toast({
+        title: "Erro",
+        description: "Não foi possível abrir a janela de impressão",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Handle form submission
   const onSubmit = async (values: CheckoutFormValues) => {
     const clientId = values.client;
@@ -119,6 +246,14 @@ export function useCheckoutForm() {
     }
 
     try {
+      // Prepare payment method string
+      let paymentMethodString = paymentMethodLabels[values.paymentMethod];
+      
+      // Add credit payment type if applicable
+      if (values.paymentMethod === 'credit' && values.creditPaymentType) {
+        paymentMethodString += ` - ${values.creditPaymentType === 'full' ? 'À Vista' : 'Parcelado'}`;
+      }
+
       // Processar cada item do carrinho
       for (const item of cartItems) {
         for (let i = 0; i < item.quantity; i++) {
@@ -128,9 +263,10 @@ export function useCheckoutForm() {
               client_id: client.id,
               professional_id: teamMember.id,
               service_id: item.service.id,
-              payment_method: paymentMethodLabels[values.paymentMethod],
+              payment_method: paymentMethodString,
               commission_amount: item.service.price * (item.service.commission / 100),
-              service_value: item.service.price
+              service_value: item.service.price,
+              tip_amount: values.tipAmount || 0
             });
 
           if (error) throw error;
@@ -157,5 +293,5 @@ export function useCheckoutForm() {
     }
   };
 
-  return { form, clients, teamMembers, loading, onSubmit };
+  return { form, clients, teamMembers, loading, onSubmit, handlePrint };
 }
