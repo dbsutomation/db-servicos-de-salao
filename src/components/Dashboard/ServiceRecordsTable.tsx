@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { format as dateFormat } from 'date-fns';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
@@ -39,6 +38,7 @@ interface ServiceRecordsTableProps {
   serviceRecordsList: DisplayServiceRecord[];
   totalCommissions: number;
   totalServiceValue: number;
+  totalTips: number; // Added the missing totalTips property
 }
 
 const formSchema = z.object({
@@ -55,7 +55,8 @@ const ITEMS_PER_PAGE = 20;
 const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({ 
   serviceRecordsList,
   totalCommissions,
-  totalServiceValue
+  totalServiceValue,
+  totalTips // Use the passed totalTips prop instead of calculating it again
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
