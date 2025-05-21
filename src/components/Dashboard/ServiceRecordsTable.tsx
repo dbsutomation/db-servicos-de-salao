@@ -345,7 +345,7 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
           </TableBody>
           <TableFooter>
             <TableRow>
-              <TableCell colSpan={currentUser?.isManager ? 7 : 6} className="font-bold">Total</TableCell>
+              <TableCell colSpan={7} className="font-bold">Total</TableCell>
               <TableCell className="text-right font-bold bg-[#ea384c]/20">
                 {new Intl.NumberFormat('pt-BR', {
                   style: 'currency', 
