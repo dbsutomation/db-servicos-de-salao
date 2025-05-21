@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from 'react';
 import { isAfter, isBefore, addDays, parseISO, format, startOfWeek, endOfWeek } from 'date-fns';
 import { fromZonedTime, toZonedTime } from 'date-fns-tz';
@@ -150,8 +149,15 @@ export const useDashboardData = () => {
       });
     }
     
+    // Sort records by date (newest first)
+    records.sort((a, b) => {
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
+      return dateB.getTime() - dateA.getTime(); // Descending order (newest first)
+    });
+    
     return records;
-  }, [serviceRecords, dateFilter, startDate, endDate, selectedProfessional, selectedType, currentUser]);
+  }, [serviceRecords, dateFilter, startDate, endDate, selectedProfessional, selectedType, currentUser, timeZone]);
   
   // Calculate expenses
   const totalExpenses = expenses.reduce((total, expense) => total + Number(expense.amount), 0);

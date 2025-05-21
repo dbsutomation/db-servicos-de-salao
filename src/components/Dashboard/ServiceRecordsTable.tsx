@@ -6,7 +6,6 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Search, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ServiceRecord } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -18,6 +17,7 @@ import { useForm } from 'react-hook-form';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { parseISO } from 'date-fns';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 
 // Define a local type for the records the component will use
 interface DisplayServiceRecord {
@@ -48,12 +48,15 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+const ITEMS_PER_PAGE = 20;
+
 const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({ 
   serviceRecordsList,
   totalCommissions,
   totalServiceValue
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   const { currentUser } = useAuth();
   const { toast } = useToast();
   const [selectedRecord, setSelectedRecord] = useState<DisplayServiceRecord | null>(null);
@@ -82,6 +85,62 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
       dateFormat(parseISO(record.date), 'dd/MM/yyyy').includes(searchTerm)
     );
   });
+
+  // Calculate pagination values
+  const totalPages = Math.ceil(filteredRecords.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedRecords = filteredRecords.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  // Generate page numbers for pagination
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+    
+    if (totalPages <= maxVisiblePages) {
+      // Show all pages if there are only a few
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Always show first page
+      pages.push(1);
+      
+      // Calculate range around current page
+      let startPage = Math.max(2, currentPage - 1);
+      let endPage = Math.min(totalPages - 1, currentPage + 1);
+      
+      // Adjust to show 3 pages in the middle
+      if (startPage === 2) {
+        endPage = Math.min(totalPages - 1, startPage + 2);
+      } else if (endPage === totalPages - 1) {
+        startPage = Math.max(2, endPage - 2);
+      }
+      
+      // Add ellipsis if needed
+      if (startPage > 2) {
+        pages.push(-1); // -1 represents ellipsis
+      }
+      
+      // Add middle pages
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
+      }
+      
+      // Add ellipsis if needed
+      if (endPage < totalPages - 1) {
+        pages.push(-2); // -2 represents ellipsis
+      }
+      
+      // Always show last page
+      pages.push(totalPages);
+    }
+    
+    return pages;
+  };
 
   const handleEdit = (record: DisplayServiceRecord) => {
     if (!currentUser?.isManager) {
@@ -189,7 +248,10 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
           <Input 
             placeholder="Buscar" 
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1); // Reset to first page on search
+            }}
             className="pl-9"
           />
         </div>
@@ -211,7 +273,7 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredRecords.map((record) => (
+            {paginatedRecords.map((record) => (
               <TableRow key={record.id} className="border-b border-gray-200 hover:bg-gray-50">
                 <TableCell>{dateFormat(parseISO(record.date), 'dd/MM/yyyy')}</TableCell>
                 <TableCell>{record.professional}</TableCell>
@@ -284,6 +346,45 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
           </TableFooter>
         </Table>
       </Card>
+      
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-6">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
+                  className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                />
+              </PaginationItem>
+              
+              {getPageNumbers().map((page, index) => (
+                <PaginationItem key={index}>
+                  {page === -1 || page === -2 ? (
+                    <span className="px-4 py-2">...</span>
+                  ) : (
+                    <PaginationLink
+                      isActive={currentPage === page}
+                      onClick={() => handlePageChange(page)}
+                      className="cursor-pointer"
+                    >
+                      {page}
+                    </PaginationLink>
+                  )}
+                </PaginationItem>
+              ))}
+              
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
+                  className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
 
       {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
