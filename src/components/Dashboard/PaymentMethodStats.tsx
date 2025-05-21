@@ -14,18 +14,21 @@ interface PaymentMethodStatsProps {
 const PaymentMethodStats: React.FC<PaymentMethodStatsProps> = ({ paymentMethodStats }) => {
   // Calculate credit payment totals
   const creditFullPayment = paymentMethodStats
-    .filter(stat => stat.method.includes('Cartão de Crédito') && stat.method.includes('À Vista'))
+    .filter(stat => stat.method === 'Cartão de Crédito (À Vista)')
     .reduce((total, stat) => total + stat.amount, 0);
 
   const creditInstallmentPayment = paymentMethodStats
-    .filter(stat => stat.method.includes('Cartão de Crédito') && stat.method.includes('Parcelado'))
+    .filter(stat => stat.method === 'Cartão de Crédito (Parcelado)')
     .reduce((total, stat) => total + stat.amount, 0);
+
+  // Total credit card payments (both full and installment)
+  const totalCreditPayments = creditFullPayment + creditInstallmentPayment;
 
   return (
     <>
       <h2 className="text-xl font-semibold">Pagamentos por Método</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Regular payment methods */}
+        {/* Regular payment methods (excluding credit card) */}
         {paymentMethodStats
           .filter(stat => !stat.method.includes('Cartão de Crédito'))
           .map(({method, amount}) => (
@@ -43,7 +46,7 @@ const PaymentMethodStats: React.FC<PaymentMethodStatsProps> = ({ paymentMethodSt
           ))}
 
         {/* Credit Card Payment - Consolidated Card */}
-        {paymentMethodStats.some(stat => stat.method.includes('Cartão de Crédito')) && (
+        {totalCreditPayments > 0 && (
           <Card className="shadow-md border-2 border-gray-100">
             <CardHeader>
               <CardDescription>Pagamentos em Cartão de Crédito</CardDescription>
@@ -51,7 +54,7 @@ const PaymentMethodStats: React.FC<PaymentMethodStatsProps> = ({ paymentMethodSt
                 {new Intl.NumberFormat('pt-BR', {
                   style: 'currency', 
                   currency: 'BRL'
-                }).format(creditFullPayment + creditInstallmentPayment)}
+                }).format(totalCreditPayments)}
               </CardTitle>
             </CardHeader>
           </Card>

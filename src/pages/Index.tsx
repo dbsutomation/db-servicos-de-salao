@@ -114,6 +114,7 @@ const Index = () => {
               serviceRecordsList={serviceRecordsList}
               totalCommissions={totalCommissions}
               totalServiceValue={totalServiceValue}
+              totalTips={totalTips}
             />
           </>
         )}

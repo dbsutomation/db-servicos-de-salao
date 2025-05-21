@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from 'react';
 import { isAfter, isBefore, addDays, parseISO, format, startOfWeek, endOfWeek } from 'date-fns';
 import { fromZonedTime, toZonedTime } from 'date-fns-tz';
@@ -25,8 +24,6 @@ export const useDashboardData = () => {
   const [serviceRecords, setServiceRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Timezone configuration for Brazil (UTC-3)
-  
   // Fetch expenses and service records from Supabase
   useEffect(() => {
     const fetchData = async () => {
@@ -78,10 +75,33 @@ export const useDashboardData = () => {
             recordDate = format(localNow, 'yyyy-MM-dd');
           }
 
+          // Format payment method to include credit card type
+          let paymentMethod = record.payment_method || 'Não especificado';
+          
+          // For legacy records where credit card type wasn't stored,
+          // default to "À Vista" for credit card payments
+          if (paymentMethod === 'credit') {
+            paymentMethod = 'Cartão de Crédito (À Vista)';
+          } else if (paymentMethod.includes('credit_')) {
+            // For newer records with specific credit card type
+            const type = paymentMethod.split('_')[1];
+            if (type === 'full') {
+              paymentMethod = 'Cartão de Crédito (À Vista)';
+            } else if (type === 'installments') {
+              paymentMethod = 'Cartão de Crédito (Parcelado)';
+            }
+          } else if (paymentMethod === 'debit') {
+            paymentMethod = 'Cartão de Débito';
+          } else if (paymentMethod === 'cash') {
+            paymentMethod = 'Dinheiro';
+          } else if (paymentMethod === 'pix') {
+            paymentMethod = 'PIX';
+          }
+
           return {
             id: record.id,
             date: recordDate,
-            paymentMethod: record.payment_method,
+            paymentMethod: paymentMethod,
             commissionAmount: Number(record.commission_amount || 0),
             serviceValue: Number(record.service_value || 0),
             tipAmount: Number(record.tip_amount || 0),
