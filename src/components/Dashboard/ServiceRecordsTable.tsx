@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { format as dateFormat } from 'date-fns';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
@@ -56,7 +57,7 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
   serviceRecordsList,
   totalCommissions,
   totalServiceValue,
-  totalTips // Use the passed totalTips prop instead of calculating it again
+  totalTips
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -95,8 +96,8 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const paginatedRecords = filteredRecords.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   
-  // Calculate total tips
-  const totalTips = filteredRecords.reduce((total, record) => total + (record.tipAmount || 0), 0);
+  // We removed this line to avoid the conflict with the prop
+  // const totalTips = filteredRecords.reduce((total, record) => total + (record.tipAmount || 0), 0);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
