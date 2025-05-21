@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { format, addDays } from 'date-fns';
+import { format } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -69,7 +69,7 @@ const DashboardFilters: React.FC<DashboardFiltersProps> = ({
         </SelectContent>
       </Select>
       
-      {dateFilter === 'custom' && (
+      {(dateFilter === 'custom') && (
         <div className="flex items-center gap-2">
           <Popover>
             <PopoverTrigger asChild>

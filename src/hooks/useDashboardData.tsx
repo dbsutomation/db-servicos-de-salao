@@ -1,16 +1,24 @@
 
 import { useState, useEffect, useMemo } from 'react';
-import { isAfter, isBefore, addDays, parseISO, format } from 'date-fns';
+import { isAfter, isBefore, addDays, parseISO, format, startOfWeek, endOfWeek } from 'date-fns';
 import { fromZonedTime, toZonedTime } from 'date-fns-tz';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Expense, ServiceRecord, Service, TeamMember, Client } from '@/types';
 
 export const useDashboardData = () => {
+  // Get current date in local timezone (Brazil)
+  const timeZone = 'America/Sao_Paulo';
+  const localNow = toZonedTime(new Date(), timeZone);
+  
+  // Calculate start (Sunday) and end (Saturday) of the current week
+  const startOfCurrentWeek = startOfWeek(localNow, { weekStartsOn: 0 }); // 0 = Sunday
+  const endOfCurrentWeek = endOfWeek(localNow, { weekStartsOn: 0 }); // Week ends on Saturday
+  
   const { currentUser } = useAuth();
-  const [dateFilter, setDateFilter] = useState('all');
-  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
-  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [dateFilter, setDateFilter] = useState('custom'); // Default to custom range
+  const [startDate, setStartDate] = useState<Date | undefined>(startOfCurrentWeek);
+  const [endDate, setEndDate] = useState<Date | undefined>(endOfCurrentWeek);
   const [selectedProfessional, setSelectedProfessional] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<string>('all');
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -18,8 +26,7 @@ export const useDashboardData = () => {
   const [loading, setLoading] = useState(true);
 
   // Timezone configuration for Brazil (UTC-3)
-  const timeZone = 'America/Sao_Paulo';
-
+  
   // Fetch expenses and service records from Supabase
   useEffect(() => {
     const fetchData = async () => {
