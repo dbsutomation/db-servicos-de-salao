@@ -24,6 +24,15 @@ const PaymentMethodStats: React.FC<PaymentMethodStatsProps> = ({ paymentMethodSt
   // Total credit card payments (both full and installment)
   const totalCreditPayments = creditFullPayment + creditInstallmentPayment;
 
+  // Console logs para debug
+  console.log('PaymentMethodStats:', paymentMethodStats);
+  console.log('Credit à vista:', creditFullPayment);
+  console.log('Credit parcelado:', creditInstallmentPayment);
+  console.log('Total de pagamentos em crédito:', totalCreditPayments);
+
+  // Determinar se há pagamentos em cartão de crédito
+  const hasCreditPayments = totalCreditPayments > 0;
+  
   return (
     <>
       <h2 className="text-xl font-semibold">Pagamentos por Método</h2>
@@ -46,7 +55,7 @@ const PaymentMethodStats: React.FC<PaymentMethodStatsProps> = ({ paymentMethodSt
           ))}
 
         {/* Credit Card Payment - Consolidated Card */}
-        {totalCreditPayments > 0 && (
+        {hasCreditPayments && (
           <Card className="shadow-md border-2 border-gray-100">
             <CardHeader>
               <CardDescription>Pagamentos em Cartão de Crédito</CardDescription>
@@ -62,7 +71,7 @@ const PaymentMethodStats: React.FC<PaymentMethodStatsProps> = ({ paymentMethodSt
       </div>
 
       {/* Credit Card Payment Details - Separate cards for payment types */}
-      {(creditFullPayment > 0 || creditInstallmentPayment > 0) && (
+      {hasCreditPayments && (
         <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
           {creditFullPayment > 0 && (
             <Card className="shadow-md border-2 border-gray-100 bg-blue-50">
@@ -77,6 +86,7 @@ const PaymentMethodStats: React.FC<PaymentMethodStatsProps> = ({ paymentMethodSt
               </CardHeader>
             </Card>
           )}
+          
           {creditInstallmentPayment > 0 && (
             <Card className="shadow-md border-2 border-gray-100 bg-blue-50">
               <CardHeader>
