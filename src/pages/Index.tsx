@@ -35,6 +35,7 @@ const Index = () => {
     topClient,
     paymentMethodStats,
     serviceRecordsList,
+    totalTips,
     loading
   } = useDashboardData();
 

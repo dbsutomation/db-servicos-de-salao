@@ -32,6 +32,7 @@ interface DisplayServiceRecord {
   paymentMethod: string;
   commissionAmount: number;
   serviceValue: number;
+  tipAmount?: number;
 }
 
 interface ServiceRecordsTableProps {
@@ -44,6 +45,7 @@ const formSchema = z.object({
   paymentMethod: z.string().min(1, "Método de pagamento é obrigatório"),
   serviceValue: z.coerce.number().min(0, "Valor deve ser maior ou igual a zero"),
   commissionAmount: z.coerce.number().min(0, "Comissão deve ser maior ou igual a zero"),
+  tipAmount: z.coerce.number().min(0, "Gorjeta deve ser maior ou igual a zero").optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -69,6 +71,7 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
       paymentMethod: '',
       serviceValue: 0,
       commissionAmount: 0,
+      tipAmount: 0,
     },
   });
 
@@ -90,6 +93,9 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
   const totalPages = Math.ceil(filteredRecords.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const paginatedRecords = filteredRecords.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  
+  // Calculate total tips
+  const totalTips = filteredRecords.reduce((total, record) => total + (record.tipAmount || 0), 0);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -157,6 +163,7 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
       paymentMethod: record.paymentMethod,
       serviceValue: record.serviceValue,
       commissionAmount: record.commissionAmount,
+      tipAmount: record.tipAmount || 0,
     });
     setEditDialogOpen(true);
   };
@@ -215,6 +222,7 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
           payment_method: data.paymentMethod,
           service_value: data.serviceValue,
           commission_amount: data.commissionAmount,
+          tip_amount: data.tipAmount || 0,
         })
         .eq('id', selectedRecord.id);
 
@@ -268,6 +276,7 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
               <TableHead>Cliente</TableHead>
               <TableHead>Pagamento</TableHead>
               <TableHead className="text-right">Comissão</TableHead>
+              <TableHead className="text-right">Gorjeta</TableHead>
               <TableHead className="text-right">Valor</TableHead>
               {currentUser?.isManager && <TableHead className="text-center">Ações</TableHead>}
             </TableRow>
@@ -287,6 +296,12 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
                     style: 'currency', 
                     currency: 'BRL'
                   }).format(record.commissionAmount)}
+                </TableCell>
+                <TableCell className="text-right">
+                  {new Intl.NumberFormat('pt-BR', {
+                    style: 'currency', 
+                    currency: 'BRL'
+                  }).format(record.tipAmount || 0)}
                 </TableCell>
                 <TableCell className="text-right">
                   {new Intl.NumberFormat('pt-BR', {
@@ -320,7 +335,7 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
             ))}
             {filteredRecords.length === 0 && (
               <TableRow>
-                <TableCell colSpan={currentUser?.isManager ? 10 : 9} className="text-center py-4 text-muted-foreground">
+                <TableCell colSpan={currentUser?.isManager ? 11 : 10} className="text-center py-4 text-muted-foreground">
                   {searchTerm ? "Nenhum resultado encontrado para a busca" : "Nenhum dado para o período selecionado"}
                 </TableCell>
               </TableRow>
@@ -334,6 +349,12 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
                   style: 'currency', 
                   currency: 'BRL'
                 }).format(totalCommissions)}
+              </TableCell>
+              <TableCell className="text-right font-bold bg-[#F9E79F]">
+                {new Intl.NumberFormat('pt-BR', {
+                  style: 'currency', 
+                  currency: 'BRL'
+                }).format(totalTips)}
               </TableCell>
               <TableCell className="text-right font-bold bg-[#F2FCE2]">
                 {new Intl.NumberFormat('pt-BR', {
@@ -411,7 +432,8 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="Dinheiro">Dinheiro</SelectItem>
-                        <SelectItem value="Cartão de Crédito">Cartão de Crédito</SelectItem>
+                        <SelectItem value="Cartão de Crédito - À Vista">Cartão de Crédito - À Vista</SelectItem>
+                        <SelectItem value="Cartão de Crédito - Parcelado">Cartão de Crédito - Parcelado</SelectItem>
                         <SelectItem value="Cartão de Débito">Cartão de Débito</SelectItem>
                         <SelectItem value="PIX">PIX</SelectItem>
                         <SelectItem value="Transferência">Transferência</SelectItem>
@@ -440,6 +462,19 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Valor da Comissão</FormLabel>
+                    <FormControl>
+                      <Input type="number" step="0.01" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="tipAmount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Valor da Gorjeta</FormLabel>
                     <FormControl>
                       <Input type="number" step="0.01" {...field} />
                     </FormControl>
