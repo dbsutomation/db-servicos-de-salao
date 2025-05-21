@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { format as dateFormat } from 'date-fns';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
@@ -38,7 +39,7 @@ interface ServiceRecordsTableProps {
   serviceRecordsList: DisplayServiceRecord[];
   totalCommissions: number;
   totalServiceValue: number;
-  totalTips?: number; // Deixando a propriedade como opcional
+  totalTips: number; // Changed from optional to required since we're using it
 }
 
 const formSchema = z.object({
@@ -95,8 +96,8 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const paginatedRecords = filteredRecords.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   
-  // Calculate total tips
-  const totalTips = filteredRecords.reduce((total, record) => total + (record.tipAmount || 0), 0);
+  // Calculate filtered tips (for the current filtered records only)
+  const filteredTotalTips = filteredRecords.reduce((total, record) => total + (record.tipAmount || 0), 0);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -355,7 +356,7 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
                 {new Intl.NumberFormat('pt-BR', {
                   style: 'currency', 
                   currency: 'BRL'
-                }).format(totalTips)}
+                }).format(searchTerm ? filteredTotalTips : totalTips)}
               </TableCell>
               <TableCell className="text-right font-bold bg-[#F2FCE2]">
                 {new Intl.NumberFormat('pt-BR', {
