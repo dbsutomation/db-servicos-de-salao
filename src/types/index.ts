@@ -55,6 +55,8 @@ export interface Expense {
   amount: number;
   created_at?: string;
   updated_at?: string;
+  expense_date: string; // Added date field
+  is_fixed: boolean;    // Added fixed expense indicator
 }
 
 export interface CartItem {

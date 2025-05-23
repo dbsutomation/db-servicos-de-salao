@@ -16,11 +16,19 @@ import { toast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { Expense } from '@/types';
+import { format, parseISO } from 'date-fns';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CalendarIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Nome deve ter pelo menos 2 caracteres' }),
   description: z.string().optional(),
-  amount: z.coerce.number().min(0, { message: 'Valor deve ser maior que 0' })
+  amount: z.coerce.number().min(0, { message: 'Valor deve ser maior que 0' }),
+  expense_date: z.date({ required_error: 'Data é obrigatória' }),
+  is_fixed: z.boolean().default(false)
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -39,7 +47,9 @@ const Records = () => {
     defaultValues: {
       name: '',
       description: '',
-      amount: 0
+      amount: 0,
+      expense_date: new Date(),
+      is_fixed: false
     }
   });
 
@@ -71,7 +81,7 @@ const Records = () => {
     };
 
     fetchExpenses();
-  }, [toast]);
+  }, []);
 
   const handleEditExpense = (expense: Expense) => {
     // Only managers can edit expenses
@@ -88,7 +98,9 @@ const Records = () => {
     form.reset({
       name: expense.name,
       description: expense.description,
-      amount: expense.amount as number
+      amount: expense.amount as number,
+      expense_date: expense.expense_date ? parseISO(expense.expense_date) : new Date(),
+      is_fixed: expense.is_fixed
     });
     setDialogOpen(true);
   };
@@ -145,7 +157,9 @@ const Records = () => {
           .update({
             name: data.name,
             description: data.description || '',
-            amount: data.amount
+            amount: data.amount,
+            expense_date: data.expense_date.toISOString().split('T')[0],
+            is_fixed: data.is_fixed
           })
           .eq('id', editExpenseId);
 
@@ -159,7 +173,9 @@ const Records = () => {
                   ...expense, 
                   name: data.name, 
                   description: data.description || '', 
-                  amount: data.amount 
+                  amount: data.amount,
+                  expense_date: data.expense_date.toISOString().split('T')[0],
+                  is_fixed: data.is_fixed
                 } 
               : expense
           )
@@ -176,7 +192,9 @@ const Records = () => {
           .insert({
             name: data.name,
             description: data.description || '',
-            amount: data.amount
+            amount: data.amount,
+            expense_date: data.expense_date.toISOString().split('T')[0],
+            is_fixed: data.is_fixed
           })
           .select('*')
           .single();
@@ -203,13 +221,25 @@ const Records = () => {
     form.reset({
       name: '',
       description: '',
-      amount: 0
+      amount: 0,
+      expense_date: new Date(),
+      is_fixed: false
     });
     setDialogOpen(false);
     setEditExpenseId(null);
   };
 
   const totalExpenses = expenses.reduce((sum, expense) => sum + (expense.amount as number), 0);
+
+  // Format date for display
+  const formatDate = (dateString: string) => {
+    try {
+      const date = parseISO(dateString);
+      return format(date, 'dd/MM/yyyy');
+    } catch (error) {
+      return 'Data inválida';
+    }
+  };
 
   return (
     <MainLayout>
@@ -227,7 +257,9 @@ const Records = () => {
                     form.reset({
                       name: '',
                       description: '',
-                      amount: 0
+                      amount: 0,
+                      expense_date: new Date(),
+                      is_fixed: false
                     });
                   }}
                 >
@@ -288,6 +320,76 @@ const Records = () => {
                         </FormItem>
                       )}
                     />
+
+                    <FormField
+                      control={form.control}
+                      name="expense_date"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Data da Despesa</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant={"outline"}
+                                  className={cn(
+                                    "w-full pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  {field.value ? (
+                                    format(field.value, "dd/MM/yyyy")
+                                  ) : (
+                                    <span>Selecione uma data</span>
+                                  )}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="is_fixed"
+                      render={({ field }) => (
+                        <FormItem className="space-y-3">
+                          <FormLabel>Tipo de Despesa</FormLabel>
+                          <FormControl>
+                            <RadioGroup
+                              onValueChange={(value) => field.onChange(value === "true")}
+                              defaultValue={field.value ? "true" : "false"}
+                              className="flex space-x-6"
+                            >
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="true" id="fixed" />
+                                <FormLabel htmlFor="fixed" className="font-normal">
+                                  Fixa
+                                </FormLabel>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="false" id="variable" />
+                                <FormLabel htmlFor="variable" className="font-normal">
+                                  Variável
+                                </FormLabel>
+                              </div>
+                            </RadioGroup>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                     
                     <div className="flex justify-end space-x-2 pt-2">
                       <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
@@ -310,6 +412,8 @@ const Records = () => {
               <TableRow>
                 <TableHead>Nome</TableHead>
                 <TableHead>Descrição</TableHead>
+                <TableHead>Data</TableHead>
+                <TableHead>Tipo</TableHead>
                 <TableHead className="text-right">Valor</TableHead>
                 {currentUser?.isManager && <TableHead className="text-center w-24">Ações</TableHead>}
               </TableRow>
@@ -317,7 +421,7 @@ const Records = () => {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={currentUser?.isManager ? 4 : 3} className="text-center py-6">
+                  <TableCell colSpan={currentUser?.isManager ? 6 : 5} className="text-center py-6">
                     Carregando...
                   </TableCell>
                 </TableRow>
@@ -326,6 +430,8 @@ const Records = () => {
                   <TableRow key={expense.id}>
                     <TableCell className="font-medium">{expense.name}</TableCell>
                     <TableCell>{expense.description}</TableCell>
+                    <TableCell>{expense.expense_date ? formatDate(expense.expense_date) : 'Não definida'}</TableCell>
+                    <TableCell>{expense.is_fixed ? 'Fixa' : 'Variável'}</TableCell>
                     <TableCell className="text-right">
                       {new Intl.NumberFormat('pt-BR', {
                         style: 'currency',
@@ -358,7 +464,7 @@ const Records = () => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={currentUser?.isManager ? 4 : 3} className="text-center py-6 text-gray-500">
+                  <TableCell colSpan={currentUser?.isManager ? 6 : 5} className="text-center py-6 text-gray-500">
                     Nenhuma despesa registrada
                   </TableCell>
                 </TableRow>

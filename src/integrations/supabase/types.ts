@@ -41,7 +41,9 @@ export type Database = {
           amount: number
           created_at: string
           description: string | null
+          expense_date: string
           id: string
+          is_fixed: boolean
           name: string
           updated_at: string
         }
@@ -49,7 +51,9 @@ export type Database = {
           amount: number
           created_at?: string
           description?: string | null
+          expense_date?: string
           id?: string
+          is_fixed?: boolean
           name: string
           updated_at?: string
         }
@@ -57,7 +61,9 @@ export type Database = {
           amount?: number
           created_at?: string
           description?: string | null
+          expense_date?: string
           id?: string
+          is_fixed?: boolean
           name?: string
           updated_at?: string
         }

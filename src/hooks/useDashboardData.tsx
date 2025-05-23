@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useMemo } from 'react';
-import { isAfter, isBefore, addDays, parseISO, format, startOfWeek, endOfWeek } from 'date-fns';
+import { isAfter, isBefore, addDays, parseISO, format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { fromZonedTime, toZonedTime } from 'date-fns-tz';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,6 +15,10 @@ export const useDashboardData = () => {
   const startOfCurrentWeek = startOfWeek(localNow, { weekStartsOn: 0 }); // 0 = Sunday
   const endOfCurrentWeek = endOfWeek(localNow, { weekStartsOn: 0 }); // Week ends on Saturday
   
+  // Calculate start and end of current month
+  const startOfCurrentMonth = startOfMonth(localNow);
+  const endOfCurrentMonth = endOfMonth(localNow);
+  
   const { currentUser } = useAuth();
   const [dateFilter, setDateFilter] = useState('custom'); // Default to custom range
   const [startDate, setStartDate] = useState<Date | undefined>(startOfCurrentWeek);
@@ -24,8 +28,6 @@ export const useDashboardData = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [serviceRecords, setServiceRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Timezone configuration for Brazil (UTC-3)
   
   // Fetch expenses and service records from Supabase
   useEffect(() => {
@@ -161,9 +163,26 @@ export const useDashboardData = () => {
     
     return records;
   }, [serviceRecords, dateFilter, startDate, endDate, selectedProfessional, selectedType, currentUser, timeZone]);
+
+  // Filter expenses to only show those from the current month for the dashboard
+  const filteredExpenses = useMemo(() => {
+    return expenses.filter(expense => {
+      if (!expense.expense_date) return false;
+      
+      try {
+        const expenseDate = parseISO(expense.expense_date);
+        return isWithinInterval(expenseDate, {
+          start: startOfCurrentMonth,
+          end: endOfCurrentMonth
+        });
+      } catch (e) {
+        return false;
+      }
+    });
+  }, [expenses, startOfCurrentMonth, endOfCurrentMonth]);
   
-  // Calculate expenses
-  const totalExpenses = expenses.reduce((total, expense) => total + Number(expense.amount), 0);
+  // Calculate expenses using filtered expenses
+  const totalExpenses = filteredExpenses.reduce((total, expense) => total + Number(expense.amount), 0);
 
   // Calculate quick stats
   const totalServices = filteredRecords.length;
