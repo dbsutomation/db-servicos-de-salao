@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { format as dateFormat } from 'date-fns';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
@@ -284,7 +285,10 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
           </TableHeader>
           <TableBody>
             {paginatedRecords.map((record) => (
-              <TableRow key={record.id} className="border-b border-gray-200 hover:bg-gray-50">
+              <TableRow 
+                key={record.id} 
+                className="border-b border-gray-200 hover:bg-purple-100 hover:text-purple-800 transition-colors duration-150"
+              >
                 <TableCell>{dateFormat(parseISO(record.date), 'dd/MM/yyyy')}</TableCell>
                 <TableCell>{record.professional}</TableCell>
                 <TableCell>{record.service}</TableCell>
