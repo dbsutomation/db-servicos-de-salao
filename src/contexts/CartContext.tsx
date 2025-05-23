@@ -8,8 +8,10 @@ interface CartContextType {
   addToCart: (service: Service) => void;
   removeFromCart: (serviceId: string) => void;
   updateQuantity: (serviceId: string, quantity: number) => void;
+  updateTipAmount: (serviceId: string, tipAmount: number) => void;
   clearCart: () => void;
   getCartTotal: () => number;
+  getCartTipsTotal: () => number;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -46,7 +48,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           id: Date.now().toString(), // Use timestamp as a simple unique ID, converted to string
           service,
           client: { id: "", name: '' }, // This will be set during checkout
-          quantity: 1
+          quantity: 1,
+          tipAmount: 0 // Initialize tip amount to 0
         };
         
         return [...prevItems, newItem];
@@ -85,6 +88,16 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     );
   };
 
+  const updateTipAmount = (serviceId: string, tipAmount: number) => {
+    setCartItems(prevItems => 
+      prevItems.map(item => 
+        item.service.id === serviceId 
+          ? { ...item, tipAmount } 
+          : item
+      )
+    );
+  };
+
   const clearCart = () => {
     setCartItems([]);
     toast({
@@ -101,14 +114,23 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     );
   };
 
+  const getCartTipsTotal = () => {
+    return cartItems.reduce(
+      (total, item) => total + (item.tipAmount || 0),
+      0
+    );
+  };
+
   return (
     <CartContext.Provider value={{
       cartItems,
       addToCart,
       removeFromCart,
       updateQuantity,
+      updateTipAmount,
       clearCart,
-      getCartTotal
+      getCartTotal,
+      getCartTipsTotal
     }}>
       {children}
     </CartContext.Provider>

@@ -4,14 +4,15 @@ import { CartItem as CartItemType } from '@/types';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/contexts/CartContext';
 import { Plus, Minus, Trash } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
 interface CartItemProps {
   item: CartItemType;
 }
 
 const CartItem = ({ item }: CartItemProps) => {
-  const { updateQuantity, removeFromCart } = useCart();
-  const { service, quantity } = item;
+  const { updateQuantity, removeFromCart, updateTipAmount } = useCart();
+  const { service, quantity, tipAmount = 0 } = item;
 
   const formattedPrice = new Intl.NumberFormat('pt-BR', {
     style: 'currency',
@@ -22,6 +23,11 @@ const CartItem = ({ item }: CartItemProps) => {
     style: 'currency',
     currency: 'BRL'
   }).format(service.price * quantity);
+
+  const handleTipChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value === '' ? '0' : e.target.value;
+    updateTipAmount(service.id, parseFloat(value));
+  };
 
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b py-4">
@@ -61,6 +67,18 @@ const CartItem = ({ item }: CartItemProps) => {
         </div>
         <div className="w-24 text-right">
           <p className="font-semibold">{formattedTotal}</p>
+        </div>
+        <div className="flex flex-col">
+          <label htmlFor={`tip-${service.id}`} className="text-xs text-gray-500">Gorjeta (R$)</label>
+          <Input
+            id={`tip-${service.id}`}
+            type="number"
+            min="0"
+            step="0.01"
+            className="w-20 h-8"
+            value={tipAmount}
+            onChange={handleTipChange}
+          />
         </div>
         <Button
           variant="ghost"

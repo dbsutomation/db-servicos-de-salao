@@ -7,7 +7,6 @@ import { useCheckoutForm } from '@/hooks/useCheckoutForm';
 import ClientSelect from './CheckoutComponents/ClientSelect';
 import TeamMemberSelect from './CheckoutComponents/TeamMemberSelect';
 import PaymentMethodSelector from './CheckoutComponents/PaymentMethodSelector';
-import TipField from './CheckoutComponents/TipField';
 
 interface CheckoutFormProps {
   onSuccess?: () => void;
@@ -30,8 +29,6 @@ const CheckoutForm = ({ onSuccess }: CheckoutFormProps) => {
           teamMembers={teamMembers} 
           loading={loading} 
         />
-
-        <TipField form={form} />
 
         <PaymentMethodSelector form={form} />
         

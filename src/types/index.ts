@@ -63,6 +63,7 @@ export interface CartItem {
   client: Client;
   teamMember?: TeamMember;
   quantity: number;
+  tipAmount?: number;
 }
 
 export interface AuthState {

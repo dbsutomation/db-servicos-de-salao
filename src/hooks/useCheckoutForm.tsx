@@ -25,14 +25,13 @@ export const formSchema = z.object({
     required_error: 'Selecione uma forma de pagamento' 
   }),
   creditPaymentType: z.enum(['full', 'installments']).optional(),
-  tipAmount: z.number().min(0).default(0),
 });
 
 export type CheckoutFormValues = z.infer<typeof formSchema>;
 
 export function useCheckoutForm() {
   const { currentUser } = useAuth();
-  const { cartItems, clearCart, getCartTotal } = useCart();
+  const { cartItems, clearCart, getCartTotal, getCartTipsTotal } = useCart();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [clients, setClients] = useState<Client[]>([]);
@@ -45,7 +44,6 @@ export function useCheckoutForm() {
       client: "",
       teamMember: "",
       paymentMethod: "pix",
-      tipAmount: 0,
     },
   });
 
@@ -117,22 +115,21 @@ export function useCheckoutForm() {
       return;
     }
 
-    // Get the selected client and team member
+    // Get the selected client
     const client = clients.find(c => c.id === formValues.client);
-    const teamMember = teamMembers.find(t => t.id === formValues.teamMember);
     
     // Prepare receipt data
     const receiptData = {
       client: client?.name || 'Cliente não selecionado',
-      professional: teamMember?.name || 'Profissional não selecionado',
       items: cartItems.map(item => ({
         name: item.service.name,
         price: item.service.price,
-        quantity: item.quantity
+        quantity: item.quantity,
+        tipAmount: item.tipAmount || 0
       })),
       subtotal: getCartTotal(),
-      tip: formValues.tipAmount || 0,
-      total: getCartTotal() + (formValues.tipAmount || 0),
+      totalTips: getCartTipsTotal(),
+      total: getCartTotal() + getCartTipsTotal(),
       paymentMethod: paymentMethodLabels[formValues.paymentMethod],
       creditPaymentType: formValues.paymentMethod === 'credit' 
         ? (formValues.creditPaymentType === 'full' ? 'À Vista' : 'Parcelado')
@@ -180,7 +177,6 @@ export function useCheckoutForm() {
           <body>
             <h2>Comprovante para Conferência</h2>
             <div class="info">Cliente: ${receiptData.client}</div>
-            <div class="info">Profissional: ${receiptData.professional}</div>
             <div class="info">Data: ${receiptData.date}</div>
             <div class="divider"></div>
             ${receiptData.items.map(item => `
@@ -188,6 +184,12 @@ export function useCheckoutForm() {
                 <span>${item.quantity}x ${item.name}</span>
                 <span>R$ ${(item.price * item.quantity).toFixed(2)}</span>
               </div>
+              ${item.tipAmount > 0 ? `
+              <div class="item" style="padding-left: 10px; color: #666;">
+                <span>Gorjeta</span>
+                <span>R$ ${item.tipAmount.toFixed(2)}</span>
+              </div>
+              ` : ''}
             `).join('')}
             <div class="divider"></div>
             <div class="item">
@@ -195,8 +197,8 @@ export function useCheckoutForm() {
               <span>R$ ${receiptData.subtotal.toFixed(2)}</span>
             </div>
             <div class="item">
-              <span>Gorjeta:</span>
-              <span>R$ ${receiptData.tip.toFixed(2)}</span>
+              <span>Total Gorjetas:</span>
+              <span>R$ ${receiptData.totalTips.toFixed(2)}</span>
             </div>
             <div class="total">
               <span>TOTAL: R$ ${receiptData.total.toFixed(2)}</span>
@@ -254,23 +256,21 @@ export function useCheckoutForm() {
         paymentMethodString += ` - ${values.creditPaymentType === 'full' ? 'À Vista' : 'Parcelado'}`;
       }
 
-      // Processar cada item do carrinho
+      // Process each cart item
       for (const item of cartItems) {
-        for (let i = 0; i < item.quantity; i++) {
-          const { error } = await supabase
-            .from('service_records')
-            .insert({
-              client_id: client.id,
-              professional_id: teamMember.id,
-              service_id: item.service.id,
-              payment_method: paymentMethodString,
-              commission_amount: item.service.price * (item.service.commission / 100),
-              service_value: item.service.price,
-              tip_amount: values.tipAmount || 0
-            });
+        const { error } = await supabase
+          .from('service_records')
+          .insert({
+            client_id: client.id,
+            professional_id: teamMember.id,
+            service_id: item.service.id,
+            payment_method: paymentMethodString,
+            commission_amount: item.service.price * (item.service.commission / 100),
+            service_value: item.service.price * item.quantity,
+            tip_amount: item.tipAmount || 0
+          });
 
-          if (error) throw error;
-        }
+        if (error) throw error;
       }
       
       // Show success message
@@ -282,7 +282,7 @@ export function useCheckoutForm() {
       // Clear the cart
       clearCart();
       
-      // Navegar para a página de serviços em vez de chamar onSuccess
+      // Navigate to the services page
       navigate('/services');
     } catch (error: any) {
       toast({

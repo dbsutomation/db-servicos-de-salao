@@ -9,7 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import CheckoutForm from '@/components/Forms/CheckoutForm';
 
 const Cart = () => {
-  const { cartItems, getCartTotal, clearCart } = useCart();
+  const { cartItems, getCartTotal, getCartTipsTotal, clearCart } = useCart();
   const navigate = useNavigate();
   
   const handleCheckoutSuccess = () => {
@@ -42,14 +42,34 @@ const Cart = () => {
                 
                 <Separator className="my-6" />
                 
-                <div className="flex justify-between items-center mb-6">
-                  <span className="text-lg font-medium">Total</span>
-                  <span className="text-2xl font-semibold">
-                    {new Intl.NumberFormat('pt-BR', {
-                      style: 'currency',
-                      currency: 'BRL'
-                    }).format(getCartTotal())}
-                  </span>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-base">Subtotal</span>
+                    <span className="font-medium">
+                      {new Intl.NumberFormat('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL'
+                      }).format(getCartTotal())}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-base">Total Gorjetas</span>
+                    <span className="font-medium">
+                      {new Intl.NumberFormat('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL'
+                      }).format(getCartTipsTotal())}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center mt-2">
+                    <span className="text-lg font-medium">Total</span>
+                    <span className="text-2xl font-semibold">
+                      {new Intl.NumberFormat('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL'
+                      }).format(getCartTotal() + getCartTipsTotal())}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
