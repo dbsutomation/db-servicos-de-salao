@@ -7,9 +7,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { Expense, ServiceRecord, Service, TeamMember, Client } from '@/types';
 
 export const useDashboardData = () => {
-  // Get current date in local timezone (Brazil)
+  // Explicitly set timezone to Brasilia time (UTC-3)
   const timeZone = 'America/Sao_Paulo';
-  const localNow = toZonedTime(new Date(), timeZone);
+  
+  // Get current date in local timezone
+  const now = new Date();
+  const localNow = toZonedTime(now, timeZone);
   
   // Calculate start (Sunday) and end (Saturday) of the current week
   const startOfCurrentWeek = startOfWeek(localNow, { weekStartsOn: 0 }); // 0 = Sunday
@@ -65,18 +68,22 @@ export const useDashboardData = () => {
         setExpenses(expensesData || []);
         
         // Transform the fetched data to match the expected structure
-        // Fix timezone issues by adjusting dates to local timezone
+        // Fix timezone issues by correctly handling dates
         const formattedRecords = recordsData?.map((record: any) => {
-          // Adjust the date from UTC to local timezone (UTC-3)
+          // Handle date with proper timezone conversion
           let recordDate: string;
+          
           if (record.date) {
-            // Convert UTC date from database to local date (America/Sao_Paulo)
+            // Parse the UTC date from the database
             const utcDate = new Date(record.date);
+            
+            // Convert to the local timezone (America/Sao_Paulo)
             const localDate = toZonedTime(utcDate, timeZone);
+            
+            // Format as ISO date string (YYYY-MM-DD)
             recordDate = format(localDate, 'yyyy-MM-dd');
           } else {
-            const now = new Date();
-            const localNow = toZonedTime(now, timeZone);
+            // If no date provided, use current date in local timezone
             recordDate = format(localNow, 'yyyy-MM-dd');
           }
 
@@ -96,6 +103,7 @@ export const useDashboardData = () => {
           };
         }) || [];
 
+        console.log('Formatted records with timezone adjustment:', formattedRecords.slice(0, 2));
         setServiceRecords(formattedRecords);
       } catch (error: any) {
         console.error('Error fetching dashboard data:', error.message);
@@ -162,7 +170,7 @@ export const useDashboardData = () => {
     });
     
     return records;
-  }, [serviceRecords, dateFilter, startDate, endDate, selectedProfessional, selectedType, currentUser, timeZone]);
+  }, [serviceRecords, dateFilter, startDate, endDate, selectedProfessional, selectedType, currentUser]);
 
   // Filter expenses to only show those from the current month for the dashboard
   const filteredExpenses = useMemo(() => {
