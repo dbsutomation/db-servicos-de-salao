@@ -129,22 +129,175 @@ export const useCheckoutForm = () => {
   };
 
   const handlePrint = () => {
+    const formData = form.getValues();
+    const selectedClient = clients.find(client => client.id === formData.clientId);
+    const selectedTeamMember = teamMembers.find(member => member.id === formData.teamMemberId);
+    
+    const currentDate = new Date();
+    const formattedDate = currentDate.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+    const formattedTime = currentDate.toLocaleTimeString('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
     const printContent = `
-      COMPROVANTE DE REGISTRO
-      
-      Data: ${new Date().toLocaleDateString('pt-BR')}
-      
-      Itens:
-      ${cartItems.map(item => `- ${item.service.name}: R$ ${item.service.price.toFixed(2)}`).join('\n')}
-      
-      Total: R$ ${getCartTotal().toFixed(2)}
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Comprovante de Serviço</title>
+        <style>
+          @media print {
+            body {
+              font-family: 'Courier New', monospace;
+              font-size: 14px;
+              line-height: 1.4;
+              color: #000 !important;
+              background: white !important;
+              margin: 10px;
+              padding: 0;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+            }
+            
+            .receipt {
+              max-width: 300px;
+              margin: 0 auto;
+              border: 2px solid #000;
+              padding: 15px;
+              background: white !important;
+            }
+            
+            .header {
+              text-align: center;
+              font-weight: bold;
+              font-size: 16px;
+              margin-bottom: 15px;
+              text-transform: uppercase;
+              border-bottom: 2px solid #000;
+              padding-bottom: 10px;
+            }
+            
+            .info-line {
+              margin: 8px 0;
+              font-weight: bold;
+              color: #000 !important;
+            }
+            
+            .separator {
+              border-top: 1px dashed #000;
+              margin: 12px 0;
+              height: 1px;
+            }
+            
+            .item {
+              margin: 6px 0;
+              display: flex;
+              justify-content: space-between;
+              font-weight: bold;
+            }
+            
+            .total {
+              border-top: 2px solid #000;
+              padding-top: 8px;
+              margin-top: 15px;
+              font-size: 16px;
+              font-weight: bold;
+              text-align: right;
+            }
+            
+            .footer {
+              text-align: center;
+              margin-top: 20px;
+              font-size: 12px;
+              font-style: italic;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="receipt">
+          <div class="header">
+            COMPROVANTE DE SERVIÇO
+          </div>
+          
+          <div class="info-line">
+            <strong>Data:</strong> ${formattedDate}
+          </div>
+          
+          <div class="info-line">
+            <strong>Hora:</strong> ${formattedTime}
+          </div>
+          
+          <div class="info-line">
+            <strong>Cliente:</strong> ${selectedClient ? selectedClient.name : 'Não selecionado'}
+          </div>
+          
+          <div class="info-line">
+            <strong>Profissional:</strong> ${selectedTeamMember ? selectedTeamMember.name : 'Não selecionado'}
+          </div>
+          
+          <div class="info-line">
+            <strong>Forma de Pagamento:</strong> ${formData.paymentMethod === 'money' ? 'Dinheiro' : 
+              formData.paymentMethod === 'credit' ? 'Cartão de Crédito' :
+              formData.paymentMethod === 'debit' ? 'Cartão de Débito' :
+              formData.paymentMethod === 'pix' ? 'PIX' : 'Transferência'}
+          </div>
+          
+          <div class="separator"></div>
+          
+          <div style="font-weight: bold; margin-bottom: 10px;">SERVIÇOS:</div>
+          
+          ${cartItems.map(item => `
+            <div class="item">
+              <span>${item.service.name}</span>
+              <span>R$ ${item.service.price.toFixed(2)}</span>
+            </div>
+          `).join('')}
+          
+          <div class="separator"></div>
+          
+          <div class="item">
+            <span>SUBTOTAL:</span>
+            <span>R$ ${getCartTotal().toFixed(2)}</span>
+          </div>
+          
+          ${formData.tipAmount && parseFloat(formData.tipAmount) > 0 ? `
+            <div class="item">
+              <span>GORJETA:</span>
+              <span>R$ ${parseFloat(formData.tipAmount).toFixed(2)}</span>
+            </div>
+          ` : ''}
+          
+          <div class="total">
+            TOTAL: R$ ${(getCartTotal() + (parseFloat(formData.tipAmount) || 0)).toFixed(2)}
+          </div>
+          
+          <div class="footer">
+            Obrigado pela preferência!<br>
+            Volte sempre!
+          </div>
+        </div>
+      </body>
+      </html>
     `;
     
     const printWindow = window.open('', '_blank');
     if (printWindow) {
-      printWindow.document.write(`<pre>${printContent}</pre>`);
-      printWindow.print();
-      printWindow.close();
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+      
+      // Aguarda o carregamento completo antes de imprimir
+      printWindow.onload = () => {
+        setTimeout(() => {
+          printWindow.print();
+          printWindow.close();
+        }, 500);
+      };
     }
   };
 
