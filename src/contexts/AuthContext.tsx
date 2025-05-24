@@ -29,6 +29,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     console.log("Inicializando AuthContext...");
     
+    // Configurar listener para mudanças de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, newSession) => {
         console.log("Evento de autenticação:", event);
@@ -37,6 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         if (newSession?.user) {
           console.log("Usuário autenticado encontrado:", newSession.user.email);
+          // Buscar informações adicionais do usuário do banco de dados
           setTimeout(async () => {
             try {
               console.log("Buscando dados adicionais do usuário:", newSession.user.id);
@@ -53,6 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               
               if (data) {
                 console.log("Dados do usuário encontrados:", data);
+                // Verificar se o usuário tem acesso
                 if (!data.has_access) {
                   console.warn("Usuário sem permissão de acesso");
                   toast({
@@ -66,6 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   return;
                 }
                 
+                // Converter para o formato TeamMember
                 const teamMember: TeamMember = {
                   id: data.id,
                   name: data.name,
@@ -75,8 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   password: '',
                   hasAccess: data.has_access,
                   isManager: data.is_manager,
-                  avatar: data.avatar || '',
-                  userType: (data.user_type as 'professional' | 'client') || 'professional'
+                  avatar: data.avatar || ''
                 };
                 
                 console.log("Usuário autenticado com sucesso:", teamMember.name);
@@ -84,9 +87,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   isAuthenticated: true,
                   currentUser: teamMember
                 });
-
-                // Não redirecionar automaticamente aqui - deixar o roteamento natural funcionar
-                console.log("Autenticação concluída, usuário pode navegar livremente");
               } else {
                 console.error("Dados do usuário não encontrados");
               }
@@ -104,6 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
+    // Verificar sessão atual
     const checkSession = async () => {
       try {
         console.log("Verificando sessão existente...");
@@ -203,13 +204,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const checkAccess = (requiredRoutes: string[]): boolean => {
+    // Se não está autenticado, não tem acesso
     if (!authState.isAuthenticated || !authState.currentUser) {
       return false;
-    }
-    
-    // Clientes só têm acesso ao sistema de agendamento
-    if (authState.currentUser.userType === 'client') {
-      return requiredRoutes.some(route => route.startsWith('/agendamento'));
     }
     
     // Gerentes têm acesso a tudo
@@ -217,20 +214,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return true;
     }
     
-    // Profissionais têm acesso a todas as rotas principais (removendo restrições desnecessárias)
-    return true;
+    // Não-gerentes têm acesso a rotas específicas
+    const allowedRoutes = ['/', '/home', '/clients', '/services', '/cart'];
+    return requiredRoutes.some(route => allowedRoutes.includes(route));
   };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-salon-purple mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <AuthContext.Provider value={{ ...authState, login, logout, checkAccess }}>

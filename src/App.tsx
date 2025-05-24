@@ -13,7 +13,6 @@ import Team from "./pages/Team";
 import Records from "./pages/Records";
 import Cart from "./pages/Cart";
 import Login from "./pages/Login";
-import Scheduling from "./pages/Scheduling";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,19 +21,14 @@ const queryClient = new QueryClient();
 const ProtectedRoute = ({ children, requiredRoutes }: { children: JSX.Element, requiredRoutes: string[] }) => {
   const { isAuthenticated, checkAccess } = useAuth();
   
-  console.log("ProtectedRoute - isAuthenticated:", isAuthenticated, "requiredRoutes:", requiredRoutes);
-  
   if (!isAuthenticated) {
-    console.log("Usuário não autenticado, redirecionando para login");
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" />;
   }
   
   if (!checkAccess(requiredRoutes)) {
-    console.log("Usuário sem acesso à rota, redirecionando para home");
-    return <Navigate to="/" replace />;
+    return <Navigate to="/" />;
   }
   
-  console.log("Acesso autorizado à rota");
   return children;
 };
 
@@ -44,11 +38,6 @@ const AuthenticatedApp = () => {
     <CartProvider>
       <Routes>
         <Route path="/login" element={<Login />} />
-        <Route path="/agendamento" element={
-          <ProtectedRoute requiredRoutes={["/agendamento"]}>
-            <Scheduling />
-          </ProtectedRoute>
-        } />
         <Route path="/" element={
           <ProtectedRoute requiredRoutes={["/"]}>
             <Index />
