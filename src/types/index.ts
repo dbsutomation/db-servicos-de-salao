@@ -24,6 +24,7 @@ export interface Service {
   commission: number;
   category?: string;
   type?: 'servico' | 'produto';
+  duration?: number;
 }
 
 export interface TeamMember {
@@ -36,6 +37,7 @@ export interface TeamMember {
   hasAccess: boolean;
   isManager: boolean;
   avatar: string;
+  userType?: 'professional' | 'client';
 }
 
 export interface ServiceRecord {
@@ -55,8 +57,8 @@ export interface Expense {
   amount: number;
   created_at?: string;
   updated_at?: string;
-  expense_date: string; // Added date field
-  is_fixed: boolean;    // Added fixed expense indicator
+  expense_date: string;
+  is_fixed: boolean;
 }
 
 export interface CartItem {

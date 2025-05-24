@@ -9,6 +9,108 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      appointment_services: {
+        Row: {
+          appointment_id: string
+          created_at: string
+          id: string
+          quantity: number | null
+          service_id: string
+          unit_price: number
+        }
+        Insert: {
+          appointment_id: string
+          created_at?: string
+          id?: string
+          quantity?: number | null
+          service_id: string
+          unit_price: number
+        }
+        Update: {
+          appointment_id?: string
+          created_at?: string
+          id?: string
+          quantity?: number | null
+          service_id?: string
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_services_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_services_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      appointments: {
+        Row: {
+          appointment_date: string
+          client_id: string
+          created_at: string
+          end_time: string
+          id: string
+          notes: string | null
+          professional_id: string
+          start_time: string
+          status: string | null
+          total_duration: number
+          total_value: number
+          updated_at: string
+        }
+        Insert: {
+          appointment_date: string
+          client_id: string
+          created_at?: string
+          end_time: string
+          id?: string
+          notes?: string | null
+          professional_id: string
+          start_time: string
+          status?: string | null
+          total_duration: number
+          total_value: number
+          updated_at?: string
+        }
+        Update: {
+          appointment_date?: string
+          client_id?: string
+          created_at?: string
+          end_time?: string
+          id?: string
+          notes?: string | null
+          professional_id?: string
+          start_time?: string
+          status?: string | null
+          total_duration?: number
+          total_value?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           created_at: string
@@ -68,6 +170,74 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      feature_flags: {
+        Row: {
+          created_at: string
+          description: string | null
+          enabled: boolean | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          enabled?: boolean | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          enabled?: boolean | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      professional_schedules: {
+        Row: {
+          created_at: string
+          day_of_week: number
+          end_time: string
+          id: string
+          is_available: boolean | null
+          professional_id: string
+          start_time: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: number
+          end_time: string
+          id?: string
+          is_available?: boolean | null
+          professional_id: string
+          start_time: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          is_available?: boolean | null
+          professional_id?: string
+          start_time?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "professional_schedules_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       service_records: {
         Row: {
@@ -139,6 +309,7 @@ export type Database = {
           commission: number
           created_at: string
           description: string | null
+          duration: number | null
           id: string
           image: string | null
           name: string
@@ -151,6 +322,7 @@ export type Database = {
           commission?: number
           created_at?: string
           description?: string | null
+          duration?: number | null
           id?: string
           image?: string | null
           name: string
@@ -163,6 +335,7 @@ export type Database = {
           commission?: number
           created_at?: string
           description?: string | null
+          duration?: number | null
           id?: string
           image?: string | null
           name?: string
@@ -184,6 +357,7 @@ export type Database = {
           phone: string | null
           profession: string | null
           updated_at: string
+          user_type: string | null
         }
         Insert: {
           avatar?: string | null
@@ -196,6 +370,7 @@ export type Database = {
           phone?: string | null
           profession?: string | null
           updated_at?: string
+          user_type?: string | null
         }
         Update: {
           avatar?: string | null
@@ -208,6 +383,7 @@ export type Database = {
           phone?: string | null
           profession?: string | null
           updated_at?: string
+          user_type?: string | null
         }
         Relationships: []
       }

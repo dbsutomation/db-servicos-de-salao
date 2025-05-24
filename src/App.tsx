@@ -13,6 +13,7 @@ import Team from "./pages/Team";
 import Records from "./pages/Records";
 import Cart from "./pages/Cart";
 import Login from "./pages/Login";
+import Scheduling from "./pages/Scheduling";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,11 @@ const AuthenticatedApp = () => {
     <CartProvider>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/agendamento" element={
+          <ProtectedRoute requiredRoutes={["/agendamento"]}>
+            <Scheduling />
+          </ProtectedRoute>
+        } />
         <Route path="/" element={
           <ProtectedRoute requiredRoutes={["/"]}>
             <Index />
