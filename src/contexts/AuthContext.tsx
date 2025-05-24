@@ -26,6 +26,67 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  const fetchUserData = async (userId: string) => {
+    try {
+      console.log("Buscando dados do usuário:", userId);
+      const { data, error } = await supabase
+        .from('professionals')
+        .select('*')
+        .eq('id', userId)
+        .single();
+        
+      if (error) {
+        console.error('Erro ao buscar dados do usuário:', error);
+        throw error;
+      }
+      
+      if (data) {
+        console.log("Dados do usuário encontrados:", data);
+        // Verificar se o usuário tem acesso
+        if (!data.has_access) {
+          console.warn("Usuário sem permissão de acesso");
+          toast({
+            title: "Acesso negado",
+            description: "Sua conta não tem permissão para acessar o sistema.",
+            variant: "destructive",
+          });
+          await supabase.auth.signOut();
+          setAuthState({ isAuthenticated: false, currentUser: null });
+          navigate('/login');
+          return;
+        }
+        
+        // Converter para o formato TeamMember
+        const teamMember: TeamMember = {
+          id: data.id,
+          name: data.name,
+          email: data.email,
+          profession: data.profession || '',
+          phone: data.phone || '',
+          password: '',
+          hasAccess: data.has_access,
+          isManager: data.is_manager,
+          avatar: data.avatar || '',
+          categories: data.categories || []
+        };
+        
+        console.log("Usuário autenticado com sucesso:", teamMember.name);
+        setAuthState({
+          isAuthenticated: true,
+          currentUser: teamMember
+        });
+      } else {
+        console.error("Dados do usuário não encontrados");
+        setAuthState({ isAuthenticated: false, currentUser: null });
+      }
+    } catch (error) {
+      console.error('Erro ao buscar dados do usuário:', error);
+      setAuthState({ isAuthenticated: false, currentUser: null });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     console.log("Inicializando AuthContext...");
     
@@ -38,65 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         if (newSession?.user) {
           console.log("Usuário autenticado encontrado:", newSession.user.email);
-          // Buscar informações adicionais do usuário do banco de dados
-          setTimeout(async () => {
-            try {
-              console.log("Buscando dados adicionais do usuário:", newSession.user.id);
-              const { data, error } = await supabase
-                .from('professionals')
-                .select('*')
-                .eq('id', newSession.user.id)
-                .single();
-                
-              if (error) {
-                console.error('Erro ao buscar dados do usuário:', error);
-                throw error;
-              }
-              
-              if (data) {
-                console.log("Dados do usuário encontrados:", data);
-                // Verificar se o usuário tem acesso
-                if (!data.has_access) {
-                  console.warn("Usuário sem permissão de acesso");
-                  toast({
-                    title: "Acesso negado",
-                    description: "Sua conta não tem permissão para acessar o sistema.",
-                    variant: "destructive",
-                  });
-                  await supabase.auth.signOut();
-                  setAuthState({ isAuthenticated: false, currentUser: null });
-                  navigate('/login');
-                  return;
-                }
-                
-                // Converter para o formato TeamMember
-                const teamMember: TeamMember = {
-                  id: data.id,
-                  name: data.name,
-                  email: data.email,
-                  profession: data.profession || '',
-                  phone: data.phone || '',
-                  password: '',
-                  hasAccess: data.has_access,
-                  isManager: data.is_manager,
-                  avatar: data.avatar || '',
-                  categories: data.categories || []
-                };
-                
-                console.log("Usuário autenticado com sucesso:", teamMember.name);
-                setAuthState({
-                  isAuthenticated: true,
-                  currentUser: teamMember
-                });
-              } else {
-                console.error("Dados do usuário não encontrados");
-              }
-            } catch (error) {
-              console.error('Erro ao buscar dados do usuário:', error);
-            } finally {
-              setIsLoading(false);
-            }
-          }, 0);
+          await fetchUserData(newSession.user.id);
         } else {
           console.log("Nenhum usuário autenticado");
           setAuthState({ isAuthenticated: false, currentUser: null });
@@ -120,12 +123,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           console.log("Sessão existente encontrada:", existingSession.user.email);
           setSession(existingSession);
           setUser(existingSession.user);
+          await fetchUserData(existingSession.user.id);
         } else {
           console.log("Nenhuma sessão existente encontrada");
+          setIsLoading(false);
         }
       } catch (error) {
         console.error('Erro ao verificar sessão:', error);
-      } finally {
         setIsLoading(false);
       }
     };
