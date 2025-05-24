@@ -14,15 +14,13 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
-    detectSessionInUrl: true,
-    flowType: 'pkce'
+    detectSessionInUrl: true
   },
   global: {
     fetch: function(url, init) {
       console.log('Supabase fetch request:', url);
       return fetch(url, init)
         .then(response => {
-          console.log('Supabase response status:', response.status);
           if (!response.ok) {
             console.error('Supabase fetch error:', response.status, response.statusText);
           }
@@ -33,44 +31,19 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
           throw error;
         });
     }
-  },
-  db: {
-    schema: 'public'
   }
 });
 
-// Enhanced connection test
+// Test connection on load
 (async () => {
   try {
-    console.log('Iniciando teste de conexão Supabase...');
-    
-    // Test basic connectivity
-    const { data, error } = await supabase
-      .from('professionals')
-      .select('count')
-      .limit(1);
-      
+    const { error } = await supabase.from('users').select('count').limit(1);
     if (error) {
-      console.error('Teste de conexão Supabase falhou:', error);
-      console.error('Detalhes do erro:', {
-        message: error.message,
-        details: error.details,
-        hint: error.hint,
-        code: error.code
-      });
+      console.error('Supabase connection test failed:', error);
     } else {
-      console.log('Teste de conexão Supabase bem-sucedido');
+      console.log('Supabase connection test successful');
     }
-    
-    // Test auth connection
-    const { data: authData, error: authError } = await supabase.auth.getSession();
-    if (authError) {
-      console.error('Teste de autenticação falhou:', authError);
-    } else {
-      console.log('Teste de autenticação bem-sucedido');
-    }
-    
   } catch (err) {
-    console.error('Erro crítico na conexão Supabase:', err);
+    console.error('Supabase connection error:', err);
   }
 })();

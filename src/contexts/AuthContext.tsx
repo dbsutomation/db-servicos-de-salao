@@ -1,15 +1,14 @@
-
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { TeamMember, AuthState } from '@/types';
+import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Session } from '@supabase/supabase-js';
+import { User, Session } from '@supabase/supabase-js';
 
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   checkAccess: (requiredRoutes: string[]) => boolean;
-  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -19,191 +18,145 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isAuthenticated: false,
     currentUser: null
   });
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   
   const { toast } = useToast();
-
-  const fetchUserData = async (userId: string): Promise<TeamMember | null> => {
-    try {
-      console.log("Buscando dados do usuário:", userId);
-      
-      const { data, error } = await supabase
-        .from('professionals')
-        .select('*')
-        .eq('id', userId)
-        .maybeSingle();
-        
-      if (error) {
-        console.error('Erro ao buscar dados do usuário:', error);
-        return null;
-      }
-      
-      if (!data) {
-        console.warn("Usuário não encontrado na tabela professionals:", userId);
-        return null;
-      }
-      
-      if (!data.has_access) {
-        console.warn("Usuário sem permissão de acesso");
-        toast({
-          title: "Acesso negado",
-          description: "Sua conta não tem permissão para acessar o sistema.",
-          variant: "destructive",
-        });
-        return null;
-      }
-      
-      const teamMember: TeamMember = {
-        id: data.id,
-        name: data.name,
-        email: data.email,
-        profession: data.profession || '',
-        phone: data.phone || '',
-        password: '',
-        hasAccess: data.has_access,
-        isManager: data.is_manager,
-        avatar: data.avatar || '',
-        categories: data.categories || []
-      };
-      
-      console.log("Dados do usuário carregados:", teamMember.name);
-      return teamMember;
-    } catch (error: any) {
-      console.error('Erro ao buscar dados do usuário:', error);
-      return null;
-    }
-  };
+  const navigate = useNavigate();
 
   useEffect(() => {
-    console.log("AuthProvider: Inicializando contexto...");
+    console.log("Inicializando AuthContext...");
     
-    let mounted = true;
-
-    const initAuth = async () => {
-      try {
-        console.log("AuthProvider: Verificando sessão inicial...");
-        
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('Erro ao verificar sessão:', error);
-          if (mounted) {
-            setSession(null);
-            setAuthState({ isAuthenticated: false, currentUser: null });
-            setIsLoading(false);
-          }
-          return;
-        }
-        
-        if (session?.user && mounted) {
-          console.log("AuthProvider: Sessão encontrada:", session.user.email);
-          setSession(session);
-          
-          const userData = await fetchUserData(session.user.id);
-          
-          if (userData && mounted) {
-            setAuthState({ isAuthenticated: true, currentUser: userData });
-          } else if (mounted) {
-            setSession(null);
-            setAuthState({ isAuthenticated: false, currentUser: null });
-            await supabase.auth.signOut();
-          }
-        } else if (mounted) {
-          setSession(null);
-          setAuthState({ isAuthenticated: false, currentUser: null });
-        }
-        
-        if (mounted) {
-          setIsLoading(false);
-        }
-      } catch (error) {
-        console.error('Erro na inicialização da auth:', error);
-        if (mounted) {
-          setSession(null);
-          setAuthState({ isAuthenticated: false, currentUser: null });
-          setIsLoading(false);
-        }
-      }
-    };
-
+    // Configurar listener para mudanças de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log("AuthProvider: Evento de auth:", event, session?.user?.email);
+      async (event, newSession) => {
+        console.log("Evento de autenticação:", event);
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
         
-        if (!mounted) return;
-        
-        setSession(session);
-        
-        if (event === 'SIGNED_IN' && session?.user) {
-          console.log("AuthProvider: Usuário logado");
-          const userData = await fetchUserData(session.user.id);
-          
-          if (userData && mounted) {
-            setAuthState({ isAuthenticated: true, currentUser: userData });
-          } else if (mounted) {
-            setAuthState({ isAuthenticated: false, currentUser: null });
-          }
-        } else if (event === 'SIGNED_OUT' && mounted) {
-          console.log("AuthProvider: Usuário deslogado");
+        if (newSession?.user) {
+          console.log("Usuário autenticado encontrado:", newSession.user.email);
+          // Buscar informações adicionais do usuário do banco de dados
+          setTimeout(async () => {
+            try {
+              console.log("Buscando dados adicionais do usuário:", newSession.user.id);
+              const { data, error } = await supabase
+                .from('users')
+                .select('*')
+                .eq('id', newSession.user.id)
+                .single();
+                
+              if (error) {
+                console.error('Erro ao buscar dados do usuário:', error);
+                throw error;
+              }
+              
+              if (data) {
+                console.log("Dados do usuário encontrados:", data);
+                // Verificar se o usuário tem acesso
+                if (!data.has_access) {
+                  console.warn("Usuário sem permissão de acesso");
+                  toast({
+                    title: "Acesso negado",
+                    description: "Sua conta não tem permissão para acessar o sistema.",
+                    variant: "destructive",
+                  });
+                  await supabase.auth.signOut();
+                  setAuthState({ isAuthenticated: false, currentUser: null });
+                  navigate('/login');
+                  return;
+                }
+                
+                // Converter para o formato TeamMember
+                const teamMember: TeamMember = {
+                  id: data.id,
+                  name: data.name,
+                  email: data.email,
+                  profession: data.profession || '',
+                  phone: data.phone || '',
+                  password: '',
+                  hasAccess: data.has_access,
+                  isManager: data.is_manager,
+                  avatar: data.avatar || ''
+                };
+                
+                console.log("Usuário autenticado com sucesso:", teamMember.name);
+                setAuthState({
+                  isAuthenticated: true,
+                  currentUser: teamMember
+                });
+              } else {
+                console.error("Dados do usuário não encontrados");
+              }
+            } catch (error) {
+              console.error('Erro ao buscar dados do usuário:', error);
+            } finally {
+              setIsLoading(false);
+            }
+          }, 0);
+        } else {
+          console.log("Nenhum usuário autenticado");
           setAuthState({ isAuthenticated: false, currentUser: null });
-        }
-        
-        if (mounted) {
           setIsLoading(false);
         }
       }
     );
 
-    initAuth();
+    // Verificar sessão atual
+    const checkSession = async () => {
+      try {
+        console.log("Verificando sessão existente...");
+        const { data: { session: existingSession }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Erro ao verificar sessão:', error);
+          throw error;
+        }
+        
+        if (existingSession) {
+          console.log("Sessão existente encontrada:", existingSession.user.email);
+          setSession(existingSession);
+          setUser(existingSession.user);
+        } else {
+          console.log("Nenhuma sessão existente encontrada");
+        }
+      } catch (error) {
+        console.error('Erro ao verificar sessão:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkSession();
 
     return () => {
-      console.log("AuthProvider: Cleanup");
-      mounted = false;
+      console.log("Limpando listener de autenticação");
       subscription.unsubscribe();
     };
-  }, []);
+  }, [navigate, toast]);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      console.log("Tentativa de login para:", email);
       setIsLoading(true);
-      
+      console.log("Tentativa de login para:", email);
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password: password.trim()
+        email,
+        password
       });
       
       if (error) {
         console.error("Erro no login:", error);
-        let errorMessage = "Ocorreu um erro no login";
-        
-        switch (error.message) {
-          case 'Invalid login credentials':
-            errorMessage = "Email ou senha incorretos";
-            break;
-          case 'Email not confirmed':
-            errorMessage = "Email não confirmado. Verifique sua caixa de entrada";
-            break;
-          case 'Too many requests':
-            errorMessage = "Muitas tentativas. Aguarde alguns minutos";
-            break;
-          default:
-            errorMessage = error.message;
-        }
-        
         toast({
           title: "Falha no login",
-          description: errorMessage,
+          description: error.message,
           variant: "destructive",
         });
-        
-        setIsLoading(false);
         return false;
       }
       
       if (data.user) {
-        console.log("Login bem-sucedido");
+        console.log("Login bem-sucedido para:", data.user.email);
         toast({
           title: "Login bem-sucedido",
           description: "Bem-vindo de volta!",
@@ -211,71 +164,62 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return true;
       }
       
-      setIsLoading(false);
       return false;
     } catch (error: any) {
       console.error("Erro inesperado no login:", error);
       toast({
         title: "Erro no login",
-        description: "Ocorreu um erro inesperado. Tente novamente.",
+        description: error.message ?? "Ocorreu um erro inesperado",
         variant: "destructive",
       });
-      setIsLoading(false);
       return false;
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const logout = async () => {
     try {
+      setIsLoading(true);
       console.log("Iniciando logout...");
       await supabase.auth.signOut();
-      setSession(null);
       setAuthState({ isAuthenticated: false, currentUser: null });
-      
+      navigate('/login');
       toast({
         title: "Logout realizado",
         description: "Você saiu do sistema.",
       });
+      console.log("Logout bem-sucedido");
     } catch (error: any) {
       console.error("Erro no logout:", error);
       toast({
         title: "Erro ao sair",
-        description: "Ocorreu um erro inesperado ao sair.",
+        description: error.message ?? "Ocorreu um erro inesperado",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const checkAccess = (requiredRoutes: string[]): boolean => {
+    // Se não está autenticado, não tem acesso
     if (!authState.isAuthenticated || !authState.currentUser) {
       return false;
     }
     
+    // Gerentes têm acesso a tudo
     if (authState.currentUser.isManager) {
       return true;
     }
     
+    // Não-gerentes têm acesso a rotas específicas
     const allowedRoutes = ['/', '/home', '/clients', '/services', '/cart', '/scheduling'];
     return requiredRoutes.some(route => allowedRoutes.includes(route));
   };
 
-  const contextValue: AuthContextType = {
-    ...authState,
-    login,
-    logout,
-    checkAccess,
-    isLoading
-  };
-
-  console.log("AuthProvider: Renderizando com estado:", { 
-    isAuthenticated: authState.isAuthenticated, 
-    isLoading,
-    hasUser: !!authState.currentUser,
-    hasSession: !!session
-  });
-
   return (
-    <AuthContext.Provider value={contextValue}>
+    <AuthContext.Provider value={{ ...authState, login, logout, checkAccess }}>
       {children}
     </AuthContext.Provider>
   );

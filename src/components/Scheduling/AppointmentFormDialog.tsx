@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Service, Client, TeamMember } from '@/types';
@@ -44,7 +45,6 @@ const AppointmentFormDialog = ({
 }: AppointmentFormDialogProps) => {
   const [clients, setClients] = useState<Client[]>([]);
   const [services, setServices] = useState<Service[]>([]);
-  const [filteredServices, setFilteredServices] = useState<Service[]>([]);
   const [selectedClient, setSelectedClient] = useState('');
   const [selectedServices, setSelectedServices] = useState<SelectedService[]>([]);
   const [notes, setNotes] = useState('');
@@ -67,26 +67,6 @@ const AppointmentFormDialog = ({
       resetForm();
     }
   }, [isOpen]);
-
-  // Filtrar serviços baseado nas categorias do profissional selecionado
-  useEffect(() => {
-    if (selectedProfessional && services.length > 0) {
-      const professionalCategories = selectedProfessional.categories || [];
-      
-      if (professionalCategories.length === 0) {
-        // Se o profissional não tem categorias específicas, mostra todos os serviços
-        setFilteredServices(services);
-      } else {
-        // Filtra serviços que correspondem às categorias do profissional
-        const filtered = services.filter(service => 
-          service.category && professionalCategories.includes(service.category)
-        );
-        setFilteredServices(filtered);
-      }
-    } else {
-      setFilteredServices(services);
-    }
-  }, [selectedProfessional, services]);
 
   const resetForm = () => {
     setSelectedClient('');
@@ -163,8 +143,8 @@ const AppointmentFormDialog = ({
   };
 
   const addService = () => {
-    if (filteredServices.length > 0) {
-      setSelectedServices(prev => [...prev, { service: filteredServices[0], quantity: 1 }]);
+    if (services.length > 0) {
+      setSelectedServices(prev => [...prev, { service: services[0], quantity: 1 }]);
     }
   };
 
@@ -173,7 +153,7 @@ const AppointmentFormDialog = ({
   };
 
   const updateService = (index: number, serviceId: string) => {
-    const service = filteredServices.find(s => s.id === serviceId);
+    const service = services.find(s => s.id === serviceId);
     if (service) {
       setSelectedServices(prev => 
         prev.map((item, i) => 
@@ -396,20 +376,11 @@ const AppointmentFormDialog = ({
                 variant="outline"
                 size="sm"
                 onClick={addService}
-                disabled={filteredServices.length === 0}
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Adicionar Serviço
               </Button>
             </div>
-
-            {filteredServices.length === 0 && selectedProfessional && (
-              <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <p className="text-sm text-yellow-700">
-                  Nenhum serviço disponível para as categorias do profissional: {selectedProfessional.categories?.join(', ') || 'Nenhuma categoria definida'}
-                </p>
-              </div>
-            )}
 
             <div className="space-y-2">
               {selectedServices.map((item, index) => (
@@ -422,7 +393,7 @@ const AppointmentFormDialog = ({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {filteredServices.map((service) => (
+                      {services.map((service) => (
                         <SelectItem key={service.id} value={service.id}>
                           {service.name} - R$ {service.price.toFixed(2)} ({service.duration || 60}min)
                         </SelectItem>
