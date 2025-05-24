@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,15 +13,8 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{email?: string, password?: string}>({});
-  const { login, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
-
-  // Redirecionar se já estiver autenticado
-  useEffect(() => {
-    if (isAuthenticated && !authLoading) {
-      navigate('/');
-    }
-  }, [isAuthenticated, authLoading, navigate]);
 
   const validateForm = () => {
     const newErrors: {email?: string, password?: string} = {};
@@ -63,18 +56,6 @@ const Login = () => {
       setLoading(false);
     }
   };
-
-  // Mostrar loading enquanto verifica autenticação
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-salon-light-purple to-white">
-        <div className="flex flex-col items-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin text-salon-purple" />
-          <p className="text-salon-purple">Verificando autenticação...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-salon-light-purple to-white p-4">
