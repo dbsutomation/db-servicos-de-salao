@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -5,8 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -28,30 +27,6 @@ const Login = () => {
       console.error('Erro no login:', error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const checkDatabase = async () => {
-    try {
-      const { data, error } = await supabase.from('professionals').select('count').limit(1);
-      if (error) {
-        toast({
-          title: "Erro de conexão",
-          description: "Não foi possível conectar ao banco de dados",
-          variant: "destructive"
-        });
-      } else {
-        toast({
-          title: "Conexão OK",
-          description: "Banco de dados conectado com sucesso"
-        });
-      }
-    } catch (err) {
-      toast({
-        title: "Erro",
-        description: "Erro ao testar conexão",
-        variant: "destructive"
-      });
     }
   };
 
@@ -98,16 +73,6 @@ const Login = () => {
               {loading ? 'Entrando...' : 'Entrar'}
             </Button>
           </form>
-          
-          <div className="pt-4 border-t">
-            <Button 
-              onClick={checkDatabase}
-              variant="outline"
-              className="w-full"
-            >
-              Testar Conexão
-            </Button>
-          </div>
         </CardContent>
       </Card>
     </div>
