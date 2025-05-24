@@ -34,7 +34,7 @@ export const AppRoutes = () => {
     <Routes>
       <Route 
         path="/login" 
-        element={isAuthenticated ? <Navigate to="/" replace /> : <Login />} 
+        element={!isAuthenticated ? <Login /> : <Navigate to="/" replace />} 
       />
       <Route path="/" element={
         <ProtectedRoute requiredRoutes={["/"]}>

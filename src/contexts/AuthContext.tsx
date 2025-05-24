@@ -119,7 +119,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    // Configura o listener de mudanças de auth
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log("AuthProvider: Evento de autenticação:", event);
@@ -146,7 +145,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    // Inicializa a autenticação
     initializeAuth();
 
     return () => {

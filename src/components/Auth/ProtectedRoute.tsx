@@ -13,7 +13,7 @@ export const ProtectedRoute = ({ children, requiredRoutes }: ProtectedRouteProps
   console.log("ProtectedRoute - isAuthenticated:", isAuthenticated, "isLoading:", isLoading);
   
   if (isLoading) {
-    return null; // Deixa o loading ser tratado pelo AppRoutes
+    return null;
   }
   
   if (!isAuthenticated) {
