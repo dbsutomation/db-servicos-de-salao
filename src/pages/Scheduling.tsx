@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { TeamMember } from '@/types';
 import { User, Calendar } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import WeeklyCalendar from '@/components/Scheduling/WeeklyCalendar';
 
 const Scheduling = () => {
   const { currentUser } = useAuth();
@@ -54,7 +55,7 @@ const Scheduling = () => {
           hasAccess: user.has_access,
           isManager: user.is_manager,
           avatar: user.avatar || '',
-          userType: user.user_type
+          userType: user.user_type as 'professional' | 'client'
         }));
 
         setProfessionals(professionalsData);
@@ -104,7 +105,7 @@ const Scheduling = () => {
   if (selectedProfessional) {
     return (
       <div className="min-h-screen bg-gray-50 p-4">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           <div className="mb-6 flex items-center justify-between">
             <Button
               variant="outline"
@@ -117,21 +118,7 @@ const Scheduling = () => {
             </h1>
           </div>
           
-          <Card>
-            <CardContent className="p-6">
-              <div className="text-center text-gray-600">
-                <Calendar size={64} className="mx-auto mb-4 text-salon-purple" />
-                <h3 className="text-lg font-semibold mb-2">Calendário em Desenvolvimento</h3>
-                <p>O calendário semanal será implementado na próxima etapa.</p>
-                <p className="text-sm mt-2">
-                  Profissional: <span className="font-medium">{selectedProfessional.name}</span>
-                </p>
-                <p className="text-sm">
-                  Especialidade: <span className="font-medium">{selectedProfessional.profession}</span>
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          <WeeklyCalendar professional={selectedProfessional} />
         </div>
       </div>
     );

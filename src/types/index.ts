@@ -74,3 +74,35 @@ export interface AuthState {
   isAuthenticated: boolean;
   currentUser: TeamMember | null;
 }
+
+export interface ProfessionalSchedule {
+  id: string;
+  professional_id: string;
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+  is_available: boolean;
+}
+
+export interface Appointment {
+  id: string;
+  client_id: string;
+  professional_id: string;
+  appointment_date: string;
+  start_time: string;
+  end_time: string;
+  total_duration: number;
+  total_value: number;
+  status: 'scheduled' | 'confirmed' | 'completed' | 'cancelled';
+  notes?: string;
+  services?: AppointmentService[];
+}
+
+export interface AppointmentService {
+  id: string;
+  appointment_id: string;
+  service_id: string;
+  quantity: number;
+  unit_price: number;
+  service?: Service;
+}
