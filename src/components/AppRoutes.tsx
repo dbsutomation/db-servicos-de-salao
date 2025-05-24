@@ -17,6 +17,8 @@ import { Loader2 } from "lucide-react";
 export const AppRoutes = () => {
   const { isAuthenticated, isLoading } = useAuth();
   
+  console.log("AppRoutes - isAuthenticated:", isAuthenticated, "isLoading:", isLoading);
+  
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-salon-light-purple to-white">
@@ -28,56 +30,62 @@ export const AppRoutes = () => {
     );
   }
   
-  if (!isAuthenticated) {
-    return (
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
-    );
-  }
-  
   return (
-    <CartProvider>
-      <Routes>
-        <Route path="/login" element={<Navigate to="/" replace />} />
-        <Route path="/" element={
-          <ProtectedRoute requiredRoutes={["/"]}>
+    <Routes>
+      <Route 
+        path="/login" 
+        element={isAuthenticated ? <Navigate to="/" replace /> : <Login />} 
+      />
+      <Route path="/" element={
+        <ProtectedRoute requiredRoutes={["/"]}>
+          <CartProvider>
             <Index />
-          </ProtectedRoute>
-        } />
-        <Route path="/services" element={
-          <ProtectedRoute requiredRoutes={["/services"]}>
+          </CartProvider>
+        </ProtectedRoute>
+      } />
+      <Route path="/services" element={
+        <ProtectedRoute requiredRoutes={["/services"]}>
+          <CartProvider>
             <Services />
-          </ProtectedRoute>
-        } />
-        <Route path="/clients" element={
-          <ProtectedRoute requiredRoutes={["/clients"]}>
+          </CartProvider>
+        </ProtectedRoute>
+      } />
+      <Route path="/clients" element={
+        <ProtectedRoute requiredRoutes={["/clients"]}>
+          <CartProvider>
             <Clients />
-          </ProtectedRoute>
-        } />
-        <Route path="/team" element={
-          <ProtectedRoute requiredRoutes={["/team"]}>
+          </CartProvider>
+        </ProtectedRoute>
+      } />
+      <Route path="/team" element={
+        <ProtectedRoute requiredRoutes={["/team"]}>
+          <CartProvider>
             <Team />
-          </ProtectedRoute>
-        } />
-        <Route path="/records" element={
-          <ProtectedRoute requiredRoutes={["/records"]}>
+          </CartProvider>
+        </ProtectedRoute>
+      } />
+      <Route path="/records" element={
+        <ProtectedRoute requiredRoutes={["/records"]}>
+          <CartProvider>
             <Records />
-          </ProtectedRoute>
-        } />
-        <Route path="/cart" element={
-          <ProtectedRoute requiredRoutes={["/cart"]}>
+          </CartProvider>
+        </ProtectedRoute>
+      } />
+      <Route path="/cart" element={
+        <ProtectedRoute requiredRoutes={["/cart"]}>
+          <CartProvider>
             <Cart />
-          </ProtectedRoute>
-        } />
-        <Route path="/scheduling" element={
-          <ProtectedRoute requiredRoutes={["/scheduling"]}>
+          </CartProvider>
+        </ProtectedRoute>
+      } />
+      <Route path="/scheduling" element={
+        <ProtectedRoute requiredRoutes={["/scheduling"]}>
+          <CartProvider>
             <Scheduling />
-          </ProtectedRoute>
-        } />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </CartProvider>
+          </CartProvider>
+        </ProtectedRoute>
+      } />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 };

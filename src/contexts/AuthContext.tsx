@@ -74,79 +74,84 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    let mounted = true;
+    console.log("AuthProvider: Inicializando...");
+    
+    let isMounted = true;
     
     const initializeAuth = async () => {
       try {
-        console.log("Inicializando autenticação...");
+        console.log("AuthProvider: Verificando sessão inicial...");
         
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error('Erro ao verificar sessão:', error);
-          if (mounted) {
+          if (isMounted) {
             setAuthState({ isAuthenticated: false, currentUser: null });
             setIsLoading(false);
           }
           return;
         }
         
-        if (session?.user && mounted) {
-          console.log("Sessão encontrada:", session.user.email);
+        if (session?.user && isMounted) {
+          console.log("AuthProvider: Sessão encontrada:", session.user.email);
           const userData = await fetchUserData(session.user.id);
           
-          if (userData && mounted) {
+          if (userData && isMounted) {
             setAuthState({ isAuthenticated: true, currentUser: userData });
-          } else if (mounted) {
+          } else if (isMounted) {
             setAuthState({ isAuthenticated: false, currentUser: null });
             await supabase.auth.signOut();
           }
-        } else if (mounted) {
+        } else if (isMounted) {
           setAuthState({ isAuthenticated: false, currentUser: null });
         }
         
-        if (mounted) {
+        if (isMounted) {
           setIsLoading(false);
         }
       } catch (error) {
         console.error('Erro na inicialização:', error);
-        if (mounted) {
+        if (isMounted) {
           setAuthState({ isAuthenticated: false, currentUser: null });
           setIsLoading(false);
         }
       }
     };
 
+    // Configura o listener de mudanças de auth
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log("Evento de autenticação:", event);
+        console.log("AuthProvider: Evento de autenticação:", event);
         
-        if (!mounted) return;
+        if (!isMounted) return;
         
         if (event === 'SIGNED_IN' && session?.user) {
-          console.log("Usuário logado");
+          console.log("AuthProvider: Usuário logado");
           const userData = await fetchUserData(session.user.id);
           
-          if (userData && mounted) {
+          if (userData && isMounted) {
             setAuthState({ isAuthenticated: true, currentUser: userData });
-          } else if (mounted) {
+          } else if (isMounted) {
             setAuthState({ isAuthenticated: false, currentUser: null });
           }
-        } else if (event === 'SIGNED_OUT' && mounted) {
-          console.log("Usuário deslogado");
+        } else if (event === 'SIGNED_OUT' && isMounted) {
+          console.log("AuthProvider: Usuário deslogado");
           setAuthState({ isAuthenticated: false, currentUser: null });
         }
         
-        if (mounted) {
+        if (isMounted) {
           setIsLoading(false);
         }
       }
     );
 
+    // Inicializa a autenticação
     initializeAuth();
 
     return () => {
-      mounted = false;
+      console.log("AuthProvider: Cleanup");
+      isMounted = false;
       subscription.unsubscribe();
     };
   }, []);
@@ -239,6 +244,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const allowedRoutes = ['/', '/home', '/clients', '/services', '/cart', '/scheduling'];
     return requiredRoutes.some(route => allowedRoutes.includes(route));
   };
+
+  console.log("AuthProvider: Renderizando com estado:", { 
+    isAuthenticated: authState.isAuthenticated, 
+    isLoading,
+    hasUser: !!authState.currentUser 
+  });
 
   return (
     <AuthContext.Provider value={{ 

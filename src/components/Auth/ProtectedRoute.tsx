@@ -8,13 +8,21 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ children, requiredRoutes }: ProtectedRouteProps) => {
-  const { isAuthenticated, checkAccess } = useAuth();
+  const { isAuthenticated, checkAccess, isLoading } = useAuth();
+  
+  console.log("ProtectedRoute - isAuthenticated:", isAuthenticated, "isLoading:", isLoading);
+  
+  if (isLoading) {
+    return null; // Deixa o loading ser tratado pelo AppRoutes
+  }
   
   if (!isAuthenticated) {
+    console.log("ProtectedRoute - Redirecionando para login");
     return <Navigate to="/login" replace />;
   }
   
   if (!checkAccess(requiredRoutes)) {
+    console.log("ProtectedRoute - Sem acesso, redirecionando para home");
     return <Navigate to="/" replace />;
   }
   
