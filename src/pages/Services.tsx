@@ -1,4 +1,3 @@
-
 import React, { useState, ChangeEvent, useEffect } from 'react';
 import MainLayout from '@/components/Layout/MainLayout';
 import ServiceCard from '@/components/Services/ServiceCard';
@@ -101,9 +100,17 @@ const Services = () => {
       return matchesSearch;
     }
 
+    // Encontrar o profissional selecionado
     const professional = teamMembers.find(member => member.id === selectedProfessional);
     if (professional && professional.categories && service.category) {
-      return matchesSearch && professional.categories.includes(service.category);
+      // Verificar se o serviço pertence a uma das categorias do profissional
+      const hasMatchingCategory = professional.categories.includes(service.category);
+      return matchesSearch && hasMatchingCategory;
+    }
+
+    // Se o profissional não tem categorias definidas, mostrar todos os serviços
+    if (professional && (!professional.categories || professional.categories.length === 0)) {
+      return matchesSearch;
     }
 
     return false;
@@ -317,6 +324,11 @@ const Services = () => {
               {teamMembers.map((member) => (
                 <SelectItem key={member.id} value={member.id}>
                   {member.name}
+                  {member.categories && member.categories.length > 0 && (
+                    <span className="text-xs text-gray-500 ml-2">
+                      ({member.categories.join(', ')})
+                    </span>
+                  )}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -347,7 +359,20 @@ const Services = () => {
             
             {filteredServices.length === 0 && !loading && (
               <div className="col-span-full text-center py-12 text-gray-500 bg-white rounded-lg shadow-md border-2 border-gray-100">
-                {searchTerm || selectedProfessional !== 'all' ? 'Nenhum serviço ou produto encontrado para os filtros aplicados' : 'Nenhum serviço ou produto cadastrado'}
+                {searchTerm || selectedProfessional !== 'all' ? 
+                  'Nenhum serviço ou produto encontrado para os filtros aplicados' : 
+                  'Nenhum serviço ou produto cadastrado'
+                }
+                {selectedProfessional !== 'all' && (
+                  <div className="mt-2 text-sm">
+                    {(() => {
+                      const professional = teamMembers.find(m => m.id === selectedProfessional);
+                      return professional?.categories?.length ? 
+                        `Categorias do profissional: ${professional.categories.join(', ')}` :
+                        'Profissional sem categorias específicas definidas';
+                    })()}
+                  </div>
+                )}
               </div>
             )}
           </div>

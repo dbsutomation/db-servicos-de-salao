@@ -37,7 +37,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 // Test connection on load
 (async () => {
   try {
-    const { error } = await supabase.from('users').select('count').limit(1);
+    const { error } = await supabase.from('professionals').select('count').limit(1);
     if (error) {
       console.error('Supabase connection test failed:', error);
     } else {
