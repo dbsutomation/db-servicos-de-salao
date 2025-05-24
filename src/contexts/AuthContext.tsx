@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { TeamMember, AuthState } from '@/types';
 import { useNavigate } from 'react-router-dom';
@@ -76,7 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   hasAccess: data.has_access,
                   isManager: data.is_manager,
                   avatar: data.avatar || '',
-                  userType: data.user_type || 'professional'
+                  userType: (data.user_type as 'professional' | 'client') || 'professional'
                 };
                 
                 console.log("Usuário autenticado com sucesso:", teamMember.name);

@@ -1,12 +1,12 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { TeamMember, ProfessionalSchedule, Appointment } from '@/types';
 import { ChevronLeft, ChevronRight, Clock } from 'lucide-react';
-import { format, addDays, startOfWeek, isSameDay, parseISO } from 'date-fns';
+import { format, addDays, startOfWeek, isSameDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import AppointmentForm from './AppointmentForm';
 
 interface WeeklyCalendarProps {
   professional: TeamMember;
@@ -17,6 +17,8 @@ const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ professional }) => {
   const [schedule, setSchedule] = useState<ProfessionalSchedule[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAppointmentForm, setShowAppointmentForm] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState<{ date: Date; time: string } | null>(null);
 
   const weekStart = startOfWeek(currentWeek, { weekStartsOn: 0 });
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
@@ -67,7 +69,13 @@ const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ professional }) => {
         return;
       }
 
-      setAppointments(appointmentsData || []);
+      // Mapear os dados para o tipo correto
+      const mappedAppointments: Appointment[] = (appointmentsData || []).map(apt => ({
+        ...apt,
+        status: apt.status as 'scheduled' | 'confirmed' | 'completed' | 'cancelled'
+      }));
+
+      setAppointments(mappedAppointments);
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
     } finally {
@@ -110,8 +118,12 @@ const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ professional }) => {
   const handleSlotClick = (date: Date, time: string) => {
     if (isSlotBooked(date, time)) return;
     
-    // Aqui você implementaria a lógica para abrir o formulário de agendamento
-    console.log('Slot selecionado:', format(date, 'dd/MM/yyyy'), time);
+    setSelectedSlot({ date, time });
+    setShowAppointmentForm(true);
+  };
+
+  const handleAppointmentCreated = () => {
+    fetchScheduleAndAppointments();
   };
 
   const navigateWeek = (direction: 'prev' | 'next') => {
@@ -220,6 +232,21 @@ const WeeklyCalendar: React.FC<WeeklyCalendarProps> = ({ professional }) => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Modal do formulário de agendamento */}
+      {selectedSlot && (
+        <AppointmentForm
+          isOpen={showAppointmentForm}
+          onClose={() => {
+            setShowAppointmentForm(false);
+            setSelectedSlot(null);
+          }}
+          professional={professional}
+          selectedDate={selectedSlot.date}
+          selectedTime={selectedSlot.time}
+          onAppointmentCreated={handleAppointmentCreated}
+        />
+      )}
     </div>
   );
 };
