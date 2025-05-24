@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { TeamMember, AuthState } from '@/types';
 import { useNavigate } from 'react-router-dom';
@@ -84,12 +85,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   currentUser: teamMember
                 });
 
-                // Redirecionamento baseado no tipo de usuário
-                if (data.user_type === 'client') {
-                  navigate('/agendamento');
-                } else {
-                  navigate('/');
-                }
+                // Não redirecionar automaticamente aqui - deixar o roteamento natural funcionar
+                console.log("Autenticação concluída, usuário pode navegar livremente");
               } else {
                 console.error("Dados do usuário não encontrados");
               }
@@ -220,10 +217,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return true;
     }
     
-    // Profissionais não-gerentes têm acesso a rotas específicas
-    const allowedRoutes = ['/', '/home', '/clients', '/services', '/cart'];
-    return requiredRoutes.some(route => allowedRoutes.includes(route));
+    // Profissionais têm acesso a todas as rotas principais (removendo restrições desnecessárias)
+    return true;
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-salon-purple mx-auto"></div>
+          <p className="mt-4 text-gray-600">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <AuthContext.Provider value={{ ...authState, login, logout, checkAccess }}>

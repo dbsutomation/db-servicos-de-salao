@@ -22,14 +22,19 @@ const queryClient = new QueryClient();
 const ProtectedRoute = ({ children, requiredRoutes }: { children: JSX.Element, requiredRoutes: string[] }) => {
   const { isAuthenticated, checkAccess } = useAuth();
   
+  console.log("ProtectedRoute - isAuthenticated:", isAuthenticated, "requiredRoutes:", requiredRoutes);
+  
   if (!isAuthenticated) {
-    return <Navigate to="/login" />;
+    console.log("Usuário não autenticado, redirecionando para login");
+    return <Navigate to="/login" replace />;
   }
   
   if (!checkAccess(requiredRoutes)) {
-    return <Navigate to="/" />;
+    console.log("Usuário sem acesso à rota, redirecionando para home");
+    return <Navigate to="/" replace />;
   }
   
+  console.log("Acesso autorizado à rota");
   return children;
 };
 
