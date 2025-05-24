@@ -2,7 +2,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
-import { ProtectedRoute } from "./ProtectedRoute";
+import { ProtectedRoute } from "./Auth/ProtectedRoute";
 import Index from "@/pages/Index";
 import Services from "@/pages/Services";
 import Clients from "@/pages/Clients";
@@ -14,28 +14,33 @@ import Login from "@/pages/Login";
 import NotFound from "@/pages/NotFound";
 import { Loader2 } from "lucide-react";
 
-export const AuthenticatedApp = () => {
+export const AppRoutes = () => {
   const { isAuthenticated, isLoading } = useAuth();
   
-  // Mostrar loading enquanto verifica autenticação
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-salon-light-purple to-white">
         <div className="flex flex-col items-center space-y-4">
           <Loader2 className="h-8 w-8 animate-spin text-salon-purple" />
-          <p className="text-salon-purple">Verificando autenticação...</p>
+          <p className="text-salon-purple">Carregando...</p>
         </div>
       </div>
+    );
+  }
+  
+  if (!isAuthenticated) {
+    return (
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
     );
   }
   
   return (
     <CartProvider>
       <Routes>
-        <Route 
-          path="/login" 
-          element={isAuthenticated ? <Navigate to="/" replace /> : <Login />} 
-        />
+        <Route path="/login" element={<Navigate to="/" replace />} />
         <Route path="/" element={
           <ProtectedRoute requiredRoutes={["/"]}>
             <Index />
