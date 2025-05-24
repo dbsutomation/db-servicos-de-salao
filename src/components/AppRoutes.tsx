@@ -17,7 +17,7 @@ import { Loader2 } from "lucide-react";
 export const AppRoutes = () => {
   const { isAuthenticated, isLoading } = useAuth();
   
-  console.log("AppRoutes - isAuthenticated:", isAuthenticated, "isLoading:", isLoading);
+  console.log("AppRoutes - Estado:", { isAuthenticated, isLoading });
   
   if (isLoading) {
     return (

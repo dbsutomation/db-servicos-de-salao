@@ -3,6 +3,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { TeamMember, AuthState } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { Session } from '@supabase/supabase-js';
 
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<boolean>;
@@ -19,6 +20,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     currentUser: null
   });
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [session, setSession] = useState<Session | null>(null);
   
   const { toast } = useToast();
 
@@ -74,11 +76,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    console.log("AuthProvider: Inicializando...");
+    console.log("AuthProvider: Inicializando contexto...");
     
-    let isMounted = true;
-    
-    const initializeAuth = async () => {
+    let mounted = true;
+
+    const initAuth = async () => {
       try {
         console.log("AuthProvider: Verificando sessão inicial...");
         
@@ -86,33 +88,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         if (error) {
           console.error('Erro ao verificar sessão:', error);
-          if (isMounted) {
+          if (mounted) {
+            setSession(null);
             setAuthState({ isAuthenticated: false, currentUser: null });
             setIsLoading(false);
           }
           return;
         }
         
-        if (session?.user && isMounted) {
+        if (session?.user && mounted) {
           console.log("AuthProvider: Sessão encontrada:", session.user.email);
+          setSession(session);
+          
           const userData = await fetchUserData(session.user.id);
           
-          if (userData && isMounted) {
+          if (userData && mounted) {
             setAuthState({ isAuthenticated: true, currentUser: userData });
-          } else if (isMounted) {
+          } else if (mounted) {
+            setSession(null);
             setAuthState({ isAuthenticated: false, currentUser: null });
             await supabase.auth.signOut();
           }
-        } else if (isMounted) {
+        } else if (mounted) {
+          setSession(null);
           setAuthState({ isAuthenticated: false, currentUser: null });
         }
         
-        if (isMounted) {
+        if (mounted) {
           setIsLoading(false);
         }
       } catch (error) {
-        console.error('Erro na inicialização:', error);
-        if (isMounted) {
+        console.error('Erro na inicialização da auth:', error);
+        if (mounted) {
+          setSession(null);
           setAuthState({ isAuthenticated: false, currentUser: null });
           setIsLoading(false);
         }
@@ -121,35 +129,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log("AuthProvider: Evento de autenticação:", event);
+        console.log("AuthProvider: Evento de auth:", event, session?.user?.email);
         
-        if (!isMounted) return;
+        if (!mounted) return;
+        
+        setSession(session);
         
         if (event === 'SIGNED_IN' && session?.user) {
           console.log("AuthProvider: Usuário logado");
           const userData = await fetchUserData(session.user.id);
           
-          if (userData && isMounted) {
+          if (userData && mounted) {
             setAuthState({ isAuthenticated: true, currentUser: userData });
-          } else if (isMounted) {
+          } else if (mounted) {
             setAuthState({ isAuthenticated: false, currentUser: null });
           }
-        } else if (event === 'SIGNED_OUT' && isMounted) {
+        } else if (event === 'SIGNED_OUT' && mounted) {
           console.log("AuthProvider: Usuário deslogado");
           setAuthState({ isAuthenticated: false, currentUser: null });
         }
         
-        if (isMounted) {
+        if (mounted) {
           setIsLoading(false);
         }
       }
     );
 
-    initializeAuth();
+    initAuth();
 
     return () => {
       console.log("AuthProvider: Cleanup");
-      isMounted = false;
+      mounted = false;
       subscription.unsubscribe();
     };
   }, []);
@@ -157,6 +167,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       console.log("Tentativa de login para:", email);
+      setIsLoading(true);
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
@@ -186,6 +197,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           description: errorMessage,
           variant: "destructive",
         });
+        
+        setIsLoading(false);
         return false;
       }
       
@@ -198,6 +211,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return true;
       }
       
+      setIsLoading(false);
       return false;
     } catch (error: any) {
       console.error("Erro inesperado no login:", error);
@@ -206,6 +220,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         description: "Ocorreu um erro inesperado. Tente novamente.",
         variant: "destructive",
       });
+      setIsLoading(false);
       return false;
     }
   };
@@ -214,6 +229,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       console.log("Iniciando logout...");
       await supabase.auth.signOut();
+      setSession(null);
       setAuthState({ isAuthenticated: false, currentUser: null });
       
       toast({
@@ -243,20 +259,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return requiredRoutes.some(route => allowedRoutes.includes(route));
   };
 
+  const contextValue: AuthContextType = {
+    ...authState,
+    login,
+    logout,
+    checkAccess,
+    isLoading
+  };
+
   console.log("AuthProvider: Renderizando com estado:", { 
     isAuthenticated: authState.isAuthenticated, 
     isLoading,
-    hasUser: !!authState.currentUser 
+    hasUser: !!authState.currentUser,
+    hasSession: !!session
   });
 
   return (
-    <AuthContext.Provider value={{ 
-      ...authState, 
-      login, 
-      logout, 
-      checkAccess, 
-      isLoading 
-    }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );
