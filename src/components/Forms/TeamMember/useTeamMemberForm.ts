@@ -38,13 +38,13 @@ const useTeamMemberForm = ({ teamMemberId, onSuccess }: UseTeamMemberFormProps) 
       const fetchTeamMember = async () => {
         try {
           const { data, error } = await supabase
-            .from('professionals')
+            .from('users')
             .select('*')
             .eq('id', teamMemberId)
             .single();
           
           if (error) {
-            console.error('Error fetching professional:', error);
+            console.error('Error fetching user:', error);
             toast({
               title: "Erro ao carregar dados",
               description: "Não foi possível carregar os dados do profissional selecionado.",
