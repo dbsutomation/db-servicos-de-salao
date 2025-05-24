@@ -39,23 +39,24 @@ const SchedulingCalendar = () => {
   const fetchProfessionals = async () => {
     try {
       const { data, error } = await supabase
-        .from('users')
+        .from('professionals')
         .select('*')
         .eq('has_access', true)
         .order('name');
 
       if (error) throw error;
 
-      const teamMembers: TeamMember[] = data.map(user => ({
-        id: user.id,
-        name: user.name,
-        profession: user.profession || '',
-        phone: user.phone || '',
-        email: user.email,
+      const teamMembers: TeamMember[] = data.map(professional => ({
+        id: professional.id,
+        name: professional.name,
+        profession: professional.profession || '',
+        phone: professional.phone || '',
+        email: professional.email,
         password: '',
-        hasAccess: user.has_access,
-        isManager: user.is_manager,
-        avatar: user.avatar || ''
+        hasAccess: professional.has_access,
+        isManager: professional.is_manager,
+        avatar: professional.avatar || '',
+        categories: professional.categories || []
       }));
 
       setProfessionals(teamMembers);

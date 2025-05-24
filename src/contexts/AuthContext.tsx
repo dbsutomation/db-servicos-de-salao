@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { TeamMember, AuthState } from '@/types';
 import { useNavigate } from 'react-router-dom';
@@ -42,7 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             try {
               console.log("Buscando dados adicionais do usuário:", newSession.user.id);
               const { data, error } = await supabase
-                .from('users')
+                .from('professionals')
                 .select('*')
                 .eq('id', newSession.user.id)
                 .single();
@@ -78,7 +79,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   password: '',
                   hasAccess: data.has_access,
                   isManager: data.is_manager,
-                  avatar: data.avatar || ''
+                  avatar: data.avatar || '',
+                  categories: data.categories || []
                 };
                 
                 console.log("Usuário autenticado com sucesso:", teamMember.name);
