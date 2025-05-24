@@ -29,59 +29,93 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchUserData = async (userId: string) => {
     try {
       console.log("Buscando dados do usuário:", userId);
+      
+      // Primeiro, vamos testar a conexão com o Supabase
+      const { data: testData, error: testError } = await supabase
+        .from('professionals')
+        .select('count')
+        .limit(1);
+        
+      if (testError) {
+        console.error('Erro de conexão com Supabase:', testError);
+        throw new Error('Falha na conexão com o banco de dados');
+      }
+      
+      console.log("Conexão com Supabase OK, buscando usuário...");
+      
       const { data, error } = await supabase
         .from('professionals')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
         
       if (error) {
         console.error('Erro ao buscar dados do usuário:', error);
         throw error;
       }
       
-      if (data) {
-        console.log("Dados do usuário encontrados:", data);
-        // Verificar se o usuário tem acesso
-        if (!data.has_access) {
-          console.warn("Usuário sem permissão de acesso");
-          toast({
-            title: "Acesso negado",
-            description: "Sua conta não tem permissão para acessar o sistema.",
-            variant: "destructive",
-          });
-          await supabase.auth.signOut();
-          setAuthState({ isAuthenticated: false, currentUser: null });
-          navigate('/login');
-          return;
-        }
-        
-        // Converter para o formato TeamMember
-        const teamMember: TeamMember = {
-          id: data.id,
-          name: data.name,
-          email: data.email,
-          profession: data.profession || '',
-          phone: data.phone || '',
-          password: '',
-          hasAccess: data.has_access,
-          isManager: data.is_manager,
-          avatar: data.avatar || '',
-          categories: data.categories || []
-        };
-        
-        console.log("Usuário autenticado com sucesso:", teamMember.name);
-        setAuthState({
-          isAuthenticated: true,
-          currentUser: teamMember
+      if (!data) {
+        console.warn("Usuário não encontrado na tabela professionals:", userId);
+        toast({
+          title: "Usuário não encontrado",
+          description: "Seu perfil não foi encontrado no sistema. Entre em contato com o administrador.",
+          variant: "destructive",
         });
-      } else {
-        console.error("Dados do usuário não encontrados");
+        await supabase.auth.signOut();
         setAuthState({ isAuthenticated: false, currentUser: null });
+        setUser(null);
+        setSession(null);
+        navigate('/login');
+        return;
       }
-    } catch (error) {
+      
+      console.log("Dados do usuário encontrados:", data);
+      
+      // Verificar se o usuário tem acesso
+      if (!data.has_access) {
+        console.warn("Usuário sem permissão de acesso");
+        toast({
+          title: "Acesso negado",
+          description: "Sua conta não tem permissão para acessar o sistema.",
+          variant: "destructive",
+        });
+        await supabase.auth.signOut();
+        setAuthState({ isAuthenticated: false, currentUser: null });
+        setUser(null);
+        setSession(null);
+        navigate('/login');
+        return;
+      }
+      
+      // Converter para o formato TeamMember
+      const teamMember: TeamMember = {
+        id: data.id,
+        name: data.name,
+        email: data.email,
+        profession: data.profession || '',
+        phone: data.phone || '',
+        password: '',
+        hasAccess: data.has_access,
+        isManager: data.is_manager,
+        avatar: data.avatar || '',
+        categories: data.categories || []
+      };
+      
+      console.log("Usuário autenticado com sucesso:", teamMember.name);
+      setAuthState({
+        isAuthenticated: true,
+        currentUser: teamMember
+      });
+    } catch (error: any) {
       console.error('Erro ao buscar dados do usuário:', error);
+      toast({
+        title: "Erro ao carregar perfil",
+        description: error.message || "Não foi possível carregar seus dados. Tente novamente.",
+        variant: "destructive",
+      });
       setAuthState({ isAuthenticated: false, currentUser: null });
+      setUser(null);
+      setSession(null);
     } finally {
       setIsLoading(false);
     }
@@ -93,15 +127,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Configurar listener para mudanças de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, newSession) => {
-        console.log("Evento de autenticação:", event);
+        console.log("Evento de autenticação:", event, newSession?.user?.email);
+        
         setSession(newSession);
         setUser(newSession?.user ?? null);
         
-        if (newSession?.user) {
-          console.log("Usuário autenticado encontrado:", newSession.user.email);
+        if (event === 'SIGNED_IN' && newSession?.user) {
+          console.log("Usuário logado, buscando dados...");
           await fetchUserData(newSession.user.id);
-        } else {
-          console.log("Nenhum usuário autenticado");
+        } else if (event === 'SIGNED_OUT') {
+          console.log("Usuário deslogado");
           setAuthState({ isAuthenticated: false, currentUser: null });
           setIsLoading(false);
         }
@@ -119,7 +154,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           throw error;
         }
         
-        if (existingSession) {
+        if (existingSession?.user) {
           console.log("Sessão existente encontrada:", existingSession.user.email);
           setSession(existingSession);
           setUser(existingSession.user);
@@ -146,6 +181,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setIsLoading(true);
       console.log("Tentativa de login para:", email);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -155,7 +191,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error("Erro no login:", error);
         toast({
           title: "Falha no login",
-          description: error.message,
+          description: error.message === 'Invalid login credentials' 
+            ? "Email ou senha incorretos" 
+            : error.message,
           variant: "destructive",
         });
         return false;
@@ -190,6 +228,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log("Iniciando logout...");
       await supabase.auth.signOut();
       setAuthState({ isAuthenticated: false, currentUser: null });
+      setUser(null);
+      setSession(null);
       navigate('/login');
       toast({
         title: "Logout realizado",

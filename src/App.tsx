@@ -23,11 +23,11 @@ const ProtectedRoute = ({ children, requiredRoutes }: { children: JSX.Element, r
   const { isAuthenticated, checkAccess } = useAuth();
   
   if (!isAuthenticated) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" replace />;
   }
   
   if (!checkAccess(requiredRoutes)) {
-    return <Navigate to="/" />;
+    return <Navigate to="/" replace />;
   }
   
   return children;
@@ -35,10 +35,15 @@ const ProtectedRoute = ({ children, requiredRoutes }: { children: JSX.Element, r
 
 // Auth wrapper that uses the context
 const AuthenticatedApp = () => {
+  const { isAuthenticated } = useAuth();
+  
   return (
     <CartProvider>
       <Routes>
-        <Route path="/login" element={<Login />} />
+        <Route 
+          path="/login" 
+          element={isAuthenticated ? <Navigate to="/" replace /> : <Login />} 
+        />
         <Route path="/" element={
           <ProtectedRoute requiredRoutes={["/"]}>
             <Index />
