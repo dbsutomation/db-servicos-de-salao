@@ -23,7 +23,7 @@ export interface Service {
   image: string;
   commission: number;
   category?: string;
-  type?: 'servico' | 'produto';
+  type?: string;
   duration?: number;
 }
 
