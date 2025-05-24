@@ -137,7 +137,7 @@ export function useCheckoutForm() {
       date: new Date().toLocaleDateString('pt-BR')
     };
 
-    // Print receipt
+    // Print receipt with improved layout
     const printWindow = window.open('', '_blank');
     if (printWindow) {
       printWindow.document.write(`
@@ -145,82 +145,191 @@ export function useCheckoutForm() {
           <head>
             <title>Comprovante - GoldenSky JP56H</title>
             <style>
+              @page {
+                size: 80mm auto;
+                margin: 5mm;
+              }
+              
               body {
-                font-family: monospace;
-                padding: 20px;
-                width: 300px;
-                margin: 0 auto;
+                font-family: 'Courier New', monospace;
+                font-size: 12px;
+                line-height: 1.2;
+                margin: 0;
+                padding: 5px;
+                width: 70mm;
+                max-width: 70mm;
+                color: #000;
+                background: #fff;
               }
-              h2 {
+              
+              .header {
                 text-align: center;
-                margin-bottom: 10px;
+                margin-bottom: 8px;
+                font-weight: bold;
+                font-size: 14px;
               }
+              
+              .info {
+                margin-bottom: 3px;
+                font-size: 11px;
+                word-wrap: break-word;
+              }
+              
               .item {
                 display: flex;
                 justify-content: space-between;
-                margin-bottom: 5px;
+                margin-bottom: 2px;
+                font-size: 11px;
               }
+              
+              .item-name {
+                flex: 1;
+                margin-right: 5px;
+                word-wrap: break-word;
+                overflow: hidden;
+              }
+              
+              .item-price {
+                white-space: nowrap;
+                text-align: right;
+                min-width: 40px;
+              }
+              
+              .tip {
+                padding-left: 10px;
+                color: #666;
+                font-size: 10px;
+              }
+              
               .divider {
                 border-top: 1px dashed #000;
-                margin: 10px 0;
+                margin: 5px 0;
               }
-              .total {
+              
+              .total-line {
+                display: flex;
+                justify-content: space-between;
+                margin: 2px 0;
+                font-size: 11px;
+              }
+              
+              .total-final {
                 font-weight: bold;
-                text-align: right;
-                margin-top: 10px;
+                font-size: 13px;
+                border-top: 2px solid #000;
+                padding-top: 3px;
+                margin-top: 5px;
               }
-              .info {
-                margin-bottom: 5px;
+              
+              .footer {
+                text-align: center;
+                margin-top: 10px;
+                font-size: 11px;
+              }
+              
+              .payment-info {
+                margin-top: 5px;
+                font-size: 11px;
               }
             </style>
           </head>
           <body>
-            <h2>Comprovante para Conferência</h2>
+            <div class="header">Comprovante</div>
+            
             <div class="info">Cliente: ${receiptData.client}</div>
             <div class="info">Data: ${receiptData.date}</div>
+            
             <div class="divider"></div>
+            
             ${receiptData.items.map(item => `
               <div class="item">
-                <span>${item.quantity}x ${item.name}</span>
-                <span>R$ ${(item.price * item.quantity).toFixed(2)}</span>
+                <span class="item-name">${item.quantity}x ${item.name}</span>
+                <span class="item-price">R$ ${(item.price * item.quantity).toFixed(2)}</span>
               </div>
               ${item.tipAmount > 0 ? `
-              <div class="item" style="padding-left: 10px; color: #666;">
-                <span>Gorjeta</span>
-                <span>R$ ${item.tipAmount.toFixed(2)}</span>
+              <div class="item tip">
+                <span class="item-name">Gorjeta</span>
+                <span class="item-price">R$ ${item.tipAmount.toFixed(2)}</span>
               </div>
               ` : ''}
             `).join('')}
+            
             <div class="divider"></div>
-            <div class="item">
+            
+            <div class="total-line">
               <span>Subtotal:</span>
               <span>R$ ${receiptData.subtotal.toFixed(2)}</span>
             </div>
-            <div class="item">
-              <span>Total Gorjetas:</span>
+            
+            <div class="total-line">
+              <span>Gorjetas:</span>
               <span>R$ ${receiptData.totalTips.toFixed(2)}</span>
             </div>
-            <div class="total">
-              <span>TOTAL: R$ ${receiptData.total.toFixed(2)}</span>
+            
+            <div class="total-line total-final">
+              <span>TOTAL:</span>
+              <span>R$ ${receiptData.total.toFixed(2)}</span>
             </div>
+            
             <div class="divider"></div>
-            <div class="info">Forma de pagamento: ${receiptData.paymentMethod}</div>
-            ${receiptData.creditPaymentType ? `<div class="info">Tipo: ${receiptData.creditPaymentType}</div>` : ''}
-            <div class="divider"></div>
-            <div style="text-align: center; margin-top: 20px;">
-              Obrigado pela preferência!
+            
+            <div class="payment-info">
+              <div class="info">Pagamento: ${receiptData.paymentMethod}</div>
+              ${receiptData.creditPaymentType ? `<div class="info">${receiptData.creditPaymentType}</div>` : ''}
+            </div>
+            
+            <div class="footer">
+              Obrigado pela preferencia!
             </div>
           </body>
         </html>
       `);
+      
       printWindow.document.close();
       printWindow.focus();
-      // Trigger print
-      printWindow.print();
-      // Close after printing
-      printWindow.onafterprint = function() {
-        printWindow.close();
+      
+      // Handle print dialog and cleanup
+      const handleAfterPrint = () => {
+        setTimeout(() => {
+          if (!printWindow.closed) {
+            printWindow.close();
+          }
+          toast({
+            title: "Impressão concluída",
+            description: "Comprovante processado com sucesso",
+          });
+        }, 100);
       };
+      
+      const handleBeforePrint = () => {
+        console.log('Iniciando impressão...');
+      };
+      
+      // Set up event listeners
+      printWindow.onbeforeprint = handleBeforePrint;
+      printWindow.onafterprint = handleAfterPrint;
+      
+      // For browsers that don't support onafterprint
+      if (typeof printWindow.onafterprint === 'undefined') {
+        printWindow.onbeforeunload = handleAfterPrint;
+      }
+      
+      // Trigger print automatically
+      setTimeout(() => {
+        printWindow.print();
+      }, 500);
+      
+      // Fallback: close window after 5 seconds if still open
+      setTimeout(() => {
+        if (!printWindow.closed) {
+          printWindow.close();
+          toast({
+            title: "Janela de impressão fechada",
+            description: "A janela foi fechada automaticamente",
+          });
+        }
+      }, 5000);
+      
     } else {
       toast({
         title: "Erro",
