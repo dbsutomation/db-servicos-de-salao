@@ -23,7 +23,8 @@ export interface Service {
   image: string;
   commission: number;
   category?: string;
-  type?: 'servico' | 'produto';
+  type?: string;
+  duration?: number;
 }
 
 export interface TeamMember {
@@ -55,8 +56,8 @@ export interface Expense {
   amount: number;
   created_at?: string;
   updated_at?: string;
-  expense_date: string; // Added date field
-  is_fixed: boolean;    // Added fixed expense indicator
+  expense_date: string;
+  is_fixed: boolean;
 }
 
 export interface CartItem {
@@ -71,4 +72,28 @@ export interface CartItem {
 export interface AuthState {
   isAuthenticated: boolean;
   currentUser: TeamMember | null;
+}
+
+export interface Appointment {
+  id: string;
+  appointment_date: string;
+  start_time: string;
+  end_time: string;
+  client_id: string;
+  professional_id: string;
+  total_duration: number;
+  total_value: number;
+  status: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AppointmentService {
+  id: string;
+  appointment_id: string;
+  service_id: string;
+  quantity: number;
+  unit_price: number;
+  created_at: string;
 }

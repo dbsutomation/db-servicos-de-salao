@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { TeamMember, AuthState } from '@/types';
 import { useNavigate } from 'react-router-dom';
@@ -215,7 +214,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     
     // Não-gerentes têm acesso a rotas específicas
-    const allowedRoutes = ['/', '/home', '/clients', '/services', '/cart'];
+    const allowedRoutes = ['/', '/home', '/clients', '/services', '/cart', '/scheduling'];
     return requiredRoutes.some(route => allowedRoutes.includes(route));
   };
 

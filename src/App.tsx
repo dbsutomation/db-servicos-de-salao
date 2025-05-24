@@ -12,6 +12,7 @@ import Clients from "./pages/Clients";
 import Team from "./pages/Team";
 import Records from "./pages/Records";
 import Cart from "./pages/Cart";
+import Scheduling from "./pages/Scheduling";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 
@@ -66,6 +67,11 @@ const AuthenticatedApp = () => {
         <Route path="/cart" element={
           <ProtectedRoute requiredRoutes={["/cart"]}>
             <Cart />
+          </ProtectedRoute>
+        } />
+        <Route path="/scheduling" element={
+          <ProtectedRoute requiredRoutes={["/scheduling"]}>
+            <Scheduling />
           </ProtectedRoute>
         } />
         <Route path="*" element={<NotFound />} />

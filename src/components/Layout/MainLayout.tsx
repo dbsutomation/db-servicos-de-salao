@@ -7,7 +7,8 @@ import {
   Users, 
   User, 
   BarChart3, 
-  ShoppingBag
+  ShoppingBag,
+  Calendar
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMediaQuery } from '@/hooks/use-mobile';
@@ -40,6 +41,12 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       label: 'Clientes',
       icon: <Users size={20} />,
       requiredRoles: ['/clients']
+    },
+    {
+      path: '/scheduling',
+      label: 'Agendamentos',
+      icon: <Calendar size={20} />,
+      requiredRoles: ['/scheduling']
     },
     {
       path: '/team',
