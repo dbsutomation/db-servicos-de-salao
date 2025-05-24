@@ -50,7 +50,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
     },
     {
       path: '/team',
-      label: 'Equipe',
+      label: 'Profissionais',
       icon: <User size={20} />,
       requiredRoles: ['/team']
     },

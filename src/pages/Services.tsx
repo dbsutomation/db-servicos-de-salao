@@ -1,6 +1,8 @@
+
 import React, { useState, ChangeEvent, useEffect } from 'react';
 import MainLayout from '@/components/Layout/MainLayout';
 import ServiceCard from '@/components/Services/ServiceCard';
+import DurationField from '@/components/Services/DurationField';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Form, FormField, FormItem, FormLabel, FormControl } from '@/components/ui/form';
@@ -8,14 +10,14 @@ import { Input } from '@/components/ui/input';
 import { useForm } from 'react-hook-form';
 import { Plus, Pencil, Camera, Search } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { Service } from '@/types';
+import { Service, TeamMember } from '@/types';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, AlertDialogTitle, AlertDialogDescription, AlertDialogAction, AlertDialogCancel } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
+import { fetchTeamMembers } from '@/services/teamService';
 
-// Define service categories
 const serviceCategories = [
   { value: 'cabelo', label: 'Cabelo' },
   { value: 'depilacao', label: 'Depilação' },
@@ -28,6 +30,8 @@ const Services = () => {
   const { currentUser } = useAuth();
   const [open, setOpen] = useState(false);
   const [servicesList, setServicesList] = useState<Service[]>([]);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [selectedProfessional, setSelectedProfessional] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [editingService, setEditingService] = useState<Service | null>(null);
@@ -43,34 +47,40 @@ const Services = () => {
       commission: '100',
       image: '/placeholder.svg',
       category: 'cabelo',
-      type: 'servico'
+      type: 'servico',
+      duration: '60'
     }
   });
 
-  // Fetch services from Supabase
+  // Fetch services and team members
   useEffect(() => {
-    const fetchServices = async () => {
+    const loadData = async () => {
       setLoading(true);
       try {
-        const { data, error } = await supabase
+        // Fetch services
+        const { data: servicesData, error: servicesError } = await supabase
           .from('services')
           .select('*');
         
-        if (error) throw error;
+        if (servicesError) throw servicesError;
         
-        // Ensure type compatibility with Service interface
-        const typedServices = data?.map(service => ({
+        const typedServices = servicesData?.map(service => ({
           ...service,
           type: service.type === 'produto' ? 'produto' as const : 'servico' as const,
           price: Number(service.price),
-          commission: Number(service.commission)
+          commission: Number(service.commission),
+          duration: service.duration || 60
         })) || [];
         
         setServicesList(typedServices);
+
+        // Fetch team members
+        const members = await fetchTeamMembers();
+        setTeamMembers(members);
       } catch (error: any) {
         toast({
-          title: "Erro ao carregar serviços",
-          description: error.message || "Não foi possível carregar os serviços e produtos",
+          title: "Erro ao carregar dados",
+          description: error.message || "Não foi possível carregar os dados",
           variant: "destructive"
         });
       } finally {
@@ -78,18 +88,28 @@ const Services = () => {
       }
     };
 
-    fetchServices();
+    loadData();
   }, []);
 
-  // Filter services based on search term
-  const filteredServices = servicesList.filter(service => 
-    service.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    (service.description && service.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (service.category && service.category.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  // Filter services based on selected professional and search term
+  const filteredServices = servicesList.filter(service => {
+    const matchesSearch = service.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      (service.description && service.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (service.category && service.category.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    if (selectedProfessional === 'all') {
+      return matchesSearch;
+    }
+
+    const professional = teamMembers.find(member => member.id === selectedProfessional);
+    if (professional && professional.categories && service.category) {
+      return matchesSearch && professional.categories.includes(service.category);
+    }
+
+    return false;
+  });
 
   const handleEditService = (service: Service) => {
-    // Only managers can edit services
     if (!currentUser?.isManager) {
       toast({
         title: "Acesso negado",
@@ -107,7 +127,8 @@ const Services = () => {
       commission: service.commission.toString(),
       image: service.image || '/placeholder.svg',
       category: service.category || 'cabelo',
-      type: service.type || 'servico'
+      type: service.type || 'servico',
+      duration: (service.duration || 60).toString()
     });
     setImagePreview(service.image || '/placeholder.svg');
     setOpen(true);
@@ -146,7 +167,8 @@ const Services = () => {
       commission: '100',
       image: '/placeholder.svg',
       category: 'cabelo',
-      type: 'servico'
+      type: 'servico',
+      duration: '60'
     });
     setImagePreview(null);
     setEditingService(null);
@@ -162,11 +184,11 @@ const Services = () => {
         commission: parseFloat(data.commission),
         image: data.image || '/placeholder.svg',
         category: data.category,
-        type: data.type
+        type: data.type,
+        duration: parseInt(data.duration) || 60
       };
 
       if (editingService) {
-        // Update existing service in Supabase
         const { error } = await supabase
           .from('services')
           .update(serviceData)
@@ -174,7 +196,6 @@ const Services = () => {
           
         if (error) throw error;
         
-        // Update local state
         setServicesList(prevServices => 
           prevServices.map(service => 
             service.id === editingService.id 
@@ -188,7 +209,6 @@ const Services = () => {
           description: `${data.name} foi atualizado com sucesso.`
         });
       } else {
-        // Add new service to Supabase
         const { data: newService, error } = await supabase
           .from('services')
           .insert(serviceData)
@@ -197,7 +217,6 @@ const Services = () => {
         if (error) throw error;
         
         if (newService && newService[0]) {
-          // Add to local state
           setServicesList([...servicesList, newService[0] as Service]);
           
           toast({
@@ -226,7 +245,6 @@ const Services = () => {
   const handleDeleteService = async () => {
     if (serviceToDelete) {
       try {
-        // Delete from Supabase
         const { error } = await supabase
           .from('services')
           .delete()
@@ -234,7 +252,6 @@ const Services = () => {
           
         if (error) throw error;
         
-        // Update local state
         setServicesList(servicesList.filter(service => service.id !== serviceToDelete.id));
         
         toast({
@@ -280,14 +297,30 @@ const Services = () => {
           }
         </p>
 
-        <div className="relative mb-4">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-          <Input 
-            placeholder="Buscar por nome, descrição ou categoria" 
-            className="pl-10 border-2 border-gray-200 shadow-sm bg-white"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+            <Input 
+              placeholder="Buscar por nome, descrição ou categoria" 
+              className="pl-10 border-2 border-gray-200 shadow-sm bg-white"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          <Select value={selectedProfessional} onValueChange={setSelectedProfessional}>
+            <SelectTrigger className="w-full sm:w-64">
+              <SelectValue placeholder="Filtrar por profissional" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os profissionais</SelectItem>
+              {teamMembers.map((member) => (
+                <SelectItem key={member.id} value={member.id}>
+                  {member.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         
         {loading ? (
@@ -314,7 +347,7 @@ const Services = () => {
             
             {filteredServices.length === 0 && !loading && (
               <div className="col-span-full text-center py-12 text-gray-500 bg-white rounded-lg shadow-md border-2 border-gray-100">
-                {searchTerm ? 'Nenhum serviço ou produto encontrado' : 'Nenhum serviço ou produto cadastrado'}
+                {searchTerm || selectedProfessional !== 'all' ? 'Nenhum serviço ou produto encontrado para os filtros aplicados' : 'Nenhum serviço ou produto cadastrado'}
               </div>
             )}
           </div>
@@ -439,6 +472,8 @@ const Services = () => {
                   </FormItem>
                 )}
               />
+
+              <DurationField form={form} />
               
               <FormField
                 control={form.control}

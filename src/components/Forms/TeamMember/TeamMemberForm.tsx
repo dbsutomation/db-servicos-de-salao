@@ -6,6 +6,7 @@ import useTeamMemberForm from './useTeamMemberForm';
 import BasicInfoFields from './BasicInfoFields';
 import AccountFields from './AccountFields';
 import PermissionFields from './PermissionFields';
+import CategoriesField from './CategoriesField';
 import { TeamMemberFormValues } from './validationSchema';
 
 interface TeamMemberFormProps {
@@ -24,6 +25,7 @@ const TeamMemberForm = ({ onSuccess, teamMemberId }: TeamMemberFormProps) => {
       <form onSubmit={handleSubmit} className="space-y-6">
         <BasicInfoFields form={form} />
         <AccountFields form={form} isEditing={isEditing} />
+        <CategoriesField form={form} />
         <PermissionFields form={form} />
         
         <div className="flex justify-end space-x-2">

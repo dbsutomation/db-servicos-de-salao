@@ -24,46 +24,47 @@ const useTeamMemberForm = ({ teamMemberId, onSuccess }: UseTeamMemberFormProps) 
       phone: '',
       email: '',
       password: '',
-      hasAccess: isEditing ? undefined : false, // Padrão false para novos membros
-      isManager: false
+      hasAccess: isEditing ? undefined : false,
+      isManager: false,
+      categories: []
     }
   });
 
-  // Populate form when editing an existing team member
   useEffect(() => {
     if (teamMemberId) {
       setIsLoading(true);
-      console.log("Carregando dados do membro:", teamMemberId);
+      console.log("Carregando dados do profissional:", teamMemberId);
       
       const fetchTeamMember = async () => {
         try {
           const { data, error } = await supabase
-            .from('users')
+            .from('professionals')
             .select('*')
             .eq('id', teamMemberId)
             .single();
           
           if (error) {
-            console.error('Error fetching team member:', error);
+            console.error('Error fetching professional:', error);
             toast({
               title: "Erro ao carregar dados",
-              description: "Não foi possível carregar os dados do membro selecionado.",
+              description: "Não foi possível carregar os dados do profissional selecionado.",
               variant: "destructive"
             });
             return;
           }
           
           if (data) {
-            console.log("Dados do membro carregados:", data);
+            console.log("Dados do profissional carregados:", data);
             
             form.reset({
               name: data.name || '',
               profession: data.profession || '',
               phone: data.phone || '',
               email: data.email || '',
-              password: '', // Password is not fetched from the database
+              password: '',
               hasAccess: data.has_access,
-              isManager: data.is_manager
+              isManager: data.is_manager,
+              categories: data.categories || []
             });
           }
         } catch (error) {

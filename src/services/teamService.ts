@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { TeamMember } from '@/types';
 import { toast } from '@/hooks/use-toast';
@@ -5,30 +6,31 @@ import { toast } from '@/hooks/use-toast';
 export const fetchTeamMembers = async (): Promise<TeamMember[]> => {
   try {
     const { data, error } = await supabase
-      .from('users')
+      .from('professionals')
       .select('*');
     
     if (error) throw error;
     
     // Transform data to match TeamMember type
-    const transformedData = data.map(user => ({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      hasAccess: user.has_access,
-      isManager: user.is_manager,
-      phone: user.phone || '',  // Use empty string if phone is null
-      profession: user.profession || '',  // Use empty string if profession is null
-      password: '',  // Password is not returned from the database
-      avatar: user.avatar || '/placeholder.svg'  // Use placeholder if avatar is null
+    const transformedData = data.map(professional => ({
+      id: professional.id,
+      name: professional.name,
+      email: professional.email,
+      hasAccess: professional.has_access,
+      isManager: professional.is_manager,
+      phone: professional.phone || '',
+      profession: professional.profession || '',
+      password: '',
+      avatar: professional.avatar || '/placeholder.svg',
+      categories: professional.categories || []
     }));
     
     return transformedData;
   } catch (error: any) {
-    console.error('Error fetching team members:', error);
+    console.error('Error fetching professionals:', error);
     toast({
-      title: "Erro ao carregar equipe",
-      description: error.message || "Não foi possível carregar os membros da equipe",
+      title: "Erro ao carregar profissionais",
+      description: error.message || "Não foi possível carregar os profissionais",
       variant: "destructive"
     });
     return [];
@@ -38,41 +40,39 @@ export const fetchTeamMembers = async (): Promise<TeamMember[]> => {
 export const updateTeamMember = async (memberId: string, data: any): Promise<boolean> => {
   try {
     if (!memberId) {
-      throw new Error("ID do membro não fornecido para atualização");
+      throw new Error("ID do profissional não fornecido para atualização");
     }
     
-    console.log("Atualizando membro com ID:", memberId);
+    console.log("Atualizando profissional com ID:", memberId);
     console.log("Dados para atualização:", data);
     
-    // Preparar dados para atualização - password is excluded as it's handled separately
     const updateData = {
       name: data.name,
       email: data.email,
       phone: data.phone || null,
       profession: data.profession || null,
       has_access: data.hasAccess,
-      is_manager: data.isManager
+      is_manager: data.isManager,
+      categories: data.categories || []
     };
     
-    // Verificar se o membro existe antes de atualizar
     const { data: existingMember, error: checkError } = await supabase
-      .from('users')
+      .from('professionals')
       .select('id')
       .eq('id', memberId)
       .single();
       
     if (checkError) {
-      console.error("Erro ao verificar membro existente:", checkError);
-      throw new Error("Membro não encontrado");
+      console.error("Erro ao verificar profissional existente:", checkError);
+      throw new Error("Profissional não encontrado");
     }
     
     if (!existingMember) {
-      throw new Error("Membro não encontrado para atualização");
+      throw new Error("Profissional não encontrado para atualização");
     }
     
-    // Update member in Supabase
     const { error } = await supabase
-      .from('users')
+      .from('professionals')
       .update(updateData)
       .eq('id', memberId);
       
@@ -81,10 +81,10 @@ export const updateTeamMember = async (memberId: string, data: any): Promise<boo
       throw error;
     }
     
-    console.log("Membro atualizado com sucesso:", memberId);
+    console.log("Profissional atualizado com sucesso:", memberId);
     
     toast({
-      title: "Membro atualizado",
+      title: "Profissional atualizado",
       description: `${data.name} foi atualizado com sucesso.`,
       duration: 5000,
     });
@@ -92,19 +92,17 @@ export const updateTeamMember = async (memberId: string, data: any): Promise<boo
     return true;
   } catch (error: any) {
     console.error("Erro completo na atualização:", error);
-    handleError(error, "ao atualizar o membro da equipe");
+    handleError(error, "ao atualizar o profissional");
     return false;
   }
 };
 
 export const createTeamMember = async (data: any): Promise<boolean> => {
   try {
-    console.log("Criando novo membro com dados:", data);
+    console.log("Criando novo profissional com dados:", data);
     
-    // Generate UUID for the new user
     const id = crypto.randomUUID();
     
-    // Prepare data for insertion with required id field
     const insertData = {
       id: id,
       name: data.name,
@@ -112,13 +110,12 @@ export const createTeamMember = async (data: any): Promise<boolean> => {
       phone: data.phone || null,
       profession: data.profession || null,
       has_access: data.hasAccess,
-      is_manager: data.isManager
-      // Password would be handled separately in a real scenario
+      is_manager: data.isManager,
+      categories: data.categories || []
     };
     
-    // Add new team member to Supabase
     const { data: newMember, error } = await supabase
-      .from('users')
+      .from('professionals')
       .insert(insertData)
       .select();
       
@@ -127,17 +124,17 @@ export const createTeamMember = async (data: any): Promise<boolean> => {
       throw error;
     }
     
-    console.log("Novo membro criado:", newMember);
+    console.log("Novo profissional criado:", newMember);
     
     toast({
-      title: "Membro adicionado",
+      title: "Profissional adicionado",
       description: `${data.name} foi adicionado com sucesso.`
     });
     
     return true;
   } catch (error: any) {
     console.error("Erro completo na criação:", error);
-    handleError(error, "ao salvar o membro da equipe");
+    handleError(error, "ao salvar o profissional");
     return false;
   }
 };
@@ -145,30 +142,28 @@ export const createTeamMember = async (data: any): Promise<boolean> => {
 export const deleteTeamMember = async (memberId: string, memberName?: string): Promise<boolean> => {
   try {
     if (!memberId) {
-      throw new Error("ID do membro não fornecido para exclusão");
+      throw new Error("ID do profissional não fornecido para exclusão");
     }
     
-    console.log("Excluindo membro com ID:", memberId);
+    console.log("Excluindo profissional com ID:", memberId);
     
-    // Verificar se o membro existe antes de excluir
     const { data: existingMember, error: checkError } = await supabase
-      .from('users')
+      .from('professionals')
       .select('id, name')
       .eq('id', memberId)
       .single();
       
     if (checkError) {
-      console.error("Erro ao verificar membro existente:", checkError);
-      throw new Error("Membro não encontrado");
+      console.error("Erro ao verificar profissional existente:", checkError);
+      throw new Error("Profissional não encontrado");
     }
     
     if (!existingMember) {
-      throw new Error("Membro não encontrado para exclusão");
+      throw new Error("Profissional não encontrado para exclusão");
     }
     
-    // Delete from Supabase
     const { error } = await supabase
-      .from('users')
+      .from('professionals')
       .delete()
       .eq('id', memberId);
       
@@ -177,11 +172,11 @@ export const deleteTeamMember = async (memberId: string, memberName?: string): P
       throw error;
     }
     
-    console.log("Membro excluído com sucesso:", memberId);
+    console.log("Profissional excluído com sucesso:", memberId);
     
     if (memberName) {
       toast({
-        title: "Membro removido",
+        title: "Profissional removido",
         description: `${memberName} foi removido com sucesso.`
       });
     }
@@ -189,11 +184,10 @@ export const deleteTeamMember = async (memberId: string, memberName?: string): P
     return true;
   } catch (error: any) {
     console.error("Erro completo na exclusão:", error);
-    let errorMessage = error.message || "Ocorreu um erro ao excluir o membro da equipe";
+    let errorMessage = error.message || "Ocorreu um erro ao excluir o profissional";
     
-    // Handling specific deletion errors
     if (error.code === '23503') {
-      errorMessage = "Este membro não pode ser excluído pois possui registros associados";
+      errorMessage = "Este profissional não pode ser excluído pois possui registros associados";
     }
     
     toast({
@@ -205,13 +199,11 @@ export const deleteTeamMember = async (memberId: string, memberName?: string): P
   }
 };
 
-// Helper function to handle common error cases
 const handleError = (error: any, action: string): void => {
   let errorMessage = error.message || `Ocorreu um erro ${action}`;
   
-  // Specific error code handling
   if (error.code === '23505') {
-    errorMessage = "Este email já está em uso por outro membro";
+    errorMessage = "Este email já está em uso por outro profissional";
   } else if (error.code === '23514') {
     errorMessage = "Os dados fornecidos não atendem às restrições do banco de dados";
   }

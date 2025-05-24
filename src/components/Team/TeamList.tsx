@@ -4,6 +4,7 @@ import { Edit, Trash2 } from 'lucide-react';
 import { TeamMember } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface TeamListProps {
@@ -13,13 +14,21 @@ interface TeamListProps {
   loading: boolean;
 }
 
+const serviceCategories = [
+  { value: 'cabelo', label: 'Cabelo' },
+  { value: 'depilacao', label: 'Depilação' },
+  { value: 'podologia', label: 'Podologia' },
+  { value: 'sobrancelhas', label: 'Sobrancelhas' },
+  { value: 'unhas', label: 'Unhas' }
+];
+
 const TeamList = ({ teamMembersList, onEdit, onDelete, loading }: TeamListProps) => {
   const { currentUser } = useAuth();
   
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <p className="text-lg">Carregando membros da equipe...</p>
+        <p className="text-lg">Carregando profissionais...</p>
       </div>
     );
   }
@@ -27,10 +36,15 @@ const TeamList = ({ teamMembersList, onEdit, onDelete, loading }: TeamListProps)
   if (teamMembersList.length === 0) {
     return (
       <div className="col-span-full text-center py-12 text-gray-500">
-        Nenhum membro da equipe cadastrado
+        Nenhum profissional cadastrado
       </div>
     );
   }
+
+  const getCategoryLabel = (categoryValue: string) => {
+    const category = serviceCategories.find(cat => cat.value === categoryValue);
+    return category?.label || categoryValue;
+  };
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -53,6 +67,20 @@ const TeamList = ({ teamMembersList, onEdit, onDelete, loading }: TeamListProps)
                 <p className="truncate"><span className="font-medium">Email:</span> {member.email}</p>
                 <p className="truncate"><span className="font-medium">Telefone:</span> {member.phone}</p>
               </div>
+
+              {/* Categorias de serviços */}
+              {member.categories && member.categories.length > 0 && (
+                <div className="mt-3">
+                  <p className="text-xs font-medium text-gray-600 mb-1">Categorias:</p>
+                  <div className="flex gap-1 flex-wrap">
+                    {member.categories.map((category) => (
+                      <Badge key={category} variant="outline" className="text-xs">
+                        {getCategoryLabel(category)}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
               
               <div className="mt-3 flex gap-2 flex-wrap">
                 {member.hasAccess && (

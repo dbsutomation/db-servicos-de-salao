@@ -28,8 +28,7 @@ const Team = () => {
     <MainLayout>
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h1 className="text-3xl font-bold">Equipe</h1>
-          {/* Removed the "Add New Member" button as requested */}
+          <h1 className="text-3xl font-bold">Profissionais</h1>
         </div>
         
         <TeamList 
@@ -44,11 +43,11 @@ const Team = () => {
         open={dialogOpen}
         onOpenChange={(open) => {
           setDialogOpen(open);
-          if (!open) setEditingMember(null);  // Reset editing state when closing dialog
+          if (!open) setEditingMember(null);
         }}
         editingMember={editingMember}
         onSuccess={handleSuccess}
-        title={editingMember ? 'Editar Membro' : 'Adicionar Novo Membro'}
+        title={editingMember ? 'Editar Profissional' : 'Adicionar Novo Profissional'}
       />
 
       <DeleteConfirmDialog 

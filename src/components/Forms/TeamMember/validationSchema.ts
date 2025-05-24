@@ -1,7 +1,6 @@
 
 import * as z from 'zod';
 
-// Enhanced password validation schema with more security requirements
 const passwordSchema = z
   .string()
   .min(8, { message: 'Senha deve ter pelo menos 8 caracteres' })
@@ -10,7 +9,6 @@ const passwordSchema = z
   .regex(/[0-9]/, { message: 'Senha deve conter pelo menos um número' })
   .regex(/[^A-Za-z0-9]/, { message: 'Senha deve conter pelo menos um caractere especial' });
 
-// Esquema de validação adaptativo para permitir senha opcional na edição
 export const teamMemberFormSchema = (isEditing: boolean) => z.object({
   name: z.string().min(2, {
     message: 'Nome deve ter pelo menos 2 caracteres'
@@ -29,9 +27,10 @@ export const teamMemberFormSchema = (isEditing: boolean) => z.object({
       .refine(val => val === undefined || val === '' || passwordSchema.safeParse(val).success, {
         message: 'Senha deve ter pelo menos 8 caracteres, incluir letras maiúsculas, minúsculas, números e caracteres especiais'
       })
-    : passwordSchema, // Required with enhanced validation for new users
+    : passwordSchema,
   hasAccess: z.boolean(),
-  isManager: z.boolean()
+  isManager: z.boolean(),
+  categories: z.array(z.string()).default([])
 });
 
 export type TeamMemberFormValues = z.infer<ReturnType<typeof teamMemberFormSchema>>;

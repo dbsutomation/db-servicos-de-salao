@@ -37,6 +37,7 @@ export interface TeamMember {
   hasAccess: boolean;
   isManager: boolean;
   avatar: string;
+  categories?: string[];
 }
 
 export interface ServiceRecord {
