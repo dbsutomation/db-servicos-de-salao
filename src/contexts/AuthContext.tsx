@@ -10,6 +10,7 @@ interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   checkAccess: (requiredRoutes: string[]) => boolean;
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -26,22 +27,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const fetchUserData = async (userId: string) => {
+  // Função melhorada para testar conectividade
+  const testSupabaseConnection = async (): Promise<boolean> => {
     try {
-      console.log("Buscando dados do usuário:", userId);
-      
-      // Primeiro, vamos testar a conexão com o Supabase
-      const { data: testData, error: testError } = await supabase
+      console.log("Testando conexão com Supabase...");
+      const { data, error } = await supabase
         .from('professionals')
         .select('count')
         .limit(1);
         
-      if (testError) {
-        console.error('Erro de conexão com Supabase:', testError);
-        throw new Error('Falha na conexão com o banco de dados');
+      if (error) {
+        console.error('Erro de conectividade:', error);
+        return false;
       }
       
-      console.log("Conexão com Supabase OK, buscando usuário...");
+      console.log("Conexão com Supabase OK");
+      return true;
+    } catch (error) {
+      console.error('Falha na conectividade:', error);
+      return false;
+    }
+  };
+
+  const fetchUserData = async (userId: string): Promise<boolean> => {
+    try {
+      console.log("Buscando dados do usuário:", userId);
+      
+      // Testar conectividade primeiro
+      const isConnected = await testSupabaseConnection();
+      if (!isConnected) {
+        toast({
+          title: "Erro de conexão",
+          description: "Não foi possível conectar ao servidor. Verifique sua conexão com a internet.",
+          variant: "destructive",
+        });
+        return false;
+      }
       
       const { data, error } = await supabase
         .from('professionals')
@@ -51,7 +72,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
       if (error) {
         console.error('Erro ao buscar dados do usuário:', error);
-        throw error;
+        toast({
+          title: "Erro ao carregar perfil",
+          description: "Não foi possível carregar seus dados. Tente novamente.",
+          variant: "destructive",
+        });
+        return false;
       }
       
       if (!data) {
@@ -62,11 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           variant: "destructive",
         });
         await supabase.auth.signOut();
-        setAuthState({ isAuthenticated: false, currentUser: null });
-        setUser(null);
-        setSession(null);
-        navigate('/login');
-        return;
+        return false;
       }
       
       console.log("Dados do usuário encontrados:", data);
@@ -80,11 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           variant: "destructive",
         });
         await supabase.auth.signOut();
-        setAuthState({ isAuthenticated: false, currentUser: null });
-        setUser(null);
-        setSession(null);
-        navigate('/login');
-        return;
+        return false;
       }
       
       // Converter para o formato TeamMember
@@ -106,18 +124,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated: true,
         currentUser: teamMember
       });
+      
+      return true;
     } catch (error: any) {
       console.error('Erro ao buscar dados do usuário:', error);
       toast({
         title: "Erro ao carregar perfil",
-        description: error.message || "Não foi possível carregar seus dados. Tente novamente.",
+        description: "Ocorreu um erro inesperado. Tente novamente.",
         variant: "destructive",
       });
-      setAuthState({ isAuthenticated: false, currentUser: null });
-      setUser(null);
-      setSession(null);
-    } finally {
-      setIsLoading(false);
+      return false;
     }
   };
 
@@ -134,12 +150,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         if (event === 'SIGNED_IN' && newSession?.user) {
           console.log("Usuário logado, buscando dados...");
-          await fetchUserData(newSession.user.id);
+          const success = await fetchUserData(newSession.user.id);
+          if (!success) {
+            setAuthState({ isAuthenticated: false, currentUser: null });
+            setUser(null);
+            setSession(null);
+            navigate('/login');
+          }
         } else if (event === 'SIGNED_OUT') {
           console.log("Usuário deslogado");
           setAuthState({ isAuthenticated: false, currentUser: null });
-          setIsLoading(false);
         }
+        
+        setIsLoading(false);
       }
     );
 
@@ -158,13 +181,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           console.log("Sessão existente encontrada:", existingSession.user.email);
           setSession(existingSession);
           setUser(existingSession.user);
-          await fetchUserData(existingSession.user.id);
+          
+          const success = await fetchUserData(existingSession.user.id);
+          if (!success) {
+            setAuthState({ isAuthenticated: false, currentUser: null });
+            setUser(null);
+            setSession(null);
+          }
         } else {
           console.log("Nenhuma sessão existente encontrada");
-          setIsLoading(false);
         }
       } catch (error) {
         console.error('Erro ao verificar sessão:', error);
+      } finally {
         setIsLoading(false);
       }
     };
@@ -182,18 +211,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoading(true);
       console.log("Tentativa de login para:", email);
       
+      // Testar conectividade primeiro
+      const isConnected = await testSupabaseConnection();
+      if (!isConnected) {
+        toast({
+          title: "Erro de conexão",
+          description: "Não foi possível conectar ao servidor. Verifique sua conexão com a internet.",
+          variant: "destructive",
+        });
+        return false;
+      }
+      
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
+        email: email.trim(),
+        password: password.trim()
       });
       
       if (error) {
         console.error("Erro no login:", error);
+        let errorMessage = "Ocorreu um erro no login";
+        
+        switch (error.message) {
+          case 'Invalid login credentials':
+            errorMessage = "Email ou senha incorretos";
+            break;
+          case 'Email not confirmed':
+            errorMessage = "Email não confirmado. Verifique sua caixa de entrada";
+            break;
+          case 'Too many requests':
+            errorMessage = "Muitas tentativas. Aguarde alguns minutos";
+            break;
+          default:
+            errorMessage = error.message;
+        }
+        
         toast({
           title: "Falha no login",
-          description: error.message === 'Invalid login credentials' 
-            ? "Email ou senha incorretos" 
-            : error.message,
+          description: errorMessage,
           variant: "destructive",
         });
         return false;
@@ -213,7 +267,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error("Erro inesperado no login:", error);
       toast({
         title: "Erro no login",
-        description: error.message ?? "Ocorreu um erro inesperado",
+        description: "Ocorreu um erro inesperado. Tente novamente.",
         variant: "destructive",
       });
       return false;
@@ -226,21 +280,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setIsLoading(true);
       console.log("Iniciando logout...");
+      
       await supabase.auth.signOut();
       setAuthState({ isAuthenticated: false, currentUser: null });
       setUser(null);
       setSession(null);
-      navigate('/login');
+      
       toast({
         title: "Logout realizado",
         description: "Você saiu do sistema.",
       });
       console.log("Logout bem-sucedido");
+      navigate('/login');
     } catch (error: any) {
       console.error("Erro no logout:", error);
       toast({
         title: "Erro ao sair",
-        description: error.message ?? "Ocorreu um erro inesperado",
+        description: "Ocorreu um erro inesperado ao sair.",
         variant: "destructive",
       });
     } finally {
@@ -265,7 +321,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ ...authState, login, logout, checkAccess }}>
+    <AuthContext.Provider value={{ 
+      ...authState, 
+      login, 
+      logout, 
+      checkAccess, 
+      isLoading 
+    }}>
       {children}
     </AuthContext.Provider>
   );
