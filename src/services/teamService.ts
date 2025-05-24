@@ -6,28 +6,28 @@ import { toast } from '@/hooks/use-toast';
 export const fetchTeamMembers = async (): Promise<TeamMember[]> => {
   try {
     const { data, error } = await supabase
-      .from('professionals')
+      .from('users')
       .select('*');
     
     if (error) throw error;
     
     // Transform data to match TeamMember type
-    const transformedData = data.map(professional => ({
-      id: professional.id,
-      name: professional.name,
-      email: professional.email,
-      hasAccess: professional.has_access,
-      isManager: professional.is_manager,
-      phone: professional.phone || '',
-      profession: professional.profession || '',
+    const transformedData = data.map(user => ({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      hasAccess: user.has_access,
+      isManager: user.is_manager,
+      phone: user.phone || '',
+      profession: user.profession || '',
       password: '',
-      avatar: professional.avatar || '/placeholder.svg',
-      categories: professional.categories || []
+      avatar: user.avatar || '/placeholder.svg',
+      categories: user.categories || []
     }));
     
     return transformedData;
   } catch (error: any) {
-    console.error('Error fetching professionals:', error);
+    console.error('Error fetching users:', error);
     toast({
       title: "Erro ao carregar profissionais",
       description: error.message || "Não foi possível carregar os profissionais",
@@ -57,7 +57,7 @@ export const updateTeamMember = async (memberId: string, data: any): Promise<boo
     };
     
     const { data: existingMember, error: checkError } = await supabase
-      .from('professionals')
+      .from('users')
       .select('id')
       .eq('id', memberId)
       .single();
@@ -72,7 +72,7 @@ export const updateTeamMember = async (memberId: string, data: any): Promise<boo
     }
     
     const { error } = await supabase
-      .from('professionals')
+      .from('users')
       .update(updateData)
       .eq('id', memberId);
       
@@ -115,7 +115,7 @@ export const createTeamMember = async (data: any): Promise<boolean> => {
     };
     
     const { data: newMember, error } = await supabase
-      .from('professionals')
+      .from('users')
       .insert(insertData)
       .select();
       
@@ -148,7 +148,7 @@ export const deleteTeamMember = async (memberId: string, memberName?: string): P
     console.log("Excluindo profissional com ID:", memberId);
     
     const { data: existingMember, error: checkError } = await supabase
-      .from('professionals')
+      .from('users')
       .select('id, name')
       .eq('id', memberId)
       .single();
@@ -163,7 +163,7 @@ export const deleteTeamMember = async (memberId: string, memberName?: string): P
     }
     
     const { error } = await supabase
-      .from('professionals')
+      .from('users')
       .delete()
       .eq('id', memberId);
       

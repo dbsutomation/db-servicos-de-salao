@@ -106,7 +106,7 @@ export type Database = {
             foreignKeyName: "appointments_professional_id_fkey"
             columns: ["professional_id"]
             isOneToOne: false
-            referencedRelation: "professionals"
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -207,55 +207,10 @@ export type Database = {
             foreignKeyName: "professional_schedules_professional_id_fkey"
             columns: ["professional_id"]
             isOneToOne: false
-            referencedRelation: "professionals"
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
-      }
-      professionals: {
-        Row: {
-          avatar: string | null
-          categories: string[] | null
-          created_at: string
-          email: string
-          has_access: boolean
-          id: string
-          is_manager: boolean
-          name: string
-          phone: string | null
-          profession: string | null
-          updated_at: string
-          user_type: string | null
-        }
-        Insert: {
-          avatar?: string | null
-          categories?: string[] | null
-          created_at?: string
-          email: string
-          has_access?: boolean
-          id: string
-          is_manager?: boolean
-          name: string
-          phone?: string | null
-          profession?: string | null
-          updated_at?: string
-          user_type?: string | null
-        }
-        Update: {
-          avatar?: string | null
-          categories?: string[] | null
-          created_at?: string
-          email?: string
-          has_access?: boolean
-          id?: string
-          is_manager?: boolean
-          name?: string
-          phone?: string | null
-          profession?: string | null
-          updated_at?: string
-          user_type?: string | null
-        }
-        Relationships: []
       }
       service_records: {
         Row: {
@@ -309,7 +264,7 @@ export type Database = {
             foreignKeyName: "service_records_professional_id_fkey"
             columns: ["professional_id"]
             isOneToOne: false
-            referencedRelation: "professionals"
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
           {
@@ -360,6 +315,51 @@ export type Database = {
           price?: number
           type?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      users: {
+        Row: {
+          avatar: string | null
+          categories: string[] | null
+          created_at: string
+          email: string
+          has_access: boolean
+          id: string
+          is_manager: boolean
+          name: string
+          phone: string | null
+          profession: string | null
+          updated_at: string
+          user_type: string | null
+        }
+        Insert: {
+          avatar?: string | null
+          categories?: string[] | null
+          created_at?: string
+          email: string
+          has_access?: boolean
+          id: string
+          is_manager?: boolean
+          name: string
+          phone?: string | null
+          profession?: string | null
+          updated_at?: string
+          user_type?: string | null
+        }
+        Update: {
+          avatar?: string | null
+          categories?: string[] | null
+          created_at?: string
+          email?: string
+          has_access?: boolean
+          id?: string
+          is_manager?: boolean
+          name?: string
+          phone?: string | null
+          profession?: string | null
+          updated_at?: string
+          user_type?: string | null
         }
         Relationships: []
       }
