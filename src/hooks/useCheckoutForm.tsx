@@ -8,7 +8,7 @@ import { Client, TeamMember } from '@/types';
 
 export const useCheckoutForm = () => {
   const { toast } = useToast();
-  const { cartItems, total, clearCart } = useCart();
+  const { cartItems, getCartTotal, clearCart } = useCart();
   const [clients, setClients] = useState<Client[]>([]);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(false);
@@ -90,17 +90,17 @@ export const useCheckoutForm = () => {
       }
 
       for (const item of cartItems) {
-        const commissionPercentage = item.commission / 100;
-        const commissionAmount = item.price * commissionPercentage;
+        const commissionPercentage = item.service.commission / 100;
+        const commissionAmount = item.service.price * commissionPercentage;
         const tipAmount = parseFloat(data.tipAmount) || 0;
 
         const { error } = await supabase
           .from('service_records')
           .insert({
-            service_id: item.id,
+            service_id: item.service.id,
             client_id: data.clientId,
             professional_id: data.teamMemberId,
-            service_value: item.price,
+            service_value: item.service.price,
             commission_amount: commissionAmount,
             payment_method: data.paymentMethod,
             tip_amount: tipAmount,
@@ -135,9 +135,9 @@ export const useCheckoutForm = () => {
       Data: ${new Date().toLocaleDateString('pt-BR')}
       
       Itens:
-      ${cartItems.map(item => `- ${item.name}: R$ ${item.price.toFixed(2)}`).join('\n')}
+      ${cartItems.map(item => `- ${item.service.name}: R$ ${item.service.price.toFixed(2)}`).join('\n')}
       
-      Total: R$ ${total.toFixed(2)}
+      Total: R$ ${getCartTotal().toFixed(2)}
     `;
     
     const printWindow = window.open('', '_blank');
