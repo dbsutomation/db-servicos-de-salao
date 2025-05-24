@@ -34,49 +34,73 @@ const ProtectedRoute = ({ children, requiredRoutes }: { children: JSX.Element, r
 };
 
 // Auth wrapper that uses the context
-const AuthenticatedApp = () => {
+const AppRoutes = () => {
+  const { isAuthenticated } = useAuth();
+
   return (
-    <CartProvider>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/" element={
+    <Routes>
+      <Route path="/login" element={
+        isAuthenticated ? <Navigate to="/" /> : <Login />
+      } />
+      
+      <Route path="/" element={
+        <CartProvider>
           <ProtectedRoute requiredRoutes={["/"]}>
             <Index />
           </ProtectedRoute>
-        } />
-        <Route path="/services" element={
+        </CartProvider>
+      } />
+      
+      <Route path="/services" element={
+        <CartProvider>
           <ProtectedRoute requiredRoutes={["/services"]}>
             <Services />
           </ProtectedRoute>
-        } />
-        <Route path="/clients" element={
+        </CartProvider>
+      } />
+      
+      <Route path="/clients" element={
+        <CartProvider>
           <ProtectedRoute requiredRoutes={["/clients"]}>
             <Clients />
           </ProtectedRoute>
-        } />
-        <Route path="/team" element={
+        </CartProvider>
+      } />
+      
+      <Route path="/team" element={
+        <CartProvider>
           <ProtectedRoute requiredRoutes={["/team"]}>
             <Team />
           </ProtectedRoute>
-        } />
-        <Route path="/records" element={
+        </CartProvider>
+      } />
+      
+      <Route path="/records" element={
+        <CartProvider>
           <ProtectedRoute requiredRoutes={["/records"]}>
             <Records />
           </ProtectedRoute>
-        } />
-        <Route path="/cart" element={
+        </CartProvider>
+      } />
+      
+      <Route path="/cart" element={
+        <CartProvider>
           <ProtectedRoute requiredRoutes={["/cart"]}>
             <Cart />
           </ProtectedRoute>
-        } />
-        <Route path="/scheduling" element={
+        </CartProvider>
+      } />
+      
+      <Route path="/scheduling" element={
+        <CartProvider>
           <ProtectedRoute requiredRoutes={["/scheduling"]}>
             <Scheduling />
           </ProtectedRoute>
-        } />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </CartProvider>
+        </CartProvider>
+      } />
+      
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 };
 
@@ -87,7 +111,7 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <AuthenticatedApp />
+          <AppRoutes />
         </TooltipProvider>
       </AuthProvider>
     </BrowserRouter>
