@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -8,14 +7,18 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { TeamMember, Appointment } from '@/types';
 import WeeklyScheduleGrid from './WeeklyScheduleGrid';
+import MobileScheduleGrid from './MobileScheduleGrid';
 import AppointmentFormDialog from './AppointmentFormDialog';
-import { format, addWeeks, subWeeks, startOfWeek, endOfWeek, isToday, isBefore, startOfDay } from 'date-fns';
+import { useTimeValidation } from '@/hooks/useTimeValidation';
+import { useMediaQuery } from '@/hooks/use-mobile';
+import { format, addWeeks, subWeeks, startOfWeek, endOfWeek } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const SchedulingCalendar = () => {
   const [professionals, setProfessionals] = useState<TeamMember[]>([]);
   const [selectedProfessional, setSelectedProfessional] = useState<string>('');
   const [currentWeek, setCurrentWeek] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isAppointmentFormOpen, setIsAppointmentFormOpen] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<{
@@ -25,6 +28,8 @@ const SchedulingCalendar = () => {
   } | null>(null);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { validateSlotClick } = useTimeValidation();
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   useEffect(() => {
     fetchProfessionals();
@@ -38,7 +43,6 @@ const SchedulingCalendar = () => {
 
   const fetchProfessionals = async () => {
     try {
-      console.log('Fetching professionals from users table...');
       const { data, error } = await supabase
         .from('users')
         .select('*')
@@ -47,31 +51,19 @@ const SchedulingCalendar = () => {
 
       if (error) throw error;
 
-      console.log('Raw users data from database:', data);
+      const teamMembers: TeamMember[] = data.map(user => ({
+        id: user.id,
+        name: user.name,
+        profession: user.profession || '',
+        phone: user.phone || '',
+        email: user.email,
+        password: '',
+        hasAccess: user.has_access,
+        isManager: user.is_manager,
+        avatar: user.avatar || '',
+        categories: user.categories || []
+      }));
 
-      const teamMembers: TeamMember[] = data.map(user => {
-        console.log(`Mapping user ${user.name}:`, {
-          id: user.id,
-          categories: user.categories,
-          categoriesType: typeof user.categories,
-          categoriesArray: Array.isArray(user.categories)
-        });
-
-        return {
-          id: user.id,
-          name: user.name,
-          profession: user.profession || '',
-          phone: user.phone || '',
-          email: user.email,
-          password: '',
-          hasAccess: user.has_access,
-          isManager: user.is_manager,
-          avatar: user.avatar || '',
-          categories: user.categories || []
-        };
-      });
-
-      console.log('Mapped team members:', teamMembers);
       setProfessionals(teamMembers);
     } catch (error) {
       console.error('Erro ao buscar profissionais:', error);
@@ -125,50 +117,15 @@ const SchedulingCalendar = () => {
       return;
     }
 
-    const selectedDate = new Date(date + 'T00:00:00');
-    const today = startOfDay(new Date());
-
-    console.log('Handle slot click validation:', {
-      selectedDate: selectedDate.toLocaleDateString('pt-BR'),
-      today: today.toLocaleDateString('pt-BR'),
-      time,
-      isPastDate: isBefore(selectedDate, today),
-      isToday: isToday(selectedDate)
-    });
-
-    // Verificar se é uma data passada (não hoje)
-    if (isBefore(selectedDate, today)) {
+    const validation = validateSlotClick(date, time);
+    
+    if (!validation.isValid) {
       toast({
         title: "Atenção",
-        description: "Não é possível agendar em datas passadas.",
+        description: validation.message,
         variant: "destructive",
       });
       return;
-    }
-
-    // Se é hoje, verificar se o horário já passou
-    if (isToday(selectedDate)) {
-      const now = new Date();
-      const [hours, minutes] = time.split(':').map(Number);
-      const currentTotalMinutes = now.getHours() * 60 + now.getMinutes();
-      const slotTotalMinutes = hours * 60 + minutes;
-
-      console.log('Time validation for today:', {
-        currentTime: `${now.getHours()}:${now.getMinutes()}`,
-        slotTime: time,
-        currentTotalMinutes,
-        slotTotalMinutes,
-        isPast: slotTotalMinutes <= currentTotalMinutes
-      });
-
-      if (slotTotalMinutes <= currentTotalMinutes) {
-        toast({
-          title: "Atenção",
-          description: "Não é possível agendar em horários que já passaram.",
-          variant: "destructive",
-        });
-        return;
-      }
     }
 
     setSelectedSlot({
@@ -192,8 +149,6 @@ const SchedulingCalendar = () => {
   };
 
   const selectedProfessionalData = professionals.find(p => p.id === selectedProfessional);
-
-  console.log('Selected professional data:', selectedProfessionalData);
 
   return (
     <div className="space-y-6">
@@ -221,37 +176,50 @@ const SchedulingCalendar = () => {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>
+              <CardTitle className="text-lg md:text-xl">
                 Agenda de {selectedProfessionalData?.name}
               </CardTitle>
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => navigateWeek('prev')}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <span className="text-sm font-medium min-w-[200px] text-center">
-                  {format(startOfWeek(currentWeek, { weekStartsOn: 0 }), 'dd/MM', { locale: ptBR })} - {format(endOfWeek(currentWeek, { weekStartsOn: 0 }), 'dd/MM/yyyy', { locale: ptBR })}
-                </span>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => navigateWeek('next')}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
+              {!isMobile && (
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => navigateWeek('prev')}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <span className="text-sm font-medium min-w-[200px] text-center">
+                    {format(startOfWeek(currentWeek, { weekStartsOn: 0 }), 'dd/MM', { locale: ptBR })} - {format(endOfWeek(currentWeek, { weekStartsOn: 0 }), 'dd/MM/yyyy', { locale: ptBR })}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => navigateWeek('next')}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
             </div>
           </CardHeader>
           <CardContent>
-            <WeeklyScheduleGrid
-              currentWeek={currentWeek}
-              appointments={appointments}
-              onSlotClick={handleSlotClick}
-              loading={loading}
-            />
+            {isMobile ? (
+              <MobileScheduleGrid
+                currentWeek={currentWeek}
+                appointments={appointments}
+                onSlotClick={handleSlotClick}
+                loading={loading}
+                selectedDate={selectedDate}
+                onDateChange={setSelectedDate}
+              />
+            ) : (
+              <WeeklyScheduleGrid
+                currentWeek={currentWeek}
+                appointments={appointments}
+                onSlotClick={handleSlotClick}
+                loading={loading}
+              />
+            )}
           </CardContent>
         </Card>
       )}

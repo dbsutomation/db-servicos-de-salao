@@ -1,10 +1,11 @@
 
 import React from 'react';
-import { format, addDays, startOfWeek, isSameDay, isToday, isPast, parseISO } from 'date-fns';
+import { format, addDays, startOfWeek, isSameDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Appointment } from '@/types';
 import { Loader2 } from 'lucide-react';
+import { useTimeValidation } from '@/hooks/useTimeValidation';
 
 interface WeeklyScheduleGridProps {
   currentWeek: Date;
@@ -19,7 +20,8 @@ const WeeklyScheduleGrid = ({
   onSlotClick,
   loading
 }: WeeklyScheduleGridProps) => {
-  //Dias disponíveis terça a sábado (length = 5); (week start i + 2 'domingo mais 2 = terça')
+  const { isPastTimeSlot } = useTimeValidation();
+  
   const weekStart = startOfWeek(currentWeek, { weekStartsOn: 0 });
   const weekDays = Array.from({ length: 5 }, (_, i) => addDays(weekStart, i + 2));
   
@@ -42,49 +44,9 @@ const WeeklyScheduleGrid = ({
     });
   };
 
-  const isPastDate = (date: Date) => {
-    // Usar apenas a data, sem horário, para comparação
-    const today = new Date();
-    const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    
-    return dateOnly < todayOnly;
-  };
-
-  const isPastTimeSlot = (date: Date, time: string) => {
-    // Se não é hoje, não é passado baseado no horário
-    if (!isToday(date)) return false;
-    
-    // Obter hora atual no fuso horário local (já considera UTC-3 automaticamente)
-    const now = new Date();
-    const [hours, minutes] = time.split(':').map(Number);
-    
-    // Criar um horário de hoje com a hora do slot
-    const slotDateTime = new Date();
-    slotDateTime.setHours(hours, minutes, 0, 0);
-    
-    console.log('Checking time slot:', {
-      now: now.toLocaleString('pt-BR'),
-      slotDateTime: slotDateTime.toLocaleString('pt-BR'),
-      time,
-      currentHour: now.getHours(),
-      currentMinute: now.getMinutes(),
-      slotHour: hours,
-      slotMinute: minutes,
-      isPast: slotDateTime <= now
-    });
-    
-    // Comparar apenas hora e minuto, ignorando segundos
-    const currentTotalMinutes = now.getHours() * 60 + now.getMinutes();
-    const slotTotalMinutes = hours * 60 + minutes;
-    
-    return slotTotalMinutes <= currentTotalMinutes;
-  };
-
   const getSlotButtonProps = (date: Date, time: string) => {
     const isOccupied = isSlotOccupied(date, time);
-    const isPastDateSlot = isPastDate(date);
-    const isPastTime = isPastTimeSlot(date, time);
+    const isPast = isPastTimeSlot(date, time);
     
     if (isOccupied) {
       return {
@@ -95,7 +57,7 @@ const WeeklyScheduleGrid = ({
       };
     }
     
-    if (isPastDateSlot || isPastTime) {
+    if (isPast) {
       return {
         variant: "outline" as const,
         className: 'bg-red-500 text-white cursor-not-allowed',
