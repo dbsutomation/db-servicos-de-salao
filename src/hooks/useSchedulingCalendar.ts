@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { format, startOfWeek, endOfWeek } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
@@ -74,18 +73,33 @@ export const useSchedulingCalendar = () => {
       const weekStart = startOfWeek(currentWeek, { weekStartsOn: 0 });
       const weekEnd = endOfWeek(currentWeek, { weekStartsOn: 0 });
 
-      const { data, error } = await supabase
+      // Fetch appointments with joined client data and appointment services with service data
+      const { data: appointmentsData, error: appointmentsError } = await supabase
         .from('appointments')
-        .select('*')
+        .select(`
+          *,
+          clients!inner(name),
+          appointment_services!inner(
+            service_id,
+            services!inner(name)
+          )
+        `)
         .eq('professional_id', selectedProfessional)
         .gte('appointment_date', format(weekStart, 'yyyy-MM-dd'))
         .lte('appointment_date', format(weekEnd, 'yyyy-MM-dd'))
         .order('appointment_date')
         .order('start_time');
 
-      if (error) throw error;
+      if (appointmentsError) throw appointmentsError;
 
-      setAppointments(data || []);
+      // Transform the data to include client_name and service_name
+      const transformedAppointments = appointmentsData?.map(appointment => ({
+        ...appointment,
+        client_name: appointment.clients.name,
+        service_name: appointment.appointment_services[0]?.services?.name || 'Serviço não especificado'
+      })) || [];
+
+      setAppointments(transformedAppointments);
     } catch (error) {
       console.error('Erro ao buscar agendamentos:', error);
       toast({

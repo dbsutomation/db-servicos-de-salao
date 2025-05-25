@@ -1,4 +1,3 @@
-
 export interface Service {
   id: string;
   name: string;
@@ -65,6 +64,9 @@ export interface Appointment {
   notes?: string;
   created_at: string;
   updated_at: string;
+  // Joined data from related tables
+  client_name?: string;
+  service_name?: string;
 }
 
 // Interfaces que foram removidas por engano
