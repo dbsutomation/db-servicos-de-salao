@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { format, startOfWeek, endOfWeek } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
@@ -73,7 +74,13 @@ export const useSchedulingCalendar = () => {
       const weekStart = startOfWeek(currentWeek, { weekStartsOn: 0 });
       const weekEnd = endOfWeek(currentWeek, { weekStartsOn: 0 });
 
-      // Fetch appointments with joined client data and appointment services with service data
+      console.log('Fetching appointments for:', {
+        professional: selectedProfessional,
+        weekStart: format(weekStart, 'yyyy-MM-dd'),
+        weekEnd: format(weekEnd, 'yyyy-MM-dd')
+      });
+
+      // Buscar agendamentos com dados do cliente e serviços
       const { data: appointmentsData, error: appointmentsError } = await supabase
         .from('appointments')
         .select(`
@@ -81,6 +88,8 @@ export const useSchedulingCalendar = () => {
           clients!inner(name),
           appointment_services!inner(
             service_id,
+            quantity,
+            unit_price,
             services!inner(name)
           )
         `)
@@ -90,15 +99,25 @@ export const useSchedulingCalendar = () => {
         .order('appointment_date')
         .order('start_time');
 
-      if (appointmentsError) throw appointmentsError;
+      if (appointmentsError) {
+        console.error('Erro na consulta:', appointmentsError);
+        throw appointmentsError;
+      }
 
-      // Transform the data to include client_name and service_name
-      const transformedAppointments = appointmentsData?.map(appointment => ({
-        ...appointment,
-        client_name: appointment.clients.name,
-        service_name: appointment.appointment_services[0]?.services?.name || 'Serviço não especificado'
-      })) || [];
+      console.log('Appointments data:', appointmentsData);
 
+      // Transformar os dados para incluir client_name e service_name
+      const transformedAppointments = appointmentsData?.map(appointment => {
+        const serviceName = appointment.appointment_services?.[0]?.services?.name || 'Serviço não especificado';
+        
+        return {
+          ...appointment,
+          client_name: appointment.clients?.name || 'Cliente não especificado',
+          service_name: serviceName
+        };
+      }) || [];
+
+      console.log('Transformed appointments:', transformedAppointments);
       setAppointments(transformedAppointments);
     } catch (error) {
       console.error('Erro ao buscar agendamentos:', error);
@@ -117,6 +136,26 @@ export const useSchedulingCalendar = () => {
       toast({
         title: "Atenção",
         description: "Selecione um profissional primeiro.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Verificar se o slot está ocupado
+    const isOccupied = appointments.some(appointment => {
+      const appointmentDate = new Date(appointment.appointment_date);
+      const appointmentStartTime = appointment.start_time.substring(0, 5);
+      const appointmentEndTime = appointment.end_time.substring(0, 5);
+      
+      return format(appointmentDate, 'yyyy-MM-dd') === date && 
+             time >= appointmentStartTime && 
+             time < appointmentEndTime;
+    });
+
+    if (isOccupied) {
+      toast({
+        title: "Atenção",
+        description: "Este horário já está ocupado. Passe o mouse sobre o agendamento para ver os detalhes.",
         variant: "destructive",
       });
       return;

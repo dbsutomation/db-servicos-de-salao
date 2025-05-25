@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Appointment } from '@/types';
 import { Loader2 } from 'lucide-react';
 import { useTimeValidation } from '@/hooks/useTimeValidation';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 
 interface WeeklyScheduleGridProps {
   currentWeek: Date;
@@ -102,22 +103,45 @@ const WeeklyScheduleGrid = ({
                     className="relative border-r border-gray-200 last:border-r-0 min-h-[80px] hover:bg-gray-50 cursor-pointer"
                     onClick={() => !isOccupied && !isPast && onSlotClick(dateString, time)}
                   >
-                    {appointment && (
-                      <div className="absolute inset-1 bg-blue-100 border border-blue-300 rounded p-2 shadow-sm">
-                        <div className="text-xs font-semibold text-blue-800 mb-1">
-                          {appointment.client_name}
-                        </div>
-                        <div className="text-xs text-blue-600">
-                          {appointment.service_name}
-                        </div>
-                        <div className="text-xs text-blue-500 mt-1">
-                          {appointment.start_time.substring(0, 5)} - {appointment.end_time.substring(0, 5)}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {!appointment && isPast && (
-                      <div className="absolute inset-0 bg-gray-100 opacity-50"></div>
+                    {appointment ? (
+                      <HoverCard>
+                        <HoverCardTrigger asChild>
+                          <div className="absolute inset-1 bg-blue-100 border border-blue-300 rounded p-2 shadow-sm cursor-pointer">
+                            <div className="text-xs font-semibold text-blue-800 mb-1 truncate">
+                              {appointment.client_name}
+                            </div>
+                            <div className="text-xs text-blue-600 truncate">
+                              {appointment.service_name}
+                            </div>
+                            <div className="text-xs text-blue-500 mt-1">
+                              {appointment.start_time.substring(0, 5)} - {appointment.end_time.substring(0, 5)}
+                            </div>
+                          </div>
+                        </HoverCardTrigger>
+                        <HoverCardContent className="w-80">
+                          <div className="space-y-2">
+                            <h4 className="text-sm font-semibold">Detalhes do Agendamento</h4>
+                            <div className="space-y-1 text-sm">
+                              <p><strong>Cliente:</strong> {appointment.client_name}</p>
+                              <p><strong>Serviço:</strong> {appointment.service_name}</p>
+                              <p><strong>Data:</strong> {format(new Date(appointment.appointment_date), 'dd/MM/yyyy', { locale: ptBR })}</p>
+                              <p><strong>Horário:</strong> {appointment.start_time.substring(0, 5)} - {appointment.end_time.substring(0, 5)}</p>
+                              <p><strong>Duração:</strong> {appointment.total_duration} minutos</p>
+                              <p><strong>Valor:</strong> R$ {appointment.total_value.toFixed(2)}</p>
+                              <p><strong>Status:</strong> {appointment.status || 'Agendado'}</p>
+                              {appointment.notes && (
+                                <p><strong>Observações:</strong> {appointment.notes}</p>
+                              )}
+                            </div>
+                          </div>
+                        </HoverCardContent>
+                      </HoverCard>
+                    ) : (
+                      <>
+                        {isPast && (
+                          <div className="absolute inset-0 bg-gray-100 opacity-50"></div>
+                        )}
+                      </>
                     )}
                   </div>
                 );
