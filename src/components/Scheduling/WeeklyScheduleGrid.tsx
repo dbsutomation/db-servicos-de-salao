@@ -54,11 +54,40 @@ const WeeklyScheduleGrid = ({
     const appointment = appointments.find(appointment => {
       const appointmentDate = appointment.appointment_date;
       const appointmentStartTime = appointment.start_time.substring(0, 5);
+      const appointmentEndTime = appointment.end_time.substring(0, 5);
       
-      return appointmentDate === dateString && appointmentStartTime === time;
+      const isDateMatch = appointmentDate === dateString;
+      const isTimeInRange = time >= appointmentStartTime && time < appointmentEndTime;
+      
+      return isDateMatch && isTimeInRange;
     });
 
     return appointment;
+  };
+
+  const isFirstSlotOfAppointment = (date: Date, time: string, appointment: Appointment) => {
+    const dateString = format(date, 'yyyy-MM-dd');
+    const appointmentStartTime = appointment.start_time.substring(0, 5);
+    
+    return appointment.appointment_date === dateString && time === appointmentStartTime;
+  };
+
+  const calculateAppointmentHeight = (appointment: Appointment) => {
+    const startTime = appointment.start_time.substring(0, 5);
+    const endTime = appointment.end_time.substring(0, 5);
+    
+    const [startHour, startMinute] = startTime.split(':').map(Number);
+    const [endHour, endMinute] = endTime.split(':').map(Number);
+    
+    const startMinutes = startHour * 60 + startMinute;
+    const endMinutes = endHour * 60 + endMinute;
+    const durationMinutes = endMinutes - startMinutes;
+    
+    // Cada slot tem 80px de altura (min-h-[80px])
+    // Cada hora = 80px, então cada minuto = 80/60 = 1.33px
+    const heightPixels = (durationMinutes / 60) * 80;
+    
+    return `${heightPixels}px`;
   };
 
   if (loading) {
@@ -98,7 +127,7 @@ const WeeklyScheduleGrid = ({
         {/* Grid de horários */}
         <div className="divide-y divide-gray-200">
           {workingHours.map((time) => (
-            <div key={time} className="grid grid-cols-6 min-h-[80px]">
+            <div key={time} className="grid grid-cols-6 min-h-[80px] relative">
               {/* Coluna de horário */}
               <div className="p-2 text-center text-xs text-gray-500 bg-gray-50 border-r border-gray-200 flex items-start justify-center pt-2">
                 {time}
@@ -110,6 +139,7 @@ const WeeklyScheduleGrid = ({
                 const isOccupied = isSlotOccupied(day, time);
                 const isPast = isPastTimeSlot(day, time);
                 const appointment = getAppointmentForSlot(day, time);
+                const isFirstSlot = appointment ? isFirstSlotOfAppointment(day, time, appointment) : false;
 
                 return (
                   <div
@@ -117,10 +147,16 @@ const WeeklyScheduleGrid = ({
                     className="relative border-r border-gray-200 last:border-r-0 min-h-[80px] hover:bg-gray-50 cursor-pointer"
                     onClick={() => !isOccupied && !isPast && onSlotClick(dateString, time)}
                   >
-                    {appointment ? (
+                    {appointment && isFirstSlot ? (
                       <HoverCard>
                         <HoverCardTrigger asChild>
-                          <div className="absolute inset-1 bg-blue-100 border border-blue-300 rounded p-2 shadow-sm cursor-pointer">
+                          <div 
+                            className="absolute inset-1 bg-blue-100 border border-blue-300 rounded p-2 shadow-sm cursor-pointer z-10"
+                            style={{ 
+                              height: calculateAppointmentHeight(appointment),
+                              minHeight: '76px' // 80px - 4px (inset-1 = 4px total)
+                            }}
+                          >
                             <div className="text-xs font-semibold text-blue-800 mb-1 truncate">
                               {appointment.client_name}
                             </div>
@@ -150,6 +186,9 @@ const WeeklyScheduleGrid = ({
                           </div>
                         </HoverCardContent>
                       </HoverCard>
+                    ) : appointment && !isFirstSlot ? (
+                      // Para slots que não são o primeiro, apenas mostrar que está ocupado
+                      <div className="absolute inset-0 bg-blue-50 opacity-30"></div>
                     ) : (
                       <>
                         {isPast && (
