@@ -1,11 +1,14 @@
 
-export interface User {
+export interface Service {
   id: string;
   name: string;
-  email: string;
-  password: string;
-  isManager: boolean;
-  accessibleRoutes: string[];
+  description?: string;
+  price: number;
+  duration?: number;
+  category?: string;
+  type?: string;
+  image?: string;
+  commission: number;
 }
 
 export interface Client {
@@ -13,18 +16,8 @@ export interface Client {
   name: string;
   phone?: string;
   email?: string;
-}
-
-export interface Service {
-  id: string;
-  name: string;
-  description?: string;
-  price: number;
-  image: string;
-  commission: number;
-  category?: string;
-  type?: string;
-  duration?: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface TeamMember {
@@ -36,43 +29,25 @@ export interface TeamMember {
   password: string;
   hasAccess: boolean;
   isManager: boolean;
-  avatar: string;
-  categories?: string[];
+  avatar?: string;
+  categories?: string[]; // Adicionando as categorias ao tipo TeamMember
 }
 
 export interface ServiceRecord {
   id: string;
-  service: Service;
-  client: Client;
-  teamMember: TeamMember;
-  date: string;
-  commissionAmount?: number;
-  paymentMethod?: string;
-}
-
-export interface Expense {
-  id: string;
-  name: string;
-  description: string;
-  amount: number;
-  created_at?: string;
-  updated_at?: string;
-  expense_date: string;
-  is_fixed: boolean;
-}
-
-export interface CartItem {
-  id: string;
-  service: Service;
-  client: Client;
-  teamMember?: TeamMember;
-  quantity: number;
+  serviceId: string;
+  clientId: string;
+  professionalId: string;
+  serviceValue: number;
+  commissionAmount: number;
   tipAmount?: number;
-}
-
-export interface AuthState {
-  isAuthenticated: boolean;
-  currentUser: TeamMember | null;
+  paymentMethod?: string;
+  date: string;
+  createdAt: string;
+  updatedAt: string;
+  service?: Service;
+  client?: Client;
+  professional?: TeamMember;
 }
 
 export interface Appointment {
@@ -88,13 +63,4 @@ export interface Appointment {
   notes?: string;
   created_at: string;
   updated_at: string;
-}
-
-export interface AppointmentService {
-  id: string;
-  appointment_id: string;
-  service_id: string;
-  quantity: number;
-  unit_price: number;
-  created_at: string;
 }

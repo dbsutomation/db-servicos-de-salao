@@ -37,6 +37,7 @@ const SchedulingCalendar = () => {
 
   const fetchProfessionals = async () => {
     try {
+      console.log('Fetching professionals from users table...');
       const { data, error } = await supabase
         .from('users')
         .select('*')
@@ -45,18 +46,31 @@ const SchedulingCalendar = () => {
 
       if (error) throw error;
 
-      const teamMembers: TeamMember[] = data.map(user => ({
-        id: user.id,
-        name: user.name,
-        profession: user.profession || '',
-        phone: user.phone || '',
-        email: user.email,
-        password: '',
-        hasAccess: user.has_access,
-        isManager: user.is_manager,
-        avatar: user.avatar || ''
-      }));
+      console.log('Raw users data from database:', data);
 
+      const teamMembers: TeamMember[] = data.map(user => {
+        console.log(`Mapping user ${user.name}:`, {
+          id: user.id,
+          categories: user.categories,
+          categoriesType: typeof user.categories,
+          categoriesArray: Array.isArray(user.categories)
+        });
+
+        return {
+          id: user.id,
+          name: user.name,
+          profession: user.profession || '',
+          phone: user.phone || '',
+          email: user.email,
+          password: '',
+          hasAccess: user.has_access,
+          isManager: user.is_manager,
+          avatar: user.avatar || '',
+          categories: user.categories || [] // Incluindo as categorias do usuário
+        };
+      });
+
+      console.log('Mapped team members:', teamMembers);
       setProfessionals(teamMembers);
     } catch (error) {
       console.error('Erro ao buscar profissionais:', error);
@@ -144,6 +158,8 @@ const SchedulingCalendar = () => {
   };
 
   const selectedProfessionalData = professionals.find(p => p.id === selectedProfessional);
+
+  console.log('Selected professional data:', selectedProfessionalData);
 
   return (
     <div className="space-y-6">
