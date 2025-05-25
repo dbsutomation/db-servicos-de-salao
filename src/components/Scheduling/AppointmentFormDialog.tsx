@@ -71,20 +71,36 @@ const AppointmentFormDialog = ({
 
   // Filter services based on selected professional's categories
   useEffect(() => {
+    console.log('Filtering services for professional:', selectedProfessional?.name);
+    console.log('Professional categories:', selectedProfessional?.categories);
+    console.log('All services:', services.map(s => ({ name: s.name, category: s.category })));
+
     if (services.length > 0 && selectedProfessional) {
       const professionalCategories = selectedProfessional.categories || [];
       
+      console.log('Professional categories array:', professionalCategories);
+      
       if (professionalCategories.length === 0) {
-        // If professional has no categories, show all services
+        console.log('Professional has no categories, showing all services');
         setFilteredServices(services);
       } else {
         // Filter services by professional's categories
-        const filtered = services.filter(service => 
-          service.category && professionalCategories.includes(service.category)
-        );
+        const filtered = services.filter(service => {
+          if (!service.category) {
+            console.log(`Service "${service.name}" has no category`);
+            return false;
+          }
+          
+          const hasCategory = professionalCategories.includes(service.category);
+          console.log(`Service "${service.name}" (category: ${service.category}) - included: ${hasCategory}`);
+          return hasCategory;
+        });
+        
+        console.log('Filtered services:', filtered.map(s => s.name));
         setFilteredServices(filtered);
       }
     } else {
+      console.log('No professional selected or no services loaded, showing all services');
       setFilteredServices(services);
     }
   }, [services, selectedProfessional]);
@@ -121,6 +137,7 @@ const AppointmentFormDialog = ({
         .order('name');
 
       if (error) throw error;
+      console.log('Services fetched from database:', data);
       setServices(data || []);
     } catch (error) {
       console.error('Erro ao buscar serviços:', error);
@@ -421,6 +438,10 @@ const AppointmentFormDialog = ({
             {filteredServices.length === 0 && (
               <div className="p-3 text-sm text-gray-500 bg-gray-50 rounded-lg">
                 Nenhum serviço disponível para as categorias do profissional selecionado.
+                <br />
+                <span className="text-xs">
+                  Categorias do profissional: {selectedProfessional?.categories?.join(', ') || 'Nenhuma categoria definida'}
+                </span>
               </div>
             )}
 
