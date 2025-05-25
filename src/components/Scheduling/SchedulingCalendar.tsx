@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import WeeklyScheduleGrid from './WeeklyScheduleGrid';
 import MobileScheduleGrid from './MobileScheduleGrid';
 import AppointmentFormDialog from './AppointmentFormDialog';
@@ -39,22 +39,24 @@ const SchedulingCalendar = () => {
       />
 
       {selectedProfessional && (
-        <Card>
-          <CardHeader>
-            {!isMobile && (
-              <WeekNavigation
-                currentWeek={currentWeek}
-                onWeekChange={setCurrentWeek}
-                professionalName={selectedProfessionalData?.name}
-              />
-            )}
-            {isMobile && (
-              <h2 className="text-lg font-semibold">
+        <Card className="shadow-lg border-gray-200">
+          {!isMobile && (
+            <WeekNavigation
+              currentWeek={currentWeek}
+              onWeekChange={setCurrentWeek}
+              professionalName={selectedProfessionalData?.name}
+            />
+          )}
+          
+          {isMobile && (
+            <div className="p-4 border-b border-gray-200">
+              <h2 className="text-lg font-semibold text-gray-900">
                 Agenda de {selectedProfessionalData?.name}
               </h2>
-            )}
-          </CardHeader>
-          <CardContent>
+            </div>
+          )}
+
+          <div className="overflow-hidden">
             {isMobile ? (
               <MobileScheduleGrid
                 currentWeek={currentWeek}
@@ -72,7 +74,7 @@ const SchedulingCalendar = () => {
                 loading={loading}
               />
             )}
-          </CardContent>
+          </div>
         </Card>
       )}
 

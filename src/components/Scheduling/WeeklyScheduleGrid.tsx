@@ -23,13 +23,12 @@ const WeeklyScheduleGrid = ({
   const { isPastTimeSlot } = useTimeValidation();
   
   const weekStart = startOfWeek(currentWeek, { weekStartsOn: 0 });
-  const weekDays = Array.from({ length: 5 }, (_, i) => addDays(weekStart, i + 2));
+  const weekDays = Array.from({ length: 5 }, (_, i) => addDays(weekStart, i + 1));
   
-  // Horários de funcionamento (8:00 às 19:00) com intervalos de 30 minutos
-  const workingHours = Array.from({ length: 22 }, (_, i) => {
-    const baseHour = 8 + Math.floor(i / 2);
-    const minutes = (i % 2) * 30;
-    return `${baseHour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  // Horários de funcionamento (8:00 às 17:00) com intervalos de 1 hora
+  const workingHours = Array.from({ length: 10 }, (_, i) => {
+    const hour = 8 + i;
+    return `${hour.toString().padStart(2, '0')}:00`;
   });
 
   const isSlotOccupied = (date: Date, time: string) => {
@@ -44,34 +43,13 @@ const WeeklyScheduleGrid = ({
     });
   };
 
-  const getSlotButtonProps = (date: Date, time: string) => {
-    const isOccupied = isSlotOccupied(date, time);
-    const isPast = isPastTimeSlot(date, time);
-    
-    if (isOccupied) {
-      return {
-        variant: "secondary" as const,
-        className: 'bg-red-100 text-red-700 cursor-not-allowed',
-        disabled: true,
-        text: 'Ocupado'
-      };
-    }
-    
-    if (isPast) {
-      return {
-        variant: "outline" as const,
-        className: 'bg-red-500 text-white cursor-not-allowed',
-        disabled: true,
-        text: '—'
-      };
-    }
-    
-    return {
-      variant: "outline" as const,
-      className: 'hover:bg-green-100 hover:text-green-700',
-      disabled: false,
-      text: 'Livre'
-    };
+  const getAppointmentForSlot = (date: Date, time: string) => {
+    return appointments.find(appointment => {
+      const appointmentDate = new Date(appointment.appointment_date);
+      const appointmentStartTime = appointment.start_time.substring(0, 5);
+      
+      return isSameDay(appointmentDate, date) && appointmentStartTime === time;
+    });
   };
 
   if (loading) {
@@ -83,43 +61,65 @@ const WeeklyScheduleGrid = ({
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto bg-white">
       <div className="min-w-full">
-        {/* Cabeçalho dos dias */}
-        <div className="grid grid-cols-6 gap-1 mb-2">
-          <div className="p-2 text-center font-semibold text-sm">Horário</div>
+        {/* Cabeçalho dos dias - estilo idêntico à imagem */}
+        <div className="grid grid-cols-6 border-b border-gray-200">
+          <div className="p-4 bg-gray-50 border-r border-gray-200"></div>
           {weekDays.map((day) => (
-            <div key={day.toISOString()} className="p-2 text-center font-semibold text-sm">
-              <div>{format(day, 'EEE', { locale: ptBR })}</div>
-              <div className="text-xs text-gray-500">
-                {format(day, 'dd/MM', { locale: ptBR })}
+            <div key={day.toISOString()} className="p-4 text-center bg-gray-50 border-r border-gray-200 last:border-r-0">
+              <div className="flex flex-col items-center">
+                <div className="text-sm font-semibold text-blue-600 mb-1">
+                  {format(day, 'dd', { locale: ptBR })}
+                </div>
+                <div className="text-xs text-gray-600 uppercase">
+                  {format(day, 'EEEE', { locale: ptBR })}
+                </div>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Grid de horários */}
-        <div className="space-y-1">
+        {/* Grid de horários - estilo idêntico à imagem */}
+        <div className="divide-y divide-gray-200">
           {workingHours.map((time) => (
-            <div key={time} className="grid grid-cols-6 gap-1">
-              <div className="p-2 text-center text-sm font-medium bg-gray-50 rounded">
+            <div key={time} className="grid grid-cols-6 min-h-[80px]">
+              {/* Coluna de horário */}
+              <div className="p-2 text-center text-xs text-gray-500 bg-gray-50 border-r border-gray-200 flex items-start justify-center pt-2">
                 {time}
               </div>
+              
+              {/* Colunas dos dias */}
               {weekDays.map((day) => {
                 const dateString = format(day, 'yyyy-MM-dd');
-                const buttonProps = getSlotButtonProps(day, time);
+                const isOccupied = isSlotOccupied(day, time);
+                const isPast = isPastTimeSlot(day, time);
+                const appointment = getAppointmentForSlot(day, time);
 
                 return (
-                  <Button
+                  <div
                     key={`${dateString}-${time}`}
-                    variant={buttonProps.variant}
-                    size="sm"
-                    className={`h-12 text-xs ${buttonProps.className}`}
-                    disabled={buttonProps.disabled}
-                    onClick={() => !buttonProps.disabled && onSlotClick(dateString, time)}
+                    className="relative border-r border-gray-200 last:border-r-0 min-h-[80px] hover:bg-gray-50 cursor-pointer"
+                    onClick={() => !isOccupied && !isPast && onSlotClick(dateString, time)}
                   >
-                    {buttonProps.text}
-                  </Button>
+                    {appointment && (
+                      <div className="absolute inset-1 bg-blue-100 border border-blue-300 rounded p-2 shadow-sm">
+                        <div className="text-xs font-semibold text-blue-800 mb-1">
+                          {appointment.client_name}
+                        </div>
+                        <div className="text-xs text-blue-600">
+                          {appointment.service_name}
+                        </div>
+                        <div className="text-xs text-blue-500 mt-1">
+                          {appointment.start_time.substring(0, 5)} - {appointment.end_time.substring(0, 5)}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {!appointment && isPast && (
+                      <div className="absolute inset-0 bg-gray-100 opacity-50"></div>
+                    )}
+                  </div>
                 );
               })}
             </div>
