@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -31,7 +32,7 @@ interface AppointmentFormDialogProps {
 }
 
 interface SelectedService {
-  service: Service;
+  service: Service | null;
   quantity: number;
 }
 
@@ -163,9 +164,8 @@ const AppointmentFormDialog = ({
   };
 
   const addService = () => {
-    if (filteredServices.length > 0) {
-      setSelectedServices(prev => [...prev, { service: filteredServices[0], quantity: 1 }]);
-    }
+    // Add service with null service (blank field) so user must select
+    setSelectedServices(prev => [...prev, { service: null, quantity: 1 }]);
   };
 
   const removeService = (index: number) => {
@@ -193,6 +193,7 @@ const AppointmentFormDialog = ({
 
   const calculateTotalDuration = () => {
     return selectedServices.reduce((total, item) => {
+      if (!item.service) return total;
       const serviceDuration = item.service.duration || 60;
       return total + (serviceDuration * item.quantity);
     }, 0);
@@ -200,6 +201,7 @@ const AppointmentFormDialog = ({
 
   const calculateTotalValue = () => {
     return selectedServices.reduce((total, item) => {
+      if (!item.service) return total;
       return total + (item.service.price * item.quantity);
     }, 0);
   };
@@ -234,6 +236,17 @@ const AppointmentFormDialog = ({
       toast({
         title: "Erro",
         description: "Selecione um cliente.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check if all services are selected
+    const hasUnselectedServices = selectedServices.some(item => !item.service);
+    if (hasUnselectedServices) {
+      toast({
+        title: "Erro",
+        description: "Selecione todos os serviços adicionados.",
         variant: "destructive",
       });
       return;
@@ -275,12 +288,14 @@ const AppointmentFormDialog = ({
       if (appointmentError) throw appointmentError;
 
       // Criar os serviços do agendamento
-      const appointmentServices = selectedServices.map(item => ({
-        appointment_id: appointment.id,
-        service_id: item.service.id,
-        quantity: item.quantity,
-        unit_price: item.service.price
-      }));
+      const appointmentServices = selectedServices
+        .filter(item => item.service) // Only include items with selected services
+        .map(item => ({
+          appointment_id: appointment.id,
+          service_id: item.service!.id,
+          quantity: item.quantity,
+          unit_price: item.service!.price
+        }));
 
       const { error: servicesError } = await supabase
         .from('appointment_services')
@@ -413,11 +428,11 @@ const AppointmentFormDialog = ({
               {selectedServices.map((item, index) => (
                 <div key={index} className="flex items-center space-x-2 p-3 border rounded-lg">
                   <Select
-                    value={item.service.id}
+                    value={item.service?.id || ''}
                     onValueChange={(value) => updateService(index, value)}
                   >
                     <SelectTrigger className="flex-1">
-                      <SelectValue />
+                      <SelectValue placeholder="Selecione um serviço" />
                     </SelectTrigger>
                     <SelectContent>
                       {filteredServices.map((service) => (
@@ -450,7 +465,7 @@ const AppointmentFormDialog = ({
           </div>
 
           {/* Resumo */}
-          {selectedServices.length > 0 && (
+          {selectedServices.some(item => item.service) && (
             <div className="p-4 bg-gray-50 rounded-lg">
               <h4 className="font-semibold mb-2">Resumo do Agendamento</h4>
               <div className="space-y-1 text-sm">

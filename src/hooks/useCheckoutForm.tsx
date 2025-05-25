@@ -136,7 +136,7 @@ export function useCheckoutForm() {
       date: new Date().toLocaleDateString('pt-BR')
     };
 
-    // Print receipt with improved layout for thermal printers
+    // Print receipt with improved layout for 70mm thermal printers
     const printWindow = window.open('', '_blank');
     if (printWindow) {
       printWindow.document.write(`
@@ -145,19 +145,19 @@ export function useCheckoutForm() {
             <title>Comprovante - GoldenSky JP56H</title>
             <style>
               @page {
-                size: 80mm auto;
-                margin: 2mm;
+                size: 70mm auto;
+                margin: 1mm;
               }
               
               body {
                 font-family: 'Courier New', monospace;
-                font-size: 14px;
-                font-weight: bold;
-                line-height: 1.1;
+                font-size: 12px;
+                font-weight: 900;
+                line-height: 1.0;
                 margin: 0;
-                padding: 2mm;
-                width: 76mm;
-                max-width: 76mm;
+                padding: 1mm;
+                width: 68mm;
+                max-width: 68mm;
                 color: #000;
                 background: #fff;
                 -webkit-print-color-adjust: exact;
@@ -166,27 +166,30 @@ export function useCheckoutForm() {
               
               .header {
                 text-align: center;
-                margin-bottom: 6px;
+                margin-bottom: 4px;
                 font-weight: 900;
-                font-size: 16px;
+                font-size: 14px;
                 text-transform: uppercase;
+                letter-spacing: 0.5px;
               }
               
               .info {
-                margin-bottom: 3px;
-                font-size: 13px;
-                font-weight: bold;
+                margin-bottom: 2px;
+                font-size: 11px;
+                font-weight: 900;
                 word-wrap: break-word;
                 overflow-wrap: break-word;
+                line-height: 1.1;
               }
               
               .item {
                 display: block;
-                margin-bottom: 2px;
-                font-size: 12px;
-                font-weight: bold;
+                margin-bottom: 1px;
+                font-size: 10px;
+                font-weight: 900;
                 word-wrap: break-word;
                 overflow-wrap: break-word;
+                line-height: 1.1;
               }
               
               .item-line {
@@ -194,81 +197,89 @@ export function useCheckoutForm() {
                 justify-content: space-between;
                 align-items: flex-start;
                 margin-bottom: 1px;
+                width: 100%;
               }
               
               .item-name {
                 flex: 1;
-                margin-right: 5px;
-                font-weight: bold;
-                max-width: 50mm;
+                margin-right: 3px;
+                font-weight: 900;
+                max-width: 45mm;
                 word-wrap: break-word;
                 overflow-wrap: break-word;
+                font-size: 10px;
               }
               
               .item-price {
                 white-space: nowrap;
                 text-align: right;
-                min-width: 18mm;
+                min-width: 15mm;
                 font-weight: 900;
-                font-size: 13px;
+                font-size: 10px;
+                flex-shrink: 0;
               }
               
               .tip {
-                padding-left: 8px;
+                padding-left: 6px;
                 color: #333;
-                font-size: 11px;
-                font-weight: bold;
+                font-size: 9px;
+                font-weight: 900;
+                margin-top: 1px;
               }
               
               .divider {
                 border-top: 2px solid #000;
-                margin: 4px 0;
-                height: 2px;
+                margin: 3px 0;
+                height: 1px;
+                width: 100%;
               }
               
               .total-line {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                margin: 2px 0;
-                font-size: 13px;
-                font-weight: bold;
+                margin: 1px 0;
+                font-size: 11px;
+                font-weight: 900;
+                width: 100%;
               }
               
               .total-label {
                 flex: 1;
                 font-weight: 900;
+                font-size: 11px;
               }
               
               .total-value {
                 white-space: nowrap;
                 text-align: right;
-                min-width: 20mm;
+                min-width: 18mm;
                 font-weight: 900;
-                font-size: 14px;
+                font-size: 11px;
+                flex-shrink: 0;
               }
               
               .total-final {
                 font-weight: 900;
-                font-size: 16px;
-                border-top: 3px double #000;
-                border-bottom: 3px double #000;
-                padding: 3px 0;
-                margin: 4px 0;
+                font-size: 12px;
+                border-top: 2px double #000;
+                border-bottom: 2px double #000;
+                padding: 2px 0;
+                margin: 3px 0;
                 text-transform: uppercase;
               }
               
               .footer {
                 text-align: center;
-                margin-top: 8px;
-                font-size: 12px;
-                font-weight: bold;
+                margin-top: 6px;
+                font-size: 10px;
+                font-weight: 900;
               }
               
               .payment-info {
-                margin-top: 4px;
-                font-size: 12px;
-                font-weight: bold;
+                margin-top: 3px;
+                font-size: 10px;
+                font-weight: 900;
               }
               
               .center {
@@ -284,6 +295,11 @@ export function useCheckoutForm() {
                 
                 * {
                   font-weight: 900 !important;
+                }
+                
+                .item-price, .total-value {
+                  font-weight: 900 !important;
+                  color: #000 !important;
                 }
               }
             </style>
