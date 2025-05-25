@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -137,7 +136,7 @@ export function useCheckoutForm() {
       date: new Date().toLocaleDateString('pt-BR')
     };
 
-    // Print receipt with improved layout
+    // Print receipt with improved layout for thermal printers
     const printWindow = window.open('', '_blank');
     if (printWindow) {
       printWindow.document.write(`
@@ -147,94 +146,150 @@ export function useCheckoutForm() {
             <style>
               @page {
                 size: 80mm auto;
-                margin: 5mm;
+                margin: 2mm;
               }
               
               body {
                 font-family: 'Courier New', monospace;
-                font-size: 12px;
-                line-height: 1.2;
+                font-size: 14px;
+                font-weight: bold;
+                line-height: 1.1;
                 margin: 0;
-                padding: 5px;
-                width: 70mm;
-                max-width: 70mm;
+                padding: 2mm;
+                width: 76mm;
+                max-width: 76mm;
                 color: #000;
                 background: #fff;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
               }
               
               .header {
                 text-align: center;
-                margin-bottom: 8px;
-                font-weight: bold;
-                font-size: 14px;
+                margin-bottom: 6px;
+                font-weight: 900;
+                font-size: 16px;
+                text-transform: uppercase;
               }
               
               .info {
                 margin-bottom: 3px;
-                font-size: 11px;
+                font-size: 13px;
+                font-weight: bold;
                 word-wrap: break-word;
+                overflow-wrap: break-word;
               }
               
               .item {
+                display: block;
+                margin-bottom: 2px;
+                font-size: 12px;
+                font-weight: bold;
+                word-wrap: break-word;
+                overflow-wrap: break-word;
+              }
+              
+              .item-line {
                 display: flex;
                 justify-content: space-between;
-                margin-bottom: 2px;
-                font-size: 11px;
+                align-items: flex-start;
+                margin-bottom: 1px;
               }
               
               .item-name {
                 flex: 1;
                 margin-right: 5px;
+                font-weight: bold;
+                max-width: 50mm;
                 word-wrap: break-word;
-                overflow: hidden;
+                overflow-wrap: break-word;
               }
               
               .item-price {
                 white-space: nowrap;
                 text-align: right;
-                min-width: 40px;
+                min-width: 18mm;
+                font-weight: 900;
+                font-size: 13px;
               }
               
               .tip {
-                padding-left: 10px;
-                color: #666;
-                font-size: 10px;
+                padding-left: 8px;
+                color: #333;
+                font-size: 11px;
+                font-weight: bold;
               }
               
               .divider {
-                border-top: 1px dashed #000;
-                margin: 5px 0;
+                border-top: 2px solid #000;
+                margin: 4px 0;
+                height: 2px;
               }
               
               .total-line {
                 display: flex;
                 justify-content: space-between;
+                align-items: center;
                 margin: 2px 0;
-                font-size: 11px;
+                font-size: 13px;
+                font-weight: bold;
+              }
+              
+              .total-label {
+                flex: 1;
+                font-weight: 900;
+              }
+              
+              .total-value {
+                white-space: nowrap;
+                text-align: right;
+                min-width: 20mm;
+                font-weight: 900;
+                font-size: 14px;
               }
               
               .total-final {
-                font-weight: bold;
-                font-size: 13px;
-                border-top: 2px solid #000;
-                padding-top: 3px;
-                margin-top: 5px;
+                font-weight: 900;
+                font-size: 16px;
+                border-top: 3px double #000;
+                border-bottom: 3px double #000;
+                padding: 3px 0;
+                margin: 4px 0;
+                text-transform: uppercase;
               }
               
               .footer {
                 text-align: center;
-                margin-top: 10px;
-                font-size: 11px;
+                margin-top: 8px;
+                font-size: 12px;
+                font-weight: bold;
               }
               
               .payment-info {
-                margin-top: 5px;
-                font-size: 11px;
+                margin-top: 4px;
+                font-size: 12px;
+                font-weight: bold;
+              }
+              
+              .center {
+                text-align: center;
+              }
+              
+              @media print {
+                body {
+                  -webkit-print-color-adjust: exact;
+                  print-color-adjust: exact;
+                  font-weight: 900 !important;
+                }
+                
+                * {
+                  font-weight: 900 !important;
+                }
               }
             </style>
           </head>
           <body>
-            <div class="header">Comprovante</div>
+            <div class="header">COMPROVANTE</div>
             
             <div class="info">Cliente: ${receiptData.client}</div>
             <div class="info">Data: ${receiptData.date}</div>
@@ -243,43 +298,49 @@ export function useCheckoutForm() {
             
             ${receiptData.items.map(item => `
               <div class="item">
-                <span class="item-name">${item.quantity}x ${item.name}</span>
-                <span class="item-price">R$ ${(item.price * item.quantity).toFixed(2)}</span>
+                <div class="item-line">
+                  <span class="item-name">${item.quantity}x ${item.name}</span>
+                  <span class="item-price">R$ ${(item.price * item.quantity).toFixed(2).replace('.', ',')}</span>
+                </div>
+                ${item.tipAmount > 0 ? `
+                <div class="tip">
+                  <div class="item-line">
+                    <span class="item-name">+ Gorjeta</span>
+                    <span class="item-price">R$ ${item.tipAmount.toFixed(2).replace('.', ',')}</span>
+                  </div>
+                </div>
+                ` : ''}
               </div>
-              ${item.tipAmount > 0 ? `
-              <div class="item tip">
-                <span class="item-name">Gorjeta</span>
-                <span class="item-price">R$ ${item.tipAmount.toFixed(2)}</span>
-              </div>
-              ` : ''}
             `).join('')}
             
             <div class="divider"></div>
             
             <div class="total-line">
-              <span>Subtotal:</span>
-              <span>R$ ${receiptData.subtotal.toFixed(2)}</span>
+              <span class="total-label">Subtotal:</span>
+              <span class="total-value">R$ ${receiptData.subtotal.toFixed(2).replace('.', ',')}</span>
             </div>
             
+            ${receiptData.totalTips > 0 ? `
             <div class="total-line">
-              <span>Gorjetas:</span>
-              <span>R$ ${receiptData.totalTips.toFixed(2)}</span>
+              <span class="total-label">Gorjetas:</span>
+              <span class="total-value">R$ ${receiptData.totalTips.toFixed(2).replace('.', ',')}</span>
             </div>
+            ` : ''}
             
             <div class="total-line total-final">
-              <span>TOTAL:</span>
-              <span>R$ ${receiptData.total.toFixed(2)}</span>
+              <span class="total-label">TOTAL:</span>
+              <span class="total-value">R$ ${receiptData.total.toFixed(2).replace('.', ',')}</span>
             </div>
             
             <div class="divider"></div>
             
             <div class="payment-info">
-              <div class="info">Pagamento: ${receiptData.paymentMethod}</div>
-              ${receiptData.creditPaymentType ? `<div class="info">${receiptData.creditPaymentType}</div>` : ''}
+              <div class="info center">Pagamento: ${receiptData.paymentMethod}</div>
+              ${receiptData.creditPaymentType ? `<div class="info center">${receiptData.creditPaymentType}</div>` : ''}
             </div>
             
             <div class="footer">
-              Obrigado pela preferencia!
+              OBRIGADO PELA PREFERENCIA!
             </div>
           </body>
         </html>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -45,6 +44,7 @@ const AppointmentFormDialog = ({
 }: AppointmentFormDialogProps) => {
   const [clients, setClients] = useState<Client[]>([]);
   const [services, setServices] = useState<Service[]>([]);
+  const [filteredServices, setFilteredServices] = useState<Service[]>([]);
   const [selectedClient, setSelectedClient] = useState('');
   const [selectedServices, setSelectedServices] = useState<SelectedService[]>([]);
   const [notes, setNotes] = useState('');
@@ -67,6 +67,26 @@ const AppointmentFormDialog = ({
       resetForm();
     }
   }, [isOpen]);
+
+  // Filter services based on selected professional's categories
+  useEffect(() => {
+    if (services.length > 0 && selectedProfessional) {
+      const professionalCategories = selectedProfessional.categories || [];
+      
+      if (professionalCategories.length === 0) {
+        // If professional has no categories, show all services
+        setFilteredServices(services);
+      } else {
+        // Filter services by professional's categories
+        const filtered = services.filter(service => 
+          service.category && professionalCategories.includes(service.category)
+        );
+        setFilteredServices(filtered);
+      }
+    } else {
+      setFilteredServices(services);
+    }
+  }, [services, selectedProfessional]);
 
   const resetForm = () => {
     setSelectedClient('');
@@ -143,8 +163,8 @@ const AppointmentFormDialog = ({
   };
 
   const addService = () => {
-    if (services.length > 0) {
-      setSelectedServices(prev => [...prev, { service: services[0], quantity: 1 }]);
+    if (filteredServices.length > 0) {
+      setSelectedServices(prev => [...prev, { service: filteredServices[0], quantity: 1 }]);
     }
   };
 
@@ -153,7 +173,7 @@ const AppointmentFormDialog = ({
   };
 
   const updateService = (index: number, serviceId: string) => {
-    const service = services.find(s => s.id === serviceId);
+    const service = filteredServices.find(s => s.id === serviceId);
     if (service) {
       setSelectedServices(prev => 
         prev.map((item, i) => 
@@ -376,11 +396,18 @@ const AppointmentFormDialog = ({
                 variant="outline"
                 size="sm"
                 onClick={addService}
+                disabled={filteredServices.length === 0}
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Adicionar Serviço
               </Button>
             </div>
+
+            {filteredServices.length === 0 && (
+              <div className="p-3 text-sm text-gray-500 bg-gray-50 rounded-lg">
+                Nenhum serviço disponível para as categorias do profissional selecionado.
+              </div>
+            )}
 
             <div className="space-y-2">
               {selectedServices.map((item, index) => (
@@ -393,7 +420,7 @@ const AppointmentFormDialog = ({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {services.map((service) => (
+                      {filteredServices.map((service) => (
                         <SelectItem key={service.id} value={service.id}>
                           {service.name} - R$ {service.price.toFixed(2)} ({service.duration || 60}min)
                         </SelectItem>
