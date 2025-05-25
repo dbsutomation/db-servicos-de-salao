@@ -139,7 +139,7 @@ const WeeklyScheduleGrid = ({
         {/* Grid de horários */}
         <div className="space-y-1">
           {workingHours.map((time) => (
-            <div key={time} className="grid grid-cols-8 gap-1">
+            <div key={time} className="grid grid-cols-6 gap-1">
               <div className="p-2 text-center text-sm font-medium bg-gray-50 rounded">
                 {time}
               </div>
