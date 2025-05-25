@@ -26,7 +26,7 @@ const WeeklyScheduleGrid = ({
   const weekDays = Array.from({ length: 5 }, (_, i) => addDays(weekStart, i + 2));
   
   // Horários de funcionamento (8:00 às 17:00) com intervalos de 1 hora
-  const workingHours = Array.from({ length: 10 }, (_, i) => {
+  const workingHours = Array.from({ length: 12 }, (_, i) => {
     const hour = 8 + i;
     return `${hour.toString().padStart(2, '0')}:00`;
   });
