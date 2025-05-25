@@ -25,7 +25,7 @@ const WeeklyScheduleGrid = ({
   const weekStart = startOfWeek(currentWeek, { weekStartsOn: 0 });
   const weekDays = Array.from({ length: 5 }, (_, i) => addDays(weekStart, i + 2));
   
-  // Horários de funcionamento (8:00 às 17:00) com intervalos de 1 hora
+  // Horários de funcionamento (8:00 às 19:00) com intervalos de 1 hora
   const workingHours = Array.from({ length: 12 }, (_, i) => {
     const hour = 8 + i;
     return `${hour.toString().padStart(2, '0')}:00`;
@@ -35,7 +35,7 @@ const WeeklyScheduleGrid = ({
     const dateString = format(date, 'yyyy-MM-dd');
     
     const occupied = appointments.some(appointment => {
-      const appointmentDate = format(new Date(appointment.appointment_date), 'yyyy-MM-dd');
+      const appointmentDate = appointment.appointment_date;
       const appointmentStartTime = appointment.start_time.substring(0, 5);
       const appointmentEndTime = appointment.end_time.substring(0, 5);
       
@@ -45,7 +45,6 @@ const WeeklyScheduleGrid = ({
       return isDateMatch && isTimeOverlap;
     });
 
-    console.log(`Verificando slot ${dateString} ${time}: ocupado = ${occupied}`);
     return occupied;
   };
 
@@ -53,15 +52,11 @@ const WeeklyScheduleGrid = ({
     const dateString = format(date, 'yyyy-MM-dd');
     
     const appointment = appointments.find(appointment => {
-      const appointmentDate = format(new Date(appointment.appointment_date), 'yyyy-MM-dd');
+      const appointmentDate = appointment.appointment_date;
       const appointmentStartTime = appointment.start_time.substring(0, 5);
       
       return appointmentDate === dateString && appointmentStartTime === time;
     });
-
-    if (appointment) {
-      console.log(`Agendamento encontrado para ${dateString} ${time}:`, appointment);
-    }
 
     return appointment;
   };
@@ -75,9 +70,9 @@ const WeeklyScheduleGrid = ({
   }
 
   console.log('=== RENDERIZANDO GRID ===');
-  console.log('Total de agendamentos recebidos:', appointments.length);
+  console.log('Total de agendamentos:', appointments.length);
   appointments.forEach(app => {
-    console.log(`Agendamento: ${app.client_name} - ${app.service_name} em ${app.appointment_date} às ${app.start_time}-${app.end_time}`);
+    console.log(`Renderizando: ${app.client_name} - ${app.service_name} em ${app.appointment_date} das ${app.start_time} às ${app.end_time}`);
   });
 
   return (
