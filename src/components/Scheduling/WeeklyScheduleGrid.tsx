@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { format, addDays, startOfWeek, isSameDay } from 'date-fns';
+import { format, addDays, startOfWeek, isSameDay, isToday, isPast, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Appointment } from '@/types';
@@ -22,10 +22,11 @@ const WeeklyScheduleGrid = ({
   const weekStart = startOfWeek(currentWeek, { weekStartsOn: 0 });
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
   
-  // Horários de funcionamento (7:00 às 22:00)
-  const workingHours = Array.from({ length: 15 }, (_, i) => {
-    const hour = 7 + i;
-    return `${hour.toString().padStart(2, '0')}:00`;
+  // Horários de funcionamento (7:00 às 22:00) com intervalos de 30 minutos
+  const workingHours = Array.from({ length: 30 }, (_, i) => {
+    const baseHour = 7 + Math.floor(i / 2);
+    const minutes = (i % 2) * 30;
+    return `${baseHour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
   });
 
   const isSlotOccupied = (date: Date, time: string) => {
@@ -44,6 +45,49 @@ const WeeklyScheduleGrid = ({
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     return date < today;
+  };
+
+  const isPastTimeSlot = (date: Date, time: string) => {
+    if (!isToday(date)) return false;
+    
+    // Criar um objeto Date para o horário específico de hoje
+    const now = new Date();
+    const [hours, minutes] = time.split(':').map(Number);
+    const slotTime = new Date();
+    slotTime.setHours(hours, minutes, 0, 0);
+    
+    return slotTime < now;
+  };
+
+  const getSlotButtonProps = (date: Date, time: string) => {
+    const isOccupied = isSlotOccupied(date, time);
+    const isPastDateSlot = isPastDate(date);
+    const isPastTime = isPastTimeSlot(date, time);
+    
+    if (isOccupied) {
+      return {
+        variant: "secondary" as const,
+        className: 'bg-red-100 text-red-700 cursor-not-allowed',
+        disabled: true,
+        text: 'Ocupado'
+      };
+    }
+    
+    if (isPastDateSlot || isPastTime) {
+      return {
+        variant: "outline" as const,
+        className: 'bg-red-500 text-white cursor-not-allowed',
+        disabled: true,
+        text: '—'
+      };
+    }
+    
+    return {
+      variant: "outline" as const,
+      className: 'hover:bg-green-100 hover:text-green-700',
+      disabled: false,
+      text: 'Livre'
+    };
   };
 
   if (loading) {
@@ -78,26 +122,19 @@ const WeeklyScheduleGrid = ({
                 {time}
               </div>
               {weekDays.map((day) => {
-                const isOccupied = isSlotOccupied(day, time);
-                const isPast = isPastDate(day);
                 const dateString = format(day, 'yyyy-MM-dd');
+                const buttonProps = getSlotButtonProps(day, time);
 
                 return (
                   <Button
                     key={`${dateString}-${time}`}
-                    variant={isOccupied ? "secondary" : "outline"}
+                    variant={buttonProps.variant}
                     size="sm"
-                    className={`h-12 text-xs ${
-                      isOccupied 
-                        ? 'bg-red-100 text-red-700 cursor-not-allowed' 
-                        : isPast 
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        : 'hover:bg-green-100 hover:text-green-700'
-                    }`}
-                    disabled={isOccupied || isPast}
-                    onClick={() => !isOccupied && !isPast && onSlotClick(dateString, time)}
+                    className={`h-12 text-xs ${buttonProps.className}`}
+                    disabled={buttonProps.disabled}
+                    onClick={() => !buttonProps.disabled && onSlotClick(dateString, time)}
                   >
-                    {isOccupied ? 'Ocupado' : 'Livre'}
+                    {buttonProps.text}
                   </Button>
                 );
               })}
