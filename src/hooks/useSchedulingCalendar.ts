@@ -74,19 +74,14 @@ export const useSchedulingCalendar = () => {
       const weekStart = startOfWeek(currentWeek, { weekStartsOn: 0 });
       const weekEnd = endOfWeek(currentWeek, { weekStartsOn: 0 });
 
-      console.log('Fetching appointments for:', {
-        professional: selectedProfessional,
-        weekStart: format(weekStart, 'yyyy-MM-dd'),
-        weekEnd: format(weekEnd, 'yyyy-MM-dd')
-      });
+      console.log('=== INICIO BUSCA AGENDAMENTOS ===');
+      console.log('Professional ID:', selectedProfessional);
+      console.log('Week range:', format(weekStart, 'yyyy-MM-dd'), 'to', format(weekEnd, 'yyyy-MM-dd'));
 
-      // Buscar agendamentos simples primeiro
+      // Buscar agendamentos
       const { data: appointmentsData, error: appointmentsError } = await supabase
         .from('appointments')
-        .select(`
-          *,
-          clients!inner(name)
-        `)
+        .select('*')
         .eq('professional_id', selectedProfessional)
         .gte('appointment_date', format(weekStart, 'yyyy-MM-dd'))
         .lte('appointment_date', format(weekEnd, 'yyyy-MM-dd'))
@@ -98,53 +93,79 @@ export const useSchedulingCalendar = () => {
         throw appointmentsError;
       }
 
-      console.log('Raw appointments data:', appointmentsData);
+      console.log('Agendamentos encontrados:', appointmentsData?.length || 0);
+      console.log('Dados dos agendamentos:', appointmentsData);
 
       if (!appointmentsData || appointmentsData.length === 0) {
-        console.log('Nenhum agendamento encontrado');
+        console.log('Nenhum agendamento encontrado para o período');
         setAppointments([]);
         setLoading(false);
         return;
       }
 
-      // Buscar serviços separadamente para cada agendamento
-      const appointmentsWithServices = await Promise.all(
+      // Buscar dados dos clientes
+      const clientIds = [...new Set(appointmentsData.map(app => app.client_id))];
+      console.log('Client IDs para buscar:', clientIds);
+
+      const { data: clientsData, error: clientsError } = await supabase
+        .from('clients')
+        .select('*')
+        .in('id', clientIds);
+
+      if (clientsError) {
+        console.error('Erro ao buscar clientes:', clientsError);
+      }
+
+      console.log('Clientes encontrados:', clientsData?.length || 0, clientsData);
+
+      // Processar cada agendamento
+      const appointmentsWithDetails = await Promise.all(
         appointmentsData.map(async (appointment) => {
+          console.log('Processando agendamento ID:', appointment.id);
+
+          // Encontrar cliente
+          const client = clientsData?.find(c => c.id === appointment.client_id);
+          console.log('Cliente encontrado:', client?.name || 'Não encontrado');
+
+          // Buscar serviços do agendamento
           const { data: servicesData, error: servicesError } = await supabase
             .from('appointment_services')
             .select(`
-              service_id,
-              quantity,
-              unit_price,
-              services!inner(name, price)
+              *,
+              services (*)
             `)
             .eq('appointment_id', appointment.id);
 
           if (servicesError) {
-            console.error('Erro ao buscar serviços:', servicesError);
-            return {
-              ...appointment,
-              client_name: appointment.clients?.name || 'Cliente não especificado',
-              service_name: 'Serviço não especificado'
-            };
+            console.error('Erro ao buscar serviços do agendamento:', servicesError);
           }
 
-          // Concatenar nomes dos serviços se houver múltiplos
+          console.log('Serviços do agendamento:', servicesData?.length || 0, servicesData);
+
+          // Montar nomes dos serviços
           const serviceNames = servicesData?.map(s => s.services?.name).filter(Boolean) || [];
           const serviceName = serviceNames.length > 0 ? serviceNames.join(', ') : 'Serviço não especificado';
 
-          console.log('Services for appointment', appointment.id, ':', serviceNames);
+          console.log('Nome final dos serviços:', serviceName);
 
-          return {
+          const appointmentWithDetails: Appointment = {
             ...appointment,
-            client_name: appointment.clients?.name || 'Cliente não especificado',
+            client_name: client?.name || 'Cliente não especificado',
             service_name: serviceName
           };
+
+          console.log('Agendamento processado:', appointmentWithDetails);
+          return appointmentWithDetails;
         })
       );
 
-      console.log('Final appointments with services:', appointmentsWithServices);
-      setAppointments(appointmentsWithServices);
+      console.log('=== AGENDAMENTOS FINAIS ===');
+      console.log('Total de agendamentos processados:', appointmentsWithDetails.length);
+      appointmentsWithDetails.forEach(app => {
+        console.log(`Agendamento ${app.id}: ${app.client_name} - ${app.service_name} em ${app.appointment_date} às ${app.start_time}`);
+      });
+
+      setAppointments(appointmentsWithDetails);
 
     } catch (error) {
       console.error('Erro ao buscar agendamentos:', error);
@@ -160,6 +181,10 @@ export const useSchedulingCalendar = () => {
   };
 
   const handleSlotClick = (date: string, time: string) => {
+    console.log('=== SLOT CLICADO ===');
+    console.log('Data:', date, 'Hora:', time);
+    console.log('Agendamentos para verificação:', appointments.length);
+
     if (!selectedProfessional) {
       toast({
         title: "Atenção",
@@ -171,14 +196,28 @@ export const useSchedulingCalendar = () => {
 
     // Verificar se o slot está ocupado
     const isOccupied = appointments.some(appointment => {
-      const appointmentDate = new Date(appointment.appointment_date);
+      const appointmentDate = format(new Date(appointment.appointment_date), 'yyyy-MM-dd');
       const appointmentStartTime = appointment.start_time.substring(0, 5);
       const appointmentEndTime = appointment.end_time.substring(0, 5);
       
-      return format(appointmentDate, 'yyyy-MM-dd') === date && 
-             time >= appointmentStartTime && 
-             time < appointmentEndTime;
+      const isDateMatch = appointmentDate === date;
+      const isTimeOverlap = time >= appointmentStartTime && time < appointmentEndTime;
+      
+      console.log(`Verificando agendamento ${appointment.id}:`, {
+        appointmentDate,
+        appointmentStartTime,
+        appointmentEndTime,
+        clickedDate: date,
+        clickedTime: time,
+        isDateMatch,
+        isTimeOverlap,
+        isOccupied: isDateMatch && isTimeOverlap
+      });
+      
+      return isDateMatch && isTimeOverlap;
     });
+
+    console.log('Slot ocupado?', isOccupied);
 
     if (isOccupied) {
       toast({

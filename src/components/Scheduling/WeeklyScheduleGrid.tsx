@@ -32,24 +32,38 @@ const WeeklyScheduleGrid = ({
   });
 
   const isSlotOccupied = (date: Date, time: string) => {
-    return appointments.some(appointment => {
-      const appointmentDate = new Date(appointment.appointment_date);
+    const dateString = format(date, 'yyyy-MM-dd');
+    
+    const occupied = appointments.some(appointment => {
+      const appointmentDate = format(new Date(appointment.appointment_date), 'yyyy-MM-dd');
       const appointmentStartTime = appointment.start_time.substring(0, 5);
       const appointmentEndTime = appointment.end_time.substring(0, 5);
       
-      return isSameDay(appointmentDate, date) && 
-             time >= appointmentStartTime && 
-             time < appointmentEndTime;
+      const isDateMatch = appointmentDate === dateString;
+      const isTimeOverlap = time >= appointmentStartTime && time < appointmentEndTime;
+      
+      return isDateMatch && isTimeOverlap;
     });
+
+    console.log(`Verificando slot ${dateString} ${time}: ocupado = ${occupied}`);
+    return occupied;
   };
 
   const getAppointmentForSlot = (date: Date, time: string) => {
-    return appointments.find(appointment => {
-      const appointmentDate = new Date(appointment.appointment_date);
+    const dateString = format(date, 'yyyy-MM-dd');
+    
+    const appointment = appointments.find(appointment => {
+      const appointmentDate = format(new Date(appointment.appointment_date), 'yyyy-MM-dd');
       const appointmentStartTime = appointment.start_time.substring(0, 5);
       
-      return isSameDay(appointmentDate, date) && appointmentStartTime === time;
+      return appointmentDate === dateString && appointmentStartTime === time;
     });
+
+    if (appointment) {
+      console.log(`Agendamento encontrado para ${dateString} ${time}:`, appointment);
+    }
+
+    return appointment;
   };
 
   if (loading) {
@@ -60,12 +74,16 @@ const WeeklyScheduleGrid = ({
     );
   }
 
-  console.log('Rendering WeeklyScheduleGrid with appointments:', appointments);
+  console.log('=== RENDERIZANDO GRID ===');
+  console.log('Total de agendamentos recebidos:', appointments.length);
+  appointments.forEach(app => {
+    console.log(`Agendamento: ${app.client_name} - ${app.service_name} em ${app.appointment_date} às ${app.start_time}-${app.end_time}`);
+  });
 
   return (
     <div className="overflow-x-auto bg-white">
       <div className="min-w-full">
-        {/* Cabeçalho dos dias - estilo idêntico à imagem */}
+        {/* Cabeçalho dos dias */}
         <div className="grid grid-cols-6 border-b border-gray-200">
           <div className="p-4 bg-gray-50 border-r border-gray-200"></div>
           {weekDays.map((day) => (
@@ -82,7 +100,7 @@ const WeeklyScheduleGrid = ({
           ))}
         </div>
 
-        {/* Grid de horários - estilo idêntico à imagem */}
+        {/* Grid de horários */}
         <div className="divide-y divide-gray-200">
           {workingHours.map((time) => (
             <div key={time} className="grid grid-cols-6 min-h-[80px]">
@@ -98,13 +116,6 @@ const WeeklyScheduleGrid = ({
                 const isPast = isPastTimeSlot(day, time);
                 const appointment = getAppointmentForSlot(day, time);
 
-                console.log(`Checking slot ${dateString} ${time}:`, {
-                  isOccupied,
-                  appointment: appointment?.id,
-                  clientName: appointment?.client_name,
-                  serviceName: appointment?.service_name
-                });
-
                 return (
                   <div
                     key={`${dateString}-${time}`}
@@ -116,10 +127,10 @@ const WeeklyScheduleGrid = ({
                         <HoverCardTrigger asChild>
                           <div className="absolute inset-1 bg-blue-100 border border-blue-300 rounded p-2 shadow-sm cursor-pointer">
                             <div className="text-xs font-semibold text-blue-800 mb-1 truncate">
-                              {appointment.client_name || 'Cliente'}
+                              {appointment.client_name}
                             </div>
                             <div className="text-xs text-blue-600 truncate">
-                              {appointment.service_name || 'Serviço'}
+                              {appointment.service_name}
                             </div>
                             <div className="text-xs text-blue-500 mt-1">
                               {appointment.start_time.substring(0, 5)} - {appointment.end_time.substring(0, 5)}
@@ -130,8 +141,8 @@ const WeeklyScheduleGrid = ({
                           <div className="space-y-2">
                             <h4 className="text-sm font-semibold">Detalhes do Agendamento</h4>
                             <div className="space-y-1 text-sm">
-                              <p><strong>Cliente:</strong> {appointment.client_name || 'Não especificado'}</p>
-                              <p><strong>Serviço:</strong> {appointment.service_name || 'Não especificado'}</p>
+                              <p><strong>Cliente:</strong> {appointment.client_name}</p>
+                              <p><strong>Serviço:</strong> {appointment.service_name}</p>
                               <p><strong>Data:</strong> {format(new Date(appointment.appointment_date), 'dd/MM/yyyy', { locale: ptBR })}</p>
                               <p><strong>Horário:</strong> {appointment.start_time.substring(0, 5)} - {appointment.end_time.substring(0, 5)}</p>
                               <p><strong>Duração:</strong> {appointment.total_duration} minutos</p>
