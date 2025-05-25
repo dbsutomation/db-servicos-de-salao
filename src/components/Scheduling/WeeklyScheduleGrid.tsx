@@ -2,7 +2,6 @@
 import React from 'react';
 import { format, addDays, startOfWeek, isSameDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Button } from '@/components/ui/button';
 import { Appointment } from '@/types';
 import { Loader2 } from 'lucide-react';
 import { useTimeValidation } from '@/hooks/useTimeValidation';
@@ -61,6 +60,8 @@ const WeeklyScheduleGrid = ({
     );
   }
 
+  console.log('Rendering WeeklyScheduleGrid with appointments:', appointments);
+
   return (
     <div className="overflow-x-auto bg-white">
       <div className="min-w-full">
@@ -97,6 +98,13 @@ const WeeklyScheduleGrid = ({
                 const isPast = isPastTimeSlot(day, time);
                 const appointment = getAppointmentForSlot(day, time);
 
+                console.log(`Checking slot ${dateString} ${time}:`, {
+                  isOccupied,
+                  appointment: appointment?.id,
+                  clientName: appointment?.client_name,
+                  serviceName: appointment?.service_name
+                });
+
                 return (
                   <div
                     key={`${dateString}-${time}`}
@@ -108,10 +116,10 @@ const WeeklyScheduleGrid = ({
                         <HoverCardTrigger asChild>
                           <div className="absolute inset-1 bg-blue-100 border border-blue-300 rounded p-2 shadow-sm cursor-pointer">
                             <div className="text-xs font-semibold text-blue-800 mb-1 truncate">
-                              {appointment.client_name}
+                              {appointment.client_name || 'Cliente'}
                             </div>
                             <div className="text-xs text-blue-600 truncate">
-                              {appointment.service_name}
+                              {appointment.service_name || 'Serviço'}
                             </div>
                             <div className="text-xs text-blue-500 mt-1">
                               {appointment.start_time.substring(0, 5)} - {appointment.end_time.substring(0, 5)}
@@ -122,8 +130,8 @@ const WeeklyScheduleGrid = ({
                           <div className="space-y-2">
                             <h4 className="text-sm font-semibold">Detalhes do Agendamento</h4>
                             <div className="space-y-1 text-sm">
-                              <p><strong>Cliente:</strong> {appointment.client_name}</p>
-                              <p><strong>Serviço:</strong> {appointment.service_name}</p>
+                              <p><strong>Cliente:</strong> {appointment.client_name || 'Não especificado'}</p>
+                              <p><strong>Serviço:</strong> {appointment.service_name || 'Não especificado'}</p>
                               <p><strong>Data:</strong> {format(new Date(appointment.appointment_date), 'dd/MM/yyyy', { locale: ptBR })}</p>
                               <p><strong>Horário:</strong> {appointment.start_time.substring(0, 5)} - {appointment.end_time.substring(0, 5)}</p>
                               <p><strong>Duração:</strong> {appointment.total_duration} minutos</p>

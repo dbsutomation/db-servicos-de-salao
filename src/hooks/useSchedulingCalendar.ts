@@ -80,18 +80,12 @@ export const useSchedulingCalendar = () => {
         weekEnd: format(weekEnd, 'yyyy-MM-dd')
       });
 
-      // Buscar agendamentos com dados do cliente e serviços
+      // Buscar agendamentos simples primeiro
       const { data: appointmentsData, error: appointmentsError } = await supabase
         .from('appointments')
         .select(`
           *,
-          clients!inner(name),
-          appointment_services!inner(
-            service_id,
-            quantity,
-            unit_price,
-            services!inner(name)
-          )
+          clients!inner(name)
         `)
         .eq('professional_id', selectedProfessional)
         .gte('appointment_date', format(weekStart, 'yyyy-MM-dd'))
@@ -100,25 +94,58 @@ export const useSchedulingCalendar = () => {
         .order('start_time');
 
       if (appointmentsError) {
-        console.error('Erro na consulta:', appointmentsError);
+        console.error('Erro na consulta de agendamentos:', appointmentsError);
         throw appointmentsError;
       }
 
-      console.log('Appointments data:', appointmentsData);
+      console.log('Raw appointments data:', appointmentsData);
 
-      // Transformar os dados para incluir client_name e service_name
-      const transformedAppointments = appointmentsData?.map(appointment => {
-        const serviceName = appointment.appointment_services?.[0]?.services?.name || 'Serviço não especificado';
-        
-        return {
-          ...appointment,
-          client_name: appointment.clients?.name || 'Cliente não especificado',
-          service_name: serviceName
-        };
-      }) || [];
+      if (!appointmentsData || appointmentsData.length === 0) {
+        console.log('Nenhum agendamento encontrado');
+        setAppointments([]);
+        setLoading(false);
+        return;
+      }
 
-      console.log('Transformed appointments:', transformedAppointments);
-      setAppointments(transformedAppointments);
+      // Buscar serviços separadamente para cada agendamento
+      const appointmentsWithServices = await Promise.all(
+        appointmentsData.map(async (appointment) => {
+          const { data: servicesData, error: servicesError } = await supabase
+            .from('appointment_services')
+            .select(`
+              service_id,
+              quantity,
+              unit_price,
+              services!inner(name, price)
+            `)
+            .eq('appointment_id', appointment.id);
+
+          if (servicesError) {
+            console.error('Erro ao buscar serviços:', servicesError);
+            return {
+              ...appointment,
+              client_name: appointment.clients?.name || 'Cliente não especificado',
+              service_name: 'Serviço não especificado'
+            };
+          }
+
+          // Concatenar nomes dos serviços se houver múltiplos
+          const serviceNames = servicesData?.map(s => s.services?.name).filter(Boolean) || [];
+          const serviceName = serviceNames.length > 0 ? serviceNames.join(', ') : 'Serviço não especificado';
+
+          console.log('Services for appointment', appointment.id, ':', serviceNames);
+
+          return {
+            ...appointment,
+            client_name: appointment.clients?.name || 'Cliente não especificado',
+            service_name: serviceName
+          };
+        })
+      );
+
+      console.log('Final appointments with services:', appointmentsWithServices);
+      setAppointments(appointmentsWithServices);
+
     } catch (error) {
       console.error('Erro ao buscar agendamentos:', error);
       toast({
@@ -126,6 +153,7 @@ export const useSchedulingCalendar = () => {
         description: "Não foi possível carregar os agendamentos.",
         variant: "destructive",
       });
+      setAppointments([]);
     } finally {
       setLoading(false);
     }
