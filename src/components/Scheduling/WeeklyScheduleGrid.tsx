@@ -19,8 +19,9 @@ const WeeklyScheduleGrid = ({
   onSlotClick,
   loading
 }: WeeklyScheduleGridProps) => {
+  //Dias disponíveis terça a sábado (length = 5); (week start i + 2 'domingo mais 2 = terça')
   const weekStart = startOfWeek(currentWeek, { weekStartsOn: 0 });
-  const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+  const weekDays = Array.from({ length: 5 }, (_, i) => addDays(weekStart, i + 2));
   
   // Horários de funcionamento (8:00 às 19:00) com intervalos de 30 minutos
   const workingHours = Array.from({ length: 22 }, (_, i) => {
