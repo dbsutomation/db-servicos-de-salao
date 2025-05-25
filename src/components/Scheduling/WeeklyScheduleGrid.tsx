@@ -22,9 +22,9 @@ const WeeklyScheduleGrid = ({
   const weekStart = startOfWeek(currentWeek, { weekStartsOn: 0 });
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
   
-  // Horários de funcionamento (7:00 às 22:00) com intervalos de 30 minutos
-  const workingHours = Array.from({ length: 30 }, (_, i) => {
-    const baseHour = 7 + Math.floor(i / 2);
+  // Horários de funcionamento (8:00 às 19:00) com intervalos de 30 minutos
+  const workingHours = Array.from({ length: 22 }, (_, i) => {
+    const baseHour = 8 + Math.floor(i / 2);
     const minutes = (i % 2) * 30;
     return `${baseHour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
   });
