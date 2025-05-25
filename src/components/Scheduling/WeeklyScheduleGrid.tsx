@@ -124,7 +124,7 @@ const WeeklyScheduleGrid = ({
     <div className="overflow-x-auto">
       <div className="min-w-full">
         {/* Cabeçalho dos dias */}
-        <div className="grid grid-cols-8 gap-1 mb-2">
+        <div className="grid grid-cols-6 gap-1 mb-2">
           <div className="p-2 text-center font-semibold text-sm">Horário</div>
           {weekDays.map((day) => (
             <div key={day.toISOString()} className="p-2 text-center font-semibold text-sm">
