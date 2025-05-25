@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -8,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { TeamMember, Appointment } from '@/types';
 import WeeklyScheduleGrid from './WeeklyScheduleGrid';
 import AppointmentFormDialog from './AppointmentFormDialog';
-import { format, addWeeks, subWeeks, startOfWeek, endOfWeek } from 'date-fns';
+import { format, addWeeks, subWeeks, startOfWeek, endOfWeek, isToday, isBefore, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const SchedulingCalendar = () => {
@@ -66,7 +67,7 @@ const SchedulingCalendar = () => {
           hasAccess: user.has_access,
           isManager: user.is_manager,
           avatar: user.avatar || '',
-          categories: user.categories || [] // Incluindo as categorias do usuário
+          categories: user.categories || []
         };
       });
 
@@ -124,17 +125,50 @@ const SchedulingCalendar = () => {
       return;
     }
 
-    const selectedDate = new Date(date);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const selectedDate = new Date(date + 'T00:00:00');
+    const today = startOfDay(new Date());
 
-    if (selectedDate < today) {
+    console.log('Handle slot click validation:', {
+      selectedDate: selectedDate.toLocaleDateString('pt-BR'),
+      today: today.toLocaleDateString('pt-BR'),
+      time,
+      isPastDate: isBefore(selectedDate, today),
+      isToday: isToday(selectedDate)
+    });
+
+    // Verificar se é uma data passada (não hoje)
+    if (isBefore(selectedDate, today)) {
       toast({
         title: "Atenção",
         description: "Não é possível agendar em datas passadas.",
         variant: "destructive",
       });
       return;
+    }
+
+    // Se é hoje, verificar se o horário já passou
+    if (isToday(selectedDate)) {
+      const now = new Date();
+      const [hours, minutes] = time.split(':').map(Number);
+      const currentTotalMinutes = now.getHours() * 60 + now.getMinutes();
+      const slotTotalMinutes = hours * 60 + minutes;
+
+      console.log('Time validation for today:', {
+        currentTime: `${now.getHours()}:${now.getMinutes()}`,
+        slotTime: time,
+        currentTotalMinutes,
+        slotTotalMinutes,
+        isPast: slotTotalMinutes <= currentTotalMinutes
+      });
+
+      if (slotTotalMinutes <= currentTotalMinutes) {
+        toast({
+          title: "Atenção",
+          description: "Não é possível agendar em horários que já passaram.",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     setSelectedSlot({

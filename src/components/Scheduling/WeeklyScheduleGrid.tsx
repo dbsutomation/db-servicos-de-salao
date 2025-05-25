@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { format, addDays, startOfWeek, isSameDay, isToday, isPast, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -41,31 +42,42 @@ const WeeklyScheduleGrid = ({
   };
 
   const isPastDate = (date: Date) => {
+    // Usar apenas a data, sem horário, para comparação
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return date < today;
+    const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    
+    return dateOnly < todayOnly;
   };
 
   const isPastTimeSlot = (date: Date, time: string) => {
+    // Se não é hoje, não é passado baseado no horário
     if (!isToday(date)) return false;
     
-    // Criar um objeto Date para o horário específico de hoje
+    // Obter hora atual no fuso horário local (já considera UTC-3 automaticamente)
     const now = new Date();
     const [hours, minutes] = time.split(':').map(Number);
     
-    // Criar a data do slot mantendo a data de hoje mas com o horário específico
-    const slotDateTime = new Date(date);
+    // Criar um horário de hoje com a hora do slot
+    const slotDateTime = new Date();
     slotDateTime.setHours(hours, minutes, 0, 0);
     
     console.log('Checking time slot:', {
       now: now.toLocaleString('pt-BR'),
       slotDateTime: slotDateTime.toLocaleString('pt-BR'),
       time,
+      currentHour: now.getHours(),
+      currentMinute: now.getMinutes(),
+      slotHour: hours,
+      slotMinute: minutes,
       isPast: slotDateTime <= now
     });
     
-    // Adicionar margem de 5 minutos para evitar problemas de sincronização
-    return slotDateTime <= now;
+    // Comparar apenas hora e minuto, ignorando segundos
+    const currentTotalMinutes = now.getHours() * 60 + now.getMinutes();
+    const slotTotalMinutes = hours * 60 + minutes;
+    
+    return slotTotalMinutes <= currentTotalMinutes;
   };
 
   const getSlotButtonProps = (date: Date, time: string) => {
