@@ -123,7 +123,20 @@ const AppointmentFormDialog = ({
         .order('name');
 
       if (error) throw error;
-      setClients(data || []);
+      
+      // Mapear os dados do banco para o formato esperado
+      const mappedClients: Client[] = (data || []).map(client => ({
+        id: client.id,
+        name: client.name,
+        phone: client.phone,
+        email: client.email,
+        created_at: client.created_at,
+        updated_at: client.updated_at,
+        createdAt: client.created_at,
+        updatedAt: client.updated_at
+      }));
+      
+      setClients(mappedClients);
     } catch (error) {
       console.error('Erro ao buscar clientes:', error);
     }
@@ -167,7 +180,19 @@ const AppointmentFormDialog = ({
 
       if (error) throw error;
 
-      setClients(prev => [...prev, data]);
+      // Mapear os dados do banco para o formato esperado
+      const mappedClient: Client = {
+        id: data.id,
+        name: data.name,
+        phone: data.phone,
+        email: data.email,
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      };
+
+      setClients(prev => [...prev, mappedClient]);
       return data.id;
     } catch (error) {
       console.error('Erro ao criar cliente:', error);
