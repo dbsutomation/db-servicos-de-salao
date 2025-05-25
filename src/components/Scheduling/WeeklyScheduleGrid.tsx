@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { format, addDays, startOfWeek, isSameDay, isToday, isPast, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -53,10 +52,20 @@ const WeeklyScheduleGrid = ({
     // Criar um objeto Date para o horário específico de hoje
     const now = new Date();
     const [hours, minutes] = time.split(':').map(Number);
-    const slotTime = new Date();
-    slotTime.setHours(hours, minutes, 0, 0);
     
-    return slotTime < now;
+    // Criar a data do slot mantendo a data de hoje mas com o horário específico
+    const slotDateTime = new Date(date);
+    slotDateTime.setHours(hours, minutes, 0, 0);
+    
+    console.log('Checking time slot:', {
+      now: now.toLocaleString('pt-BR'),
+      slotDateTime: slotDateTime.toLocaleString('pt-BR'),
+      time,
+      isPast: slotDateTime <= now
+    });
+    
+    // Adicionar margem de 5 minutos para evitar problemas de sincronização
+    return slotDateTime <= now;
   };
 
   const getSlotButtonProps = (date: Date, time: string) => {
