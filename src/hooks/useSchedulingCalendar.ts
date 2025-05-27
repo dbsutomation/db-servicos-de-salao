@@ -80,56 +80,93 @@ export const useSchedulingCalendar = () => {
 
     setLoading(true);
     try {
-      console.log('=== BUSCANDO AGENDAMENTOS ===');
+      console.log('=== INICIANDO BUSCA DE AGENDAMENTOS ===');
       console.log('Professional ID:', selectedProfessional);
       console.log('Período:', format(weekStart, 'yyyy-MM-dd'), 'até', format(weekEnd, 'yyyy-MM-dd'));
 
-      // Buscar agendamentos com dados dos clientes
-      const { data: appointmentsData, error } = await supabase
+      // Primeiro, buscar os agendamentos básicos
+      const { data: appointmentsData, error: appointmentsError } = await supabase
         .from('appointments')
-        .select(`
-          *,
-          clients!inner(id, name),
-          appointment_services!inner(
-            *,
-            services!inner(id, name)
-          )
-        `)
+        .select('*')
         .eq('professional_id', selectedProfessional)
         .gte('appointment_date', format(weekStart, 'yyyy-MM-dd'))
         .lte('appointment_date', format(weekEnd, 'yyyy-MM-dd'))
         .order('appointment_date')
         .order('start_time');
 
-      if (error) {
-        console.error('Erro na consulta:', error);
-        throw error;
+      if (appointmentsError) {
+        console.error('Erro ao buscar agendamentos:', appointmentsError);
+        throw appointmentsError;
       }
 
-      console.log('Dados brutos retornados:', appointmentsData);
+      console.log('Agendamentos encontrados:', appointmentsData?.length || 0);
 
       if (!appointmentsData || appointmentsData.length === 0) {
-        console.log('Nenhum agendamento encontrado');
+        console.log('Nenhum agendamento encontrado para o período');
         setAppointments([]);
         return;
       }
 
+      // Buscar dados dos clientes para os agendamentos encontrados
+      const clientIds = [...new Set(appointmentsData.map(app => app.client_id))];
+      const { data: clientsData, error: clientsError } = await supabase
+        .from('clients')
+        .select('id, name')
+        .in('id', clientIds);
+
+      if (clientsError) {
+        console.error('Erro ao buscar clientes:', clientsError);
+        throw clientsError;
+      }
+
+      // Buscar serviços para os agendamentos
+      const appointmentIds = appointmentsData.map(app => app.id);
+      const { data: appointmentServicesData, error: servicesError } = await supabase
+        .from('appointment_services')
+        .select(`
+          appointment_id,
+          services (
+            id,
+            name
+          )
+        `)
+        .in('appointment_id', appointmentIds);
+
+      if (servicesError) {
+        console.error('Erro ao buscar serviços:', servicesError);
+        throw servicesError;
+      }
+
+      // Criar map de clientes para acesso rápido
+      const clientsMap = new Map(clientsData?.map(client => [client.id, client]) || []);
+      
+      // Criar map de serviços por agendamento
+      const servicesMap = new Map();
+      appointmentServicesData?.forEach(item => {
+        if (!servicesMap.has(item.appointment_id)) {
+          servicesMap.set(item.appointment_id, []);
+        }
+        if (item.services) {
+          servicesMap.get(item.appointment_id).push(item.services);
+        }
+      });
+
       // Processar e formatar os dados
       const formattedAppointments: Appointment[] = appointmentsData.map((appointment: any) => {
-        const client = appointment.clients;
-        const services = appointment.appointment_services || [];
+        const client = clientsMap.get(appointment.client_id);
+        const services = servicesMap.get(appointment.id) || [];
         
         console.log('Processando agendamento:', {
           id: appointment.id,
           date: appointment.appointment_date,
           start_time: appointment.start_time,
           end_time: appointment.end_time,
-          client: client?.name,
-          services: services.map((s: any) => s.services?.name)
+          client_name: client?.name,
+          services: services.map((s: any) => s.name)
         });
 
         const serviceNames = services
-          .map((s: any) => s.services?.name)
+          .map((s: any) => s.name)
           .filter(Boolean)
           .join(', ');
 
@@ -151,8 +188,8 @@ export const useSchedulingCalendar = () => {
         };
       });
 
-      console.log('=== AGENDAMENTOS FORMATADOS ===');
-      console.log('Total:', formattedAppointments.length);
+      console.log('=== AGENDAMENTOS PROCESSADOS ===');
+      console.log('Total processados:', formattedAppointments.length);
       formattedAppointments.forEach(app => {
         console.log(`${app.client_name} - ${app.service_name} em ${app.appointment_date} das ${app.start_time} às ${app.end_time}`);
       });
