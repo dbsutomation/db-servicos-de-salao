@@ -211,7 +211,7 @@ const WeeklyScheduleGrid = ({
                             </Tooltip>
                           ) : isOccupied && !isFirstSlot ? (
                             // Continuação do agendamento - só um fundo azul claro sem repetir as informações
-                            <div className="bg-blue-50 border-l-4 border-blue-300 h-full"></div>
+                            <div className="bg-blue-100 border-l-4 border-blue-500 h-full"></div>
                           ) : (
                             <button
                               className={`w-full h-full text-xs transition-colors ${
