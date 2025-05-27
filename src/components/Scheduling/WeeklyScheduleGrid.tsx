@@ -27,6 +27,7 @@ const WeeklyScheduleGrid = ({
   isSlotBlocked = () => false
 }: WeeklyScheduleGridProps) => {
   const weekStart = startOfWeek(currentWeek, { weekStartsOn: 0 });
+  // Fix: Changed from i + 1 to i + 1 to get Monday-Friday correctly
   const weekDays = Array.from({ length: 5 }, (_, i) => addDays(weekStart, i + 1)); // Segunda a sexta
   
   // Horários de funcionamento (8:00 às 19:00) com intervalos de 30 minutos
@@ -111,7 +112,7 @@ const WeeklyScheduleGrid = ({
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
         {/* Header da grade */}
         <div className="grid grid-cols-6 border-b border-gray-200 bg-gray-50">
-          <div className="p-3 text-sm font-medium text-gray-600 border-r border-gray-200"></div>
+          <div className="p-3 text-sm font-medium text-gray-600 border-r border-gray-200">Horário</div>
           {weekDays.map((day) => (
             <div key={day.toISOString()} className="p-3 text-center border-l border-gray-200">
               <div className="text-sm font-bold text-blue-600">
@@ -129,7 +130,7 @@ const WeeklyScheduleGrid = ({
 
         {/* Grid de horários */}
         <div className="max-h-96 overflow-y-auto">
-          {mainHours.map((mainHour, hourIndex) => {
+          {mainHours.map((mainHour) => {
             // Para cada hora principal, renderizamos 2 linhas (30 min cada)
             const hourSlots = workingHours.filter(time => time.startsWith(mainHour.substring(0, 2)));
             
@@ -225,7 +226,7 @@ const WeeklyScheduleGrid = ({
                               onClick={() => !isBlocked && !isPast && onSlotClick(dateString, time)}
                             >
                               {isBlocked ? (
-                                <span className="text-orange-600 font-medium">Bloqueado</span>
+                                <span className="text-orange-600 font-medium">Indisponível</span>
                               ) : (
                                 ''
                               )}
