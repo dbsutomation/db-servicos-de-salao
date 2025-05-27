@@ -36,10 +36,13 @@ const WeeklyScheduleGrid = ({
     return `${baseHour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
   });
 
+  // Horários principais (apenas de hora em hora para exibir na coluna da esquerda)
+  const mainHours = Array.from({ length: 12 }, (_, i) => {
+    const hour = 8 + i;
+    return `${hour.toString().padStart(2, '0')}:00`;
+  });
+
   const getAppointmentsForSlot = (date: Date, time: string) => {
-    console.log('Verificando slot:', format(date, 'yyyy-MM-dd'), time);
-    console.log('Total de agendamentos:', appointments.length);
-    
     const slotAppointments = appointments.filter(appointment => {
       const appointmentDate = new Date(appointment.appointment_date);
       const appointmentStartTime = appointment.start_time.substring(0, 5);
@@ -48,22 +51,16 @@ const WeeklyScheduleGrid = ({
       const isSameDate = isSameDay(appointmentDate, date);
       const isTimeInRange = time >= appointmentStartTime && time < appointmentEndTime;
       
-      console.log('Comparando agendamento:', {
-        appointmentDate: format(appointmentDate, 'yyyy-MM-dd'),
-        slotDate: format(date, 'yyyy-MM-dd'),
-        appointmentStartTime,
-        appointmentEndTime,
-        slotTime: time,
-        isSameDate,
-        isTimeInRange,
-        clientName: appointment.client_name
-      });
-      
       return isSameDate && isTimeInRange;
     });
     
-    console.log('Agendamentos encontrados para slot:', slotAppointments.length);
     return slotAppointments;
+  };
+
+  // Função para verificar se é o primeiro slot de um agendamento (para evitar repetição)
+  const isFirstSlotOfAppointment = (date: Date, time: string, appointment: Appointment) => {
+    const appointmentStartTime = appointment.start_time.substring(0, 5);
+    return time === appointmentStartTime;
   };
 
   const isPastTimeSlot = (date: Date, time: string) => {
@@ -114,7 +111,7 @@ const WeeklyScheduleGrid = ({
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
         {/* Header da grade */}
         <div className="grid grid-cols-6 border-b border-gray-200 bg-gray-50">
-          <div className="p-3 text-sm font-medium text-gray-600"></div>
+          <div className="p-3 text-sm font-medium text-gray-600 border-r border-gray-200"></div>
           {weekDays.map((day) => (
             <div key={day.toISOString()} className="p-3 text-center border-l border-gray-200">
               <div className="text-sm font-bold text-blue-600">
@@ -132,102 +129,116 @@ const WeeklyScheduleGrid = ({
 
         {/* Grid de horários */}
         <div className="max-h-96 overflow-y-auto">
-          {workingHours.map((time) => (
-            <div key={time} className="grid grid-cols-6 border-b border-gray-100 hover:bg-gray-50">
-              {/* Coluna de horários */}
-              <div className="p-2 text-xs font-medium text-gray-600 border-r border-gray-200 bg-gray-50">
-                {time}
-              </div>
-              
-              {/* Colunas dos dias */}
-              {weekDays.map((day) => {
-                const dateString = format(day, 'yyyy-MM-dd');
-                const slotAppointments = getAppointmentsForSlot(day, time);
-                const isOccupied = slotAppointments.length > 0;
-                const isPast = isPastTimeSlot(day, time);
-                const isBlocked = isSlotBlocked(dateString, time);
+          {mainHours.map((mainHour, hourIndex) => {
+            // Para cada hora principal, renderizamos 2 linhas (30 min cada)
+            const hourSlots = workingHours.filter(time => time.startsWith(mainHour.substring(0, 2)));
+            
+            return (
+              <div key={mainHour}>
+                {hourSlots.map((time, slotIndex) => (
+                  <div key={time} className="grid grid-cols-6 border-b border-gray-100 hover:bg-gray-50 h-12">
+                    {/* Coluna de horários - só mostra o horário principal na primeira linha da hora */}
+                    <div className="p-2 text-xs font-medium text-gray-600 border-r border-gray-200 bg-gray-50 flex items-center">
+                      {slotIndex === 0 ? mainHour : ''}
+                    </div>
+                    
+                    {/* Colunas dos dias */}
+                    {weekDays.map((day) => {
+                      const dateString = format(day, 'yyyy-MM-dd');
+                      const slotAppointments = getAppointmentsForSlot(day, time);
+                      const appointment = slotAppointments[0];
+                      const isOccupied = slotAppointments.length > 0;
+                      const isPast = isPastTimeSlot(day, time);
+                      const isBlocked = isSlotBlocked(dateString, time);
+                      const isFirstSlot = appointment && isFirstSlotOfAppointment(day, time, appointment);
 
-                return (
-                  <div key={`${dateString}-${time}`} className="relative border-l border-gray-200 h-12 group">
-                    {isOccupied ? (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="bg-blue-100 border-l-4 border-blue-500 text-blue-700 cursor-pointer hover:bg-blue-200 h-full text-xs relative p-1">
-                            <div className="font-semibold text-xs truncate">
-                              {slotAppointments[0].client_name}
-                            </div>
-                            <div className="text-xs text-blue-600 truncate">
-                              {slotAppointments[0].service_name}
-                            </div>
-                            <div className="text-xs text-blue-500">
-                              {slotAppointments[0].start_time.substring(0, 5)} - {slotAppointments[0].end_time.substring(0, 5)}
-                            </div>
-                            
-                            {/* Botões de ação */}
-                            {!isPastAppointment(slotAppointments[0]) && (
-                              <div className="absolute top-1 right-1 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="h-4 w-4 p-0 bg-white/90 hover:bg-white"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    onEditAppointment(slotAppointments[0]);
-                                  }}
-                                >
-                                  <Edit className="h-2 w-2" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="h-4 w-4 p-0 bg-white/90 hover:bg-red-100"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    onDeleteAppointment(slotAppointments[0]);
-                                  }}
-                                >
-                                  <Trash2 className="h-2 w-2 text-red-600" />
-                                </Button>
-                              </div>
-                            )}
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <div className="text-sm">
-                            <p><strong>Cliente:</strong> {slotAppointments[0].client_name}</p>
-                            <p><strong>Serviço:</strong> {slotAppointments[0].service_name}</p>
-                            <p><strong>Horário:</strong> {slotAppointments[0].start_time.substring(0, 5)} - {slotAppointments[0].end_time.substring(0, 5)}</p>
-                            <p><strong>Valor:</strong> R$ {slotAppointments[0].total_value}</p>
-                            {slotAppointments[0].notes && (
-                              <p><strong>Observações:</strong> {slotAppointments[0].notes}</p>
-                            )}
-                          </div>
-                        </TooltipContent>
-                      </Tooltip>
-                    ) : (
-                      <button
-                        className={`w-full h-full text-xs transition-colors ${
-                          isBlocked 
-                            ? 'bg-orange-100 border-l-4 border-orange-400 text-orange-700 cursor-not-allowed' 
-                            : isPast 
-                              ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                              : 'hover:bg-green-50 hover:border-l-4 hover:border-green-400 cursor-pointer'
-                        }`}
-                        disabled={isBlocked || isPast}
-                        onClick={() => !isBlocked && !isPast && onSlotClick(dateString, time)}
-                      >
-                        {isBlocked ? (
-                          <span className="text-orange-600 font-medium">Bloqueado</span>
-                        ) : (
-                          ''
-                        )}
-                      </button>
-                    )}
+                      return (
+                        <div key={`${dateString}-${time}`} className="relative border-l border-gray-200 group">
+                          {isOccupied && isFirstSlot ? (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="bg-blue-100 border-l-4 border-blue-500 text-blue-700 cursor-pointer hover:bg-blue-200 h-full text-xs relative p-1">
+                                  <div className="font-semibold text-xs truncate">
+                                    {appointment.client_name}
+                                  </div>
+                                  <div className="text-xs text-blue-600 truncate">
+                                    {appointment.service_name}
+                                  </div>
+                                  <div className="text-xs text-blue-500">
+                                    {appointment.start_time.substring(0, 5)} - {appointment.end_time.substring(0, 5)}
+                                  </div>
+                                  
+                                  {/* Botões de ação */}
+                                  {!isPastAppointment(appointment) && (
+                                    <div className="absolute top-1 right-1 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="h-4 w-4 p-0 bg-white/90 hover:bg-white"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          onEditAppointment(appointment);
+                                        }}
+                                      >
+                                        <Edit className="h-2 w-2" />
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="h-4 w-4 p-0 bg-white/90 hover:bg-red-100"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          onDeleteAppointment(appointment);
+                                        }}
+                                      >
+                                        <Trash2 className="h-2 w-2 text-red-600" />
+                                      </Button>
+                                    </div>
+                                  )}
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <div className="text-sm">
+                                  <p><strong>Cliente:</strong> {appointment.client_name}</p>
+                                  <p><strong>Serviço:</strong> {appointment.service_name}</p>
+                                  <p><strong>Horário:</strong> {appointment.start_time.substring(0, 5)} - {appointment.end_time.substring(0, 5)}</p>
+                                  <p><strong>Valor:</strong> R$ {appointment.total_value}</p>
+                                  {appointment.notes && (
+                                    <p><strong>Observações:</strong> {appointment.notes}</p>
+                                  )}
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
+                          ) : isOccupied && !isFirstSlot ? (
+                            // Continuação do agendamento - só um fundo azul claro sem repetir as informações
+                            <div className="bg-blue-50 border-l-4 border-blue-300 h-full"></div>
+                          ) : (
+                            <button
+                              className={`w-full h-full text-xs transition-colors ${
+                                isBlocked 
+                                  ? 'bg-orange-100 border-l-4 border-orange-400 text-orange-700 cursor-not-allowed' 
+                                  : isPast 
+                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                                    : 'hover:bg-green-50 hover:border-l-4 hover:border-green-400 cursor-pointer'
+                              }`}
+                              disabled={isBlocked || isPast}
+                              onClick={() => !isBlocked && !isPast && onSlotClick(dateString, time)}
+                            >
+                              {isBlocked ? (
+                                <span className="text-orange-600 font-medium">Bloqueado</span>
+                              ) : (
+                                ''
+                              )}
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
-                );
-              })}
-            </div>
-          ))}
+                ))}
+              </div>
+            );
+          })}
         </div>
       </div>
     </TooltipProvider>
