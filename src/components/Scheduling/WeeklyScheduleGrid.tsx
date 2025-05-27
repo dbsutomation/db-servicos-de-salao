@@ -99,7 +99,7 @@ const WeeklyScheduleGrid = ({
                 {hourSlots.map((time, slotIndex) => (
                   <div key={time} className="grid grid-cols-6 border-b border-gray-100 hover:bg-gray-50 h-12">
                     {/* Coluna de horários */}
-                    <div className="p-2 text-xs font-medium text-gray-600 border-r border-gray-200 bg-gray-50 flex items-center">
+                    <div className="p-3 text-xs font-medium text-gray-600 border-r border-gray-200 bg-gray-50 flex items-center">
                       {slotIndex === 0 ? mainHour : ''}
                     </div>
                     
