@@ -3,14 +3,16 @@ import React from 'react';
 import { format, addDays, startOfWeek, isSameDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Appointment } from '@/types';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Edit, Trash2 } from 'lucide-react';
 import { useTimeValidation } from '@/hooks/useTimeValidation';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
+import { Button } from '@/components/ui/button';
 
 interface WeeklyScheduleGridProps {
   currentWeek: Date;
   appointments: Appointment[];
   onSlotClick: (date: string, time: string) => void;
+  onEditAppointment: (appointment: Appointment) => void;
   loading: boolean;
 }
 
@@ -18,6 +20,7 @@ const WeeklyScheduleGrid = ({
   currentWeek,
   appointments,
   onSlotClick,
+  onEditAppointment,
   loading
 }: WeeklyScheduleGridProps) => {
   const { isPastTimeSlot } = useTimeValidation();
@@ -90,6 +93,11 @@ const WeeklyScheduleGrid = ({
     return `${heightPixels}px`;
   };
 
+  const canEditAppointment = (appointment: Appointment) => {
+    const appointmentDate = new Date(appointment.appointment_date + 'T' + appointment.start_time);
+    return !isPastTimeSlot(appointmentDate, appointment.start_time.substring(0, 5));
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -151,10 +159,10 @@ const WeeklyScheduleGrid = ({
                       <HoverCard>
                         <HoverCardTrigger asChild>
                           <div 
-                            className="absolute inset-1 bg-blue-100 border border-blue-300 rounded p-2 shadow-sm cursor-pointer z-10"
+                            className="absolute inset-1 bg-blue-100 border border-blue-300 rounded p-2 shadow-sm cursor-pointer z-10 group"
                             style={{ 
                               height: calculateAppointmentHeight(appointment),
-                              minHeight: '76px' // 80px - 4px (inset-1 = 4px total)
+                              minHeight: '76px'
                             }}
                           >
                             <div className="text-xs font-semibold text-blue-800 mb-1 truncate">
@@ -166,6 +174,23 @@ const WeeklyScheduleGrid = ({
                             <div className="text-xs text-blue-500 mt-1">
                               {appointment.start_time.substring(0, 5)} - {appointment.end_time.substring(0, 5)}
                             </div>
+                            
+                            {/* Botão de edição */}
+                            {canEditAppointment(appointment) && (
+                              <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-6 w-6 p-0 hover:bg-blue-200"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onEditAppointment(appointment);
+                                  }}
+                                >
+                                  <Edit className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            )}
                           </div>
                         </HoverCardTrigger>
                         <HoverCardContent className="w-80">
@@ -183,6 +208,19 @@ const WeeklyScheduleGrid = ({
                                 <p><strong>Observações:</strong> {appointment.notes}</p>
                               )}
                             </div>
+                            {canEditAppointment(appointment) && (
+                              <div className="pt-2 border-t">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => onEditAppointment(appointment)}
+                                  className="w-full"
+                                >
+                                  <Edit className="h-4 w-4 mr-2" />
+                                  Editar Agendamento
+                                </Button>
+                              </div>
+                            )}
                           </div>
                         </HoverCardContent>
                       </HoverCard>
