@@ -33,7 +33,8 @@ const SchedulingCalendar = () => {
     selectedProfessionalData,
     handleSlotClick,
     handleAppointmentCreated,
-    closeAppointmentForm
+    closeAppointmentForm,
+    isSlotBlocked
   } = useSchedulingCalendar();
 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -178,6 +179,7 @@ const SchedulingCalendar = () => {
                 onEditAppointment={handleEditAppointment}
                 onDeleteAppointment={handleDeleteAppointment}
                 loading={loading}
+                isSlotBlocked={isSlotBlocked}
               />
             )}
           </div>

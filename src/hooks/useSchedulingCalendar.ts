@@ -1,10 +1,10 @@
-
 import { useState, useEffect } from 'react';
 import { format, startOfWeek, endOfWeek } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { TeamMember, Appointment } from '@/types';
 import { useTimeValidation } from '@/hooks/useTimeValidation';
+import { useBlockedPeriods } from '@/hooks/useBlockedPeriods';
 
 export const useSchedulingCalendar = () => {
   const [professionals, setProfessionals] = useState<TeamMember[]>([]);
@@ -21,6 +21,15 @@ export const useSchedulingCalendar = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { validateSlotClick } = useTimeValidation();
+
+  const weekStart = startOfWeek(currentWeek, { weekStartsOn: 0 });
+  const weekEnd = endOfWeek(currentWeek, { weekStartsOn: 0 });
+  
+  const { isSlotBlocked, fetchBlockedPeriods } = useBlockedPeriods(
+    selectedProfessional, 
+    weekStart, 
+    weekEnd
+  );
 
   useEffect(() => {
     fetchProfessionals();
@@ -71,9 +80,6 @@ export const useSchedulingCalendar = () => {
 
     setLoading(true);
     try {
-      const weekStart = startOfWeek(currentWeek, { weekStartsOn: 0 });
-      const weekEnd = endOfWeek(currentWeek, { weekStartsOn: 0 });
-
       console.log('=== BUSCANDO AGENDAMENTOS ===');
       console.log('Professional ID:', selectedProfessional);
       console.log('Período:', format(weekStart, 'yyyy-MM-dd'), 'até', format(weekEnd, 'yyyy-MM-dd'));
@@ -180,6 +186,16 @@ export const useSchedulingCalendar = () => {
       return;
     }
 
+    // Verificar se o slot está bloqueado
+    if (isSlotBlocked(date, time)) {
+      toast({
+        title: "Horário bloqueado",
+        description: "Este horário está bloqueado para agendamentos.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Verificar se o slot está ocupado
     const isOccupied = appointments.some(appointment => {
       const appointmentDate = appointment.appointment_date;
@@ -235,6 +251,7 @@ export const useSchedulingCalendar = () => {
 
   const handleAppointmentCreated = () => {
     fetchAppointments();
+    fetchBlockedPeriods();
     setIsAppointmentFormOpen(false);
     setSelectedSlot(null);
   };
@@ -261,6 +278,7 @@ export const useSchedulingCalendar = () => {
     selectedProfessionalData,
     handleSlotClick,
     handleAppointmentCreated,
-    closeAppointmentForm
+    closeAppointmentForm,
+    isSlotBlocked
   };
 };

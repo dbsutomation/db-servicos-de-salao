@@ -111,6 +111,50 @@ export type Database = {
           },
         ]
       }
+      blocked_periods: {
+        Row: {
+          created_at: string
+          end_date: string
+          end_time: string
+          id: string
+          professional_id: string
+          reason: string | null
+          start_date: string
+          start_time: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          end_date: string
+          end_time: string
+          id?: string
+          professional_id: string
+          reason?: string | null
+          start_date: string
+          start_time: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string
+          end_time?: string
+          id?: string
+          professional_id?: string
+          reason?: string | null
+          start_date?: string
+          start_time?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blocked_periods_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           created_at: string
