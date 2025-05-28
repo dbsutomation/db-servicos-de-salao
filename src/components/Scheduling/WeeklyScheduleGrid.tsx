@@ -94,9 +94,9 @@ const WeeklyScheduleGrid = ({
       {/* Grid de horários */}
       <div className="max-h-96 overflow-y-auto">
         {workingHours.map((time) => (
-          <div key={time} className="grid grid-cols-6 border-b border-gray-100 min-h-[48px]">
+          <div key={time} className="grid grid-cols-6 border-b border-gray-200 min-h-[48px]">
             {/* Coluna de horários */}
-            <div className="p-2 text-xs font-medium text-gray-600 border-r border-gray-200 bg-gray-50 flex items-center justify-center">
+            <div className="p-3 text-xs font-medium text-gray-600 border-r border-gray-200 bg-gray-50 flex items-center justify-center">
               {time}
             </div>
             
