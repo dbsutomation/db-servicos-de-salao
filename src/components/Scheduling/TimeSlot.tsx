@@ -39,7 +39,7 @@ const TimeSlot = memo(({
     }
   }, [dateString, time, isBlocked, isPast, onSlotClick]);
 
-  // Renderizar slot de agendamento
+  // Renderizar slot de agendamento completo
   if (isOccupied && isFirstSlot && appointment) {
     return (
       <AppointmentSlot
@@ -52,11 +52,11 @@ const TimeSlot = memo(({
     );
   }
 
-  // Renderizar continuação do agendamento
+  // Renderizar continuação do agendamento sem bordas
   if (isOccupied && !isFirstSlot) {
     return (
       <div 
-        className="bg-blue-100 border-l-4 border-blue-500 h-full"
+        className="bg-blue-100 h-full border-0"
         aria-label="Continuação do agendamento"
       />
     );

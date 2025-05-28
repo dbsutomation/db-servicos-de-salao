@@ -4,7 +4,6 @@ import { format, addDays, startOfWeek } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Appointment } from '@/types';
 import { Loader2 } from 'lucide-react';
-import { TooltipProvider } from '@/components/ui/tooltip';
 import TimeSlot from './TimeSlot';
 import {
   isPastTimeSlot,
@@ -71,74 +70,72 @@ const WeeklyScheduleGrid = ({
   }
 
   return (
-    <TooltipProvider>
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden" onClick={handleGridClick}>
-        {/* Header da grade */}
-        <div className="grid grid-cols-6 border-b border-gray-200 bg-gray-50">
-          <div className="p-3 text-sm font-medium text-gray-600 border-r border-gray-200 flex items-center justify-center">
-            Horário
+    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden" onClick={handleGridClick}>
+      {/* Header da grade */}
+      <div className="grid grid-cols-6 border-b border-gray-200 bg-gray-50">
+        <div className="p-3 text-sm font-medium text-gray-600 border-r border-gray-200 flex items-center justify-center min-h-[60px]">
+          Horário
+        </div>
+        {weekDays.map((day) => (
+          <div key={day.toISOString()} className="p-3 text-center border-l border-gray-200 min-h-[60px] flex flex-col justify-center">
+            <div className="text-sm font-bold text-blue-600">
+              {format(day, 'd')}
+            </div>
+            <div className="text-xs font-medium text-gray-900 uppercase">
+              {format(day, 'EEEE', { locale: ptBR })}
+            </div>
+            <div className="text-xs text-gray-500">
+              {format(day, 'dd/MM', { locale: ptBR })}
+            </div>
           </div>
-          {weekDays.map((day) => (
-            <div key={day.toISOString()} className="p-3 text-center border-l border-gray-200">
-              <div className="text-sm font-bold text-blue-600">
-                {format(day, 'd')}
-              </div>
-              <div className="text-xs font-medium text-gray-900 uppercase">
-                {format(day, 'EEEE', { locale: ptBR })}
-              </div>
-              <div className="text-xs text-gray-500">
-                {format(day, 'dd/MM', { locale: ptBR })}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Grid de horários */}
-        <div className="max-h-96 overflow-y-auto">
-          {workingHours.map((time) => (
-            <div key={time} className="grid grid-cols-6 border-b border-gray-100 hover:bg-gray-50 h-12">
-              {/* Coluna de horários */}
-              <div className="p-2 text-xs font-medium text-gray-600 border-r border-gray-200 bg-gray-50 flex items-center justify-center">
-                {time}
-              </div>
-              
-              {/* Colunas dos dias */}
-              {weekDays.map((day) => {
-                const dateString = format(day, 'yyyy-MM-dd');
-                const slotAppointments = getAppointmentsForSlot(appointments, day, time);
-                const appointment = slotAppointments[0];
-                const isPast = isPastTimeSlot(day, time);
-                const isBlocked = isSlotBlocked(dateString, time);
-                const isFirstSlot = appointment && isFirstSlotOfAppointment(time, appointment);
-                const slotKey = `${dateString}-${time}`;
-
-                return (
-                  <div 
-                    key={slotKey} 
-                    className="relative border-l border-gray-200"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <TimeSlot
-                      dateString={dateString}
-                      time={time}
-                      appointments={slotAppointments}
-                      isBlocked={isBlocked}
-                      isPast={isPast}
-                      onSlotClick={handleSlotClick}
-                      onEditAppointment={onEditAppointment}
-                      onDeleteAppointment={onDeleteAppointment}
-                      isFirstSlot={isFirstSlot}
-                      showAppointmentActions={activeAppointmentSlot === slotKey}
-                      onToggleAppointmentActions={() => handleToggleAppointmentActions(slotKey)}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          ))}
-        </div>
+        ))}
       </div>
-    </TooltipProvider>
+
+      {/* Grid de horários */}
+      <div className="max-h-96 overflow-y-auto">
+        {workingHours.map((time) => (
+          <div key={time} className="grid grid-cols-6 border-b border-gray-100 min-h-[48px]">
+            {/* Coluna de horários */}
+            <div className="p-2 text-xs font-medium text-gray-600 border-r border-gray-200 bg-gray-50 flex items-center justify-center">
+              {time}
+            </div>
+            
+            {/* Colunas dos dias */}
+            {weekDays.map((day) => {
+              const dateString = format(day, 'yyyy-MM-dd');
+              const slotAppointments = getAppointmentsForSlot(appointments, day, time);
+              const appointment = slotAppointments[0];
+              const isPast = isPastTimeSlot(day, time);
+              const isBlocked = isSlotBlocked(dateString, time);
+              const isFirstSlot = appointment && isFirstSlotOfAppointment(time, appointment);
+              const slotKey = `${dateString}-${time}`;
+
+              return (
+                <div 
+                  key={slotKey} 
+                  className="relative border-l border-gray-200 min-h-[48px]"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <TimeSlot
+                    dateString={dateString}
+                    time={time}
+                    appointments={slotAppointments}
+                    isBlocked={isBlocked}
+                    isPast={isPast}
+                    onSlotClick={handleSlotClick}
+                    onEditAppointment={onEditAppointment}
+                    onDeleteAppointment={onDeleteAppointment}
+                    isFirstSlot={isFirstSlot}
+                    showAppointmentActions={activeAppointmentSlot === slotKey}
+                    onToggleAppointmentActions={() => handleToggleAppointmentActions(slotKey)}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
   );
 };
 
