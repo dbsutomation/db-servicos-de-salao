@@ -37,7 +37,7 @@ const WeeklyScheduleGrid = ({
   // Memoização dos cálculos estáticos
   const { weekDays, workingHours, mainHours } = useMemo(() => {
     const weekStart = startOfWeek(currentWeek, { weekStartsOn: 0 });
-    const days = Array.from({ length: 5 }, (_, i) => addDays(weekStart, i + 1));
+    const days = Array.from({ length: 6 }, (_, i) => addDays(weekStart, i + 1));
     
     return {
       weekDays: days,
