@@ -72,12 +72,12 @@ const WeeklyScheduleGrid = ({
   return (
     <div className="bg-white border border-gray-200 rounded-lg overflow-hidden" onClick={handleGridClick}>
       {/* Header da grade */}
-      <div className="grid grid-cols-6 border-b border-gray-200 bg-gray-50">
+      <div className="grid grid-cols-6 border-b border-gray-300 bg-gray-200">
         <div className="p-3 text-sm font-medium text-gray-600 border-r border-gray-200 flex items-center justify-center min-h-[60px]">
           Horário
         </div>
         {weekDays.map((day) => (
-          <div key={day.toISOString()} className="p-3 text-center border-l border-gray-200 min-h-[60px] flex flex-col justify-center">
+          <div key={day.toISOString()} className="p-3 text-center border-l border-gray-300 min-h-[60px] flex flex-col justify-center">
             <div className="text-sm font-bold text-blue-600">
               {format(day, 'd')}
             </div>
@@ -94,9 +94,9 @@ const WeeklyScheduleGrid = ({
       {/* Grid de horários */}
       <div className="max-h-96 overflow-y-auto">
         {workingHours.map((time) => (
-          <div key={time} className="grid grid-cols-6 border-b border-gray-200 min-h-[48px]">
+          <div key={time} className="grid grid-cols-6 border-b border-gray-300 min-h-[48px]">
             {/* Coluna de horários */}
-            <div className="p-3 text-xs font-medium text-gray-600 border-r border-gray-200 bg-gray-50 flex items-center justify-center">
+            <div className="p-3 text-xs font-medium text-gray-600 border-r border-gray-300 bg-gray-200 flex items-center justify-center">
               {time}
             </div>
             
@@ -113,7 +113,7 @@ const WeeklyScheduleGrid = ({
               return (
                 <div 
                   key={slotKey} 
-                  className="relative border-l border-gray-200 min-h-[48px]"
+                  className="relative border-l border-gray-300 min-h-[48px]"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <TimeSlot
