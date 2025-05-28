@@ -43,10 +43,8 @@ export const isPastTimeSlot = (date: Date, time: string): boolean => {
   const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
   const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   
-  // Data passada
   if (dateOnly < todayOnly) return true;
   
-  // Se é hoje, verificar horário
   if (isToday(date)) {
     const [hours, minutes] = time.split(':').map(Number);
     if (isNaN(hours) || isNaN(minutes)) return true;
@@ -105,3 +103,6 @@ export const isPastAppointment = (appointment: Appointment): boolean => {
     return true;
   }
 };
+
+// Exportar sanitizeTimeString para uso em outros componentes
+export { sanitizeTimeString } from './scheduleValidation';
