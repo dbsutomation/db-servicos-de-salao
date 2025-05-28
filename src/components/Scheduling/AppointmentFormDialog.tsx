@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -365,7 +364,8 @@ const AppointmentFormDialog = ({
 
   if (!selectedSlot) return null;
 
-  const selectedDate = new Date(selectedSlot.date);
+  // Corrigir o problema de fuso horário na data
+  const selectedDate = new Date(selectedSlot.date + 'T12:00:00');
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

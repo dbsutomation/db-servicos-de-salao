@@ -75,7 +75,7 @@ const WeeklyScheduleGrid = ({
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden" onClick={handleGridClick}>
         {/* Header da grade */}
         <div className="grid grid-cols-6 border-b border-gray-200 bg-gray-50">
-          <div className="p-3 text-sm font-medium text-gray-600 border-r border-gray-200">
+          <div className="p-3 text-sm font-medium text-gray-600 border-r border-gray-200 flex items-center justify-center">
             Horário
           </div>
           {weekDays.map((day) => (
@@ -95,57 +95,47 @@ const WeeklyScheduleGrid = ({
 
         {/* Grid de horários */}
         <div className="max-h-96 overflow-y-auto">
-          {mainHours.map((mainHour) => {
-            const hourSlots = workingHours.filter(time => 
-              time.startsWith(mainHour.substring(0, 2))
-            );
-            
-            return (
-              <div key={mainHour}>
-                {hourSlots.map((time, slotIndex) => (
-                  <div key={time} className="grid grid-cols-6 border-b border-gray-100 hover:bg-gray-50 h-12">
-                    {/* Coluna de horários */}
-                    <div className="p-3 text-xs font-medium text-gray-600 border-r border-gray-200 bg-gray-50 flex items-center">
-                      {slotIndex === 0 ? mainHour : ''}
-                    </div>
-                    
-                    {/* Colunas dos dias */}
-                    {weekDays.map((day) => {
-                      const dateString = format(day, 'yyyy-MM-dd');
-                      const slotAppointments = getAppointmentsForSlot(appointments, day, time);
-                      const appointment = slotAppointments[0];
-                      const isPast = isPastTimeSlot(day, time);
-                      const isBlocked = isSlotBlocked(dateString, time);
-                      const isFirstSlot = appointment && isFirstSlotOfAppointment(time, appointment);
-                      const slotKey = `${dateString}-${time}`;
-
-                      return (
-                        <div 
-                          key={slotKey} 
-                          className="relative border-l border-gray-200"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <TimeSlot
-                            dateString={dateString}
-                            time={time}
-                            appointments={slotAppointments}
-                            isBlocked={isBlocked}
-                            isPast={isPast}
-                            onSlotClick={handleSlotClick}
-                            onEditAppointment={onEditAppointment}
-                            onDeleteAppointment={onDeleteAppointment}
-                            isFirstSlot={isFirstSlot}
-                            showAppointmentActions={activeAppointmentSlot === slotKey}
-                            onToggleAppointmentActions={() => handleToggleAppointmentActions(slotKey)}
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
-                ))}
+          {workingHours.map((time) => (
+            <div key={time} className="grid grid-cols-6 border-b border-gray-100 hover:bg-gray-50 h-12">
+              {/* Coluna de horários */}
+              <div className="p-2 text-xs font-medium text-gray-600 border-r border-gray-200 bg-gray-50 flex items-center justify-center">
+                {time}
               </div>
-            );
-          })}
+              
+              {/* Colunas dos dias */}
+              {weekDays.map((day) => {
+                const dateString = format(day, 'yyyy-MM-dd');
+                const slotAppointments = getAppointmentsForSlot(appointments, day, time);
+                const appointment = slotAppointments[0];
+                const isPast = isPastTimeSlot(day, time);
+                const isBlocked = isSlotBlocked(dateString, time);
+                const isFirstSlot = appointment && isFirstSlotOfAppointment(time, appointment);
+                const slotKey = `${dateString}-${time}`;
+
+                return (
+                  <div 
+                    key={slotKey} 
+                    className="relative border-l border-gray-200"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <TimeSlot
+                      dateString={dateString}
+                      time={time}
+                      appointments={slotAppointments}
+                      isBlocked={isBlocked}
+                      isPast={isPast}
+                      onSlotClick={handleSlotClick}
+                      onEditAppointment={onEditAppointment}
+                      onDeleteAppointment={onDeleteAppointment}
+                      isFirstSlot={isFirstSlot}
+                      showAppointmentActions={activeAppointmentSlot === slotKey}
+                      onToggleAppointmentActions={() => handleToggleAppointmentActions(slotKey)}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          ))}
         </div>
       </div>
     </TooltipProvider>
