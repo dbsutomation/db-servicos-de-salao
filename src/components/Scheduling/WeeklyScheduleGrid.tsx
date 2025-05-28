@@ -63,7 +63,7 @@ const WeeklyScheduleGrid = ({
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64" role="status" aria-live="polite">
-        <Loader2 className="h-8 w-8 animate-spin" aria-label="Carregando agenda" />
+        <Loader2 className="h-7 w-7 animate-spin" aria-label="Carregando agenda" />
         <span className="sr-only">Carregando agenda...</span>
       </div>
     );
