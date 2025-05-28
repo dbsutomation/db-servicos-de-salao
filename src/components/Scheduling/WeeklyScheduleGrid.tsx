@@ -12,7 +12,7 @@ import {
   isFirstSlotOfAppointment,
   generateWorkingHours,
   generateMainHours
-} from '@/utils/scheduleUtils';
+} from '@/utils/scheduleCalculations';
 
 interface WeeklyScheduleGridProps {
   currentWeek: Date;
@@ -38,7 +38,7 @@ const WeeklyScheduleGrid = ({
   // Memoização dos cálculos estáticos
   const { weekDays, workingHours, mainHours } = useMemo(() => {
     const weekStart = startOfWeek(currentWeek, { weekStartsOn: 0 });
-    const days = Array.from({ length: 5 }, (_, i) => addDays(weekStart, i + 2));
+    const days = Array.from({ length: 5 }, (_, i) => addDays(weekStart, i + 1));
     
     return {
       weekDays: days,
@@ -52,21 +52,27 @@ const WeeklyScheduleGrid = ({
   }, []);
 
   const handleSlotClick = useCallback((date: string, time: string) => {
-    setActiveAppointmentSlot(null); // Fechar ações abertas
+    setActiveAppointmentSlot(null);
     onSlotClick(date, time);
   }, [onSlotClick]);
 
+  // Fechar ações quando clicar fora
+  const handleGridClick = useCallback(() => {
+    setActiveAppointmentSlot(null);
+  }, []);
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex items-center justify-center h-64" role="status" aria-live="polite">
         <Loader2 className="h-8 w-8 animate-spin" aria-label="Carregando agenda" />
+        <span className="sr-only">Carregando agenda...</span>
       </div>
     );
   }
 
   return (
     <TooltipProvider>
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden" onClick={handleGridClick}>
         {/* Header da grade */}
         <div className="grid grid-cols-6 border-b border-gray-200 bg-gray-50">
           <div className="p-3 text-sm font-medium text-gray-600 border-r border-gray-200">
@@ -114,7 +120,11 @@ const WeeklyScheduleGrid = ({
                       const slotKey = `${dateString}-${time}`;
 
                       return (
-                        <div key={slotKey} className="relative border-l border-gray-200">
+                        <div 
+                          key={slotKey} 
+                          className="relative border-l border-gray-200"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <TimeSlot
                             dateString={dateString}
                             time={time}

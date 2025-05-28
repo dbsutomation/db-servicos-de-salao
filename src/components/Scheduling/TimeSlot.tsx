@@ -1,5 +1,5 @@
 
-import React, { memo } from 'react';
+import React, { memo, useCallback } from 'react';
 import { Appointment } from '@/types';
 import AppointmentSlot from './AppointmentSlot';
 
@@ -33,6 +33,13 @@ const TimeSlot = memo(({
   const appointment = appointments[0];
   const isOccupied = appointments.length > 0;
 
+  const handleSlotClick = useCallback(() => {
+    if (!isBlocked && !isPast) {
+      onSlotClick(dateString, time);
+    }
+  }, [dateString, time, isBlocked, isPast, onSlotClick]);
+
+  // Renderizar slot de agendamento
   if (isOccupied && isFirstSlot && appointment) {
     return (
       <AppointmentSlot
@@ -45,25 +52,45 @@ const TimeSlot = memo(({
     );
   }
 
+  // Renderizar continuação do agendamento
   if (isOccupied && !isFirstSlot) {
-    return <div className="bg-blue-100 border-l-4 border-blue-500 h-full" />;
+    return (
+      <div 
+        className="bg-blue-100 border-l-4 border-blue-500 h-full"
+        aria-label="Continuação do agendamento"
+      />
+    );
   }
+
+  // Renderizar slot disponível ou bloqueado
+  const getSlotClasses = () => {
+    if (isBlocked) {
+      return 'bg-orange-100 border-l-4 border-orange-400 text-orange-700 cursor-not-allowed';
+    }
+    if (isPast) {
+      return 'bg-gray-100 text-gray-400 cursor-not-allowed';
+    }
+    return 'hover:bg-green-50 hover:border-l-4 hover:border-green-400 focus:bg-green-50 focus:border-l-4 focus:border-green-400 focus:outline-none cursor-pointer';
+  };
+
+  const getAriaLabel = () => {
+    if (isBlocked) return `Horário ${time} indisponível`;
+    if (isPast) return `Horário ${time} já passou`;
+    return `Agendar horário ${time}`;
+  };
 
   return (
     <button
-      className={`w-full h-full text-xs transition-colors ${
-        isBlocked 
-          ? 'bg-orange-100 border-l-4 border-orange-400 text-orange-700 cursor-not-allowed' 
-          : isPast 
-            ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-            : 'hover:bg-green-50 hover:border-l-4 hover:border-green-400 cursor-pointer focus:bg-green-50 focus:border-l-4 focus:border-green-400 focus:outline-none'
-      }`}
+      className={`w-full h-full text-xs transition-colors flex items-center justify-center ${getSlotClasses()}`}
       disabled={isBlocked || isPast}
-      onClick={() => !isBlocked && !isPast && onSlotClick(dateString, time)}
-      aria-label={`Agendar horário ${time} ${isBlocked ? '(indisponível)' : isPast ? '(horário passado)' : ''}`}
+      onClick={handleSlotClick}
+      aria-label={getAriaLabel()}
+      type="button"
     >
       {isBlocked && (
-        <span className="text-orange-600 font-medium">Indisponível</span>
+        <span className="text-orange-600 font-medium text-center px-1">
+          Indisponível
+        </span>
       )}
     </button>
   );

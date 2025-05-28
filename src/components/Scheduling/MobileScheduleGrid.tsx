@@ -1,11 +1,12 @@
 
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { format, addDays, startOfWeek, isSameDay, isToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Appointment } from '@/types';
 import { Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { generateWorkingHours, getAppointmentsForSlot, isPastTimeSlot } from '@/utils/scheduleCalculations';
 
 interface MobileScheduleGridProps {
   currentWeek: Date;
@@ -24,52 +25,26 @@ const MobileScheduleGrid = ({
   selectedDate,
   onDateChange
 }: MobileScheduleGridProps) => {
-  const weekStart = startOfWeek(currentWeek, { weekStartsOn: 0 });
-  const weekDays = Array.from({ length: 5 }, (_, i) => addDays(weekStart, i + 2));
-  
-  // Horários de funcionamento (8:00 às 19:00) com intervalos de 30 minutos
-  const workingHours = Array.from({ length: 22 }, (_, i) => {
-    const baseHour = 8 + Math.floor(i / 2);
-    const minutes = (i % 2) * 30;
-    return `${baseHour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-  });
-
-  const isSlotOccupied = (date: Date, time: string) => {
-    return appointments.some(appointment => {
-      const appointmentDate = new Date(appointment.appointment_date);
-      const appointmentStartTime = appointment.start_time.substring(0, 5);
-      const appointmentEndTime = appointment.end_time.substring(0, 5);
-      
-      return isSameDay(appointmentDate, date) && 
-             time >= appointmentStartTime && 
-             time < appointmentEndTime;
-    });
-  };
-
-  const isPastTimeSlot = (date: Date, time: string) => {
-    if (!isToday(date)) {
-      const today = new Date();
-      const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-      const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-      return dateOnly < todayOnly;
-    }
+  // Memoização dos cálculos
+  const { weekDays, workingHours } = useMemo(() => {
+    const weekStart = startOfWeek(currentWeek, { weekStartsOn: 0 });
+    const days = Array.from({ length: 5 }, (_, i) => addDays(weekStart, i + 1));
     
-    const now = new Date();
-    const [hours, minutes] = time.split(':').map(Number);
-    const currentTotalMinutes = now.getHours() * 60 + now.getMinutes();
-    const slotTotalMinutes = hours * 60 + minutes;
-    
-    return slotTotalMinutes <= currentTotalMinutes;
-  };
+    return {
+      weekDays: days,
+      workingHours: generateWorkingHours()
+    };
+  }, [currentWeek]);
 
-  const getSlotButtonProps = (date: Date, time: string) => {
-    const isOccupied = isSlotOccupied(date, time);
+  const getSlotStatus = useCallback((date: Date, time: string) => {
+    const slotAppointments = getAppointmentsForSlot(appointments, date, time);
+    const isOccupied = slotAppointments.length > 0;
     const isPast = isPastTimeSlot(date, time);
     
     if (isOccupied) {
       return {
         variant: "secondary" as const,
-        className: 'bg-red-100 text-red-700 cursor-not-allowed text-xs',
+        className: 'bg-blue-100 text-blue-700 cursor-not-allowed text-xs',
         disabled: true,
         text: 'Ocupado'
       };
@@ -78,21 +53,21 @@ const MobileScheduleGrid = ({
     if (isPast) {
       return {
         variant: "outline" as const,
-        className: 'bg-red-500 text-white cursor-not-allowed text-xs',
+        className: 'bg-gray-100 text-gray-400 cursor-not-allowed text-xs',
         disabled: true,
-        text: '—'
+        text: 'Passado'
       };
     }
     
     return {
       variant: "outline" as const,
-      className: 'hover:bg-green-100 hover:text-green-700 text-xs',
+      className: 'hover:bg-green-100 hover:text-green-700 text-xs active:bg-green-200',
       disabled: false,
       text: 'Livre'
     };
-  };
+  }, [appointments]);
 
-  const navigateDay = (direction: 'prev' | 'next') => {
+  const navigateDay = useCallback((direction: 'prev' | 'next') => {
     const currentIndex = weekDays.findIndex(day => isSameDay(day, selectedDate));
     let newIndex;
     
@@ -103,19 +78,25 @@ const MobileScheduleGrid = ({
     }
     
     onDateChange(weekDays[newIndex]);
-  };
+  }, [weekDays, selectedDate, onDateChange]);
+
+  const handleSlotClick = useCallback((time: string) => {
+    const dateString = format(selectedDate, 'yyyy-MM-dd');
+    onSlotClick(dateString, time);
+  }, [selectedDate, onSlotClick]);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex items-center justify-center h-64" role="status" aria-live="polite">
         <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="sr-only">Carregando agenda...</span>
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      {/* Seletor de dias para mobile */}
+      {/* Navegação do dia atual */}
       <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
@@ -124,6 +105,7 @@ const MobileScheduleGrid = ({
               size="icon"
               onClick={() => navigateDay('prev')}
               className="h-8 w-8"
+              aria-label="Dia anterior"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -142,6 +124,7 @@ const MobileScheduleGrid = ({
               size="icon"
               onClick={() => navigateDay('next')}
               className="h-8 w-8"
+              aria-label="Próximo dia"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
@@ -149,7 +132,7 @@ const MobileScheduleGrid = ({
         </CardHeader>
       </Card>
 
-      {/* Selector de dias em tabs */}
+      {/* Seletor de dias em tabs */}
       <div className="flex overflow-x-auto space-x-2 pb-2">
         {weekDays.map((day) => (
           <Button
@@ -158,6 +141,7 @@ const MobileScheduleGrid = ({
             size="sm"
             className="flex-shrink-0 flex flex-col h-auto py-2 px-3"
             onClick={() => onDateChange(day)}
+            aria-label={`Selecionar ${format(day, 'EEEE, dd/MM', { locale: ptBR })}`}
           >
             <span className="text-xs">
               {format(day, 'EEE', { locale: ptBR })}
@@ -174,17 +158,17 @@ const MobileScheduleGrid = ({
         <CardContent className="p-3">
           <div className="grid grid-cols-2 gap-2">
             {workingHours.map((time) => {
-              const dateString = format(selectedDate, 'yyyy-MM-dd');
-              const buttonProps = getSlotButtonProps(selectedDate, time);
+              const buttonProps = getSlotStatus(selectedDate, time);
 
               return (
                 <Button
-                  key={`${dateString}-${time}`}
+                  key={time}
                   variant={buttonProps.variant}
                   size="sm"
-                  className={`h-12 ${buttonProps.className} flex flex-col justify-center`}
+                  className={`h-12 ${buttonProps.className} flex flex-col justify-center touch-manipulation`}
                   disabled={buttonProps.disabled}
-                  onClick={() => !buttonProps.disabled && onSlotClick(dateString, time)}
+                  onClick={() => !buttonProps.disabled && handleSlotClick(time)}
+                  aria-label={`${time} - ${buttonProps.text}`}
                 >
                   <span className="font-medium">{time}</span>
                   <span className="text-xs opacity-80">{buttonProps.text}</span>
