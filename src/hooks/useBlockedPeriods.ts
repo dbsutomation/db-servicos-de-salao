@@ -6,7 +6,7 @@
  * considerando sempre o fuso horário de Brasília
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { formatBrasiliaDate } from '@/utils/timezoneUtils';
@@ -33,8 +33,12 @@ export const useBlockedPeriods = (professionalId: string | null, weekStart: Date
    * Busca períodos bloqueados para o profissional e intervalo de datas
    * Considera o fuso horário de Brasília para as datas
    */
-  const fetchBlockedPeriods = async () => {
-    if (!professionalId) return;
+  const fetchBlockedPeriods = useCallback(async () => {
+    if (!professionalId) {
+      console.log('⚠️ Nenhum profissional selecionado, limpando períodos bloqueados');
+      setBlockedPeriods([]);
+      return;
+    }
 
     setLoading(true);
     try {
@@ -67,15 +71,16 @@ export const useBlockedPeriods = (professionalId: string | null, weekStart: Date
         description: "Não foi possível carregar os períodos bloqueados.",
         variant: "destructive",
       });
+      setBlockedPeriods([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [professionalId, weekStart, weekEnd, toast]);
 
   // Recarrega períodos quando profissional ou período muda
   useEffect(() => {
     fetchBlockedPeriods();
-  }, [professionalId, weekStart, weekEnd]);
+  }, [fetchBlockedPeriods]);
 
   /**
    * Verifica se um slot específico está bloqueado
@@ -84,7 +89,11 @@ export const useBlockedPeriods = (professionalId: string | null, weekStart: Date
    * @param time - Horário do slot (HH:MM)
    * @returns boolean - True se o slot está bloqueado
    */
-  const isSlotBlocked = (date: string, time: string): boolean => {
+  const isSlotBlocked = useCallback((date: string, time: string): boolean => {
+    if (!date || !time || blockedPeriods.length === 0) {
+      return false;
+    }
+
     const isBlocked = blockedPeriods.some(period => {
       const periodStartDate = period.start_date;
       const periodEndDate = period.end_date;
@@ -111,7 +120,7 @@ export const useBlockedPeriods = (professionalId: string | null, weekStart: Date
     });
 
     return isBlocked;
-  };
+  }, [blockedPeriods]);
 
   return {
     blockedPeriods,
