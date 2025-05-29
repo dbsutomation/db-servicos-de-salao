@@ -1,3 +1,12 @@
+
+/**
+ * Hook principal para gerenciamento da agenda
+ * 
+ * Centraliza toda a lógica de estado e operações da agenda,
+ * garantindo que todas as operações considerem o fuso horário
+ * de Brasília e tenham logs detalhados para debug
+ */
+
 import { useState, useEffect } from 'react';
 import { format, startOfWeek, endOfWeek } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
@@ -5,12 +14,14 @@ import { useToast } from '@/hooks/use-toast';
 import { TeamMember, Appointment } from '@/types';
 import { useTimeValidation } from '@/hooks/useTimeValidation';
 import { useBlockedPeriods } from '@/hooks/useBlockedPeriods';
+import { getBrasiliaDate, formatBrasiliaDate, isValidTimeString } from '@/utils/timezoneUtils';
 
 export const useSchedulingCalendar = () => {
+  // Estados principais da agenda
   const [professionals, setProfessionals] = useState<TeamMember[]>([]);
   const [selectedProfessional, setSelectedProfessional] = useState<string>('');
-  const [currentWeek, setCurrentWeek] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [currentWeek, setCurrentWeek] = useState(getBrasiliaDate()); // Usa data de Brasília
+  const [selectedDate, setSelectedDate] = useState(getBrasiliaDate()); // Usa data de Brasília
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isAppointmentFormOpen, setIsAppointmentFormOpen] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<{
@@ -19,30 +30,42 @@ export const useSchedulingCalendar = () => {
     professionalId: string;
   } | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Hooks auxiliares
   const { toast } = useToast();
   const { validateSlotClick } = useTimeValidation();
 
-  const weekStart = startOfWeek(currentWeek, { weekStartsOn: 0 });
-  const weekEnd = endOfWeek(currentWeek, { weekStartsOn: 0 });
+  // Calcula início e fim da semana considerando o fuso horário de Brasília
+  const weekStart = startOfWeek(currentWeek, { weekStartsOn: 0 }); // Domingo
+  const weekEnd = endOfWeek(currentWeek, { weekStartsOn: 0 }); // Sábado
   
+  // Hook para períodos bloqueados
   const { isSlotBlocked, fetchBlockedPeriods } = useBlockedPeriods(
     selectedProfessional, 
     weekStart, 
     weekEnd
   );
 
+  // Busca profissionais quando o componente monta
   useEffect(() => {
     fetchProfessionals();
   }, []);
 
+  // Busca agendamentos quando profissional ou semana muda
   useEffect(() => {
     if (selectedProfessional) {
       fetchAppointments();
     }
   }, [selectedProfessional, currentWeek]);
 
+  /**
+   * Busca todos os profissionais ativos do sistema
+   * Mapeia os dados do Supabase para o formato esperado pelo frontend
+   */
   const fetchProfessionals = async () => {
     try {
+      console.log('🔍 Buscando profissionais ativos...');
+      
       const { data, error } = await supabase
         .from('users')
         .select('*')
@@ -51,6 +74,7 @@ export const useSchedulingCalendar = () => {
 
       if (error) throw error;
 
+      // Mapeia dados do banco para o tipo TeamMember
       const teamMembers: TeamMember[] = data.map(user => ({
         id: user.id,
         name: user.name,
@@ -65,8 +89,9 @@ export const useSchedulingCalendar = () => {
       }));
 
       setProfessionals(teamMembers);
+      console.log(`✅ ${teamMembers.length} profissionais carregados`);
     } catch (error) {
-      console.error('Erro ao buscar profissionais:', error);
+      console.error('❌ Erro ao buscar profissionais:', error);
       toast({
         title: "Erro",
         description: "Não foi possível carregar os profissionais.",
@@ -75,39 +100,47 @@ export const useSchedulingCalendar = () => {
     }
   };
 
+  /**
+   * Busca agendamentos do profissional selecionado para a semana atual
+   * Inclui dados relacionados (cliente, serviços) e formata para exibição
+   */
   const fetchAppointments = async () => {
     if (!selectedProfessional) return;
 
     setLoading(true);
     try {
-      console.log('=== INICIANDO BUSCA DE AGENDAMENTOS ===');
-      console.log('Professional ID:', selectedProfessional);
-      console.log('Período:', format(weekStart, 'yyyy-MM-dd'), 'até', format(weekEnd, 'yyyy-MM-dd'));
+      const startDateStr = format(weekStart, 'yyyy-MM-dd');
+      const endDateStr = format(weekEnd, 'yyyy-MM-dd');
+      
+      console.log('=== 🔍 INICIANDO BUSCA DE AGENDAMENTOS ===');
+      console.log('👤 Professional ID:', selectedProfessional);
+      console.log('📅 Período:', startDateStr, 'até', endDateStr);
+      console.log('🌎 Timezone usado: America/Sao_Paulo (UTC-3)');
 
-      // Primeiro, buscar os agendamentos básicos
+      // Busca agendamentos básicos
       const { data: appointmentsData, error: appointmentsError } = await supabase
         .from('appointments')
         .select('*')
         .eq('professional_id', selectedProfessional)
-        .gte('appointment_date', format(weekStart, 'yyyy-MM-dd'))
-        .lte('appointment_date', format(weekEnd, 'yyyy-MM-dd'))
+        .gte('appointment_date', startDateStr)
+        .lte('appointment_date', endDateStr)
         .order('appointment_date')
         .order('start_time');
 
       if (appointmentsError) {
-        console.error('Erro ao buscar agendamentos:', appointmentsError);
+        console.error('❌ Erro ao buscar agendamentos:', appointmentsError);
         throw appointmentsError;
       }
 
-      console.log('Agendamentos encontrados:', appointmentsData?.length || 0);
+      console.log(`📋 ${appointmentsData?.length || 0} agendamentos encontrados`);
 
       if (!appointmentsData || appointmentsData.length === 0) {
-        console.log('Nenhum agendamento encontrado para o período');
+        console.log('ℹ️ Nenhum agendamento encontrado para o período');
         setAppointments([]);
         return;
       }
 
-      // Buscar dados dos clientes para os agendamentos encontrados
+      // Busca dados dos clientes
       const clientIds = [...new Set(appointmentsData.map(app => app.client_id))];
       const { data: clientsData, error: clientsError } = await supabase
         .from('clients')
@@ -115,11 +148,11 @@ export const useSchedulingCalendar = () => {
         .in('id', clientIds);
 
       if (clientsError) {
-        console.error('Erro ao buscar clientes:', clientsError);
+        console.error('❌ Erro ao buscar clientes:', clientsError);
         throw clientsError;
       }
 
-      // Buscar serviços para os agendamentos
+      // Busca serviços dos agendamentos
       const appointmentIds = appointmentsData.map(app => app.id);
       const { data: appointmentServicesData, error: servicesError } = await supabase
         .from('appointment_services')
@@ -133,14 +166,13 @@ export const useSchedulingCalendar = () => {
         .in('appointment_id', appointmentIds);
 
       if (servicesError) {
-        console.error('Erro ao buscar serviços:', servicesError);
+        console.error('❌ Erro ao buscar serviços:', servicesError);
         throw servicesError;
       }
 
-      // Criar map de clientes para acesso rápido
+      // Cria mapas para acesso rápido aos dados relacionados
       const clientsMap = new Map(clientsData?.map(client => [client.id, client]) || []);
       
-      // Criar map de serviços por agendamento
       const servicesMap = new Map();
       appointmentServicesData?.forEach(item => {
         if (!servicesMap.has(item.appointment_id)) {
@@ -151,12 +183,12 @@ export const useSchedulingCalendar = () => {
         }
       });
 
-      // Processar e formatar os dados
+      // Processa e formata os agendamentos
       const formattedAppointments: Appointment[] = appointmentsData.map((appointment: any) => {
         const client = clientsMap.get(appointment.client_id);
         const services = servicesMap.get(appointment.id) || [];
         
-        console.log('Processando agendamento:', {
+        console.log('⚙️ Processando agendamento:', {
           id: appointment.id,
           date: appointment.appointment_date,
           start_time: appointment.start_time,
@@ -188,16 +220,16 @@ export const useSchedulingCalendar = () => {
         };
       });
 
-      console.log('=== AGENDAMENTOS PROCESSADOS ===');
-      console.log('Total processados:', formattedAppointments.length);
+      console.log('=== ✅ AGENDAMENTOS PROCESSADOS ===');
+      console.log(`📊 Total processados: ${formattedAppointments.length}`);
       formattedAppointments.forEach(app => {
-        console.log(`${app.client_name} - ${app.service_name} em ${app.appointment_date} das ${app.start_time} às ${app.end_time}`);
+        console.log(`📝 ${app.client_name} - ${app.service_name} em ${app.appointment_date} das ${app.start_time} às ${app.end_time}`);
       });
 
       setAppointments(formattedAppointments);
 
     } catch (error) {
-      console.error('Erro ao buscar agendamentos:', error);
+      console.error('❌ Erro geral ao buscar agendamentos:', error);
       toast({
         title: "Erro",
         description: "Não foi possível carregar os agendamentos.",
@@ -209,11 +241,19 @@ export const useSchedulingCalendar = () => {
     }
   };
 
+  /**
+   * Manipula o clique em um slot da agenda
+   * Valida disponibilidade, bloqueios e horários passados
+   * 
+   * @param date - Data do slot clicado (YYYY-MM-DD)
+   * @param time - Horário do slot clicado (HH:MM)
+   */
   const handleSlotClick = (date: string, time: string) => {
-    console.log('=== CLIQUE NO SLOT ===');
-    console.log('Data:', date, 'Hora:', time);
-    console.log('Agendamentos para verificar:', appointments.length);
+    console.log('=== 🖱️ CLIQUE NO SLOT ===');
+    console.log('📅 Data:', date, '🕐 Hora:', time);
+    console.log('🔍 Agendamentos para verificar:', appointments.length);
 
+    // Validações básicas
     if (!selectedProfessional) {
       toast({
         title: "Atenção",
@@ -223,8 +263,18 @@ export const useSchedulingCalendar = () => {
       return;
     }
 
-    // Verificar se o slot está bloqueado
+    if (!isValidTimeString(time)) {
+      toast({
+        title: "Erro",
+        description: "Horário inválido.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Verifica se o slot está bloqueado
     if (isSlotBlocked(date, time)) {
+      console.log('🚫 Slot bloqueado');
       toast({
         title: "Horário bloqueado",
         description: "Este horário está bloqueado para agendamentos.",
@@ -233,7 +283,7 @@ export const useSchedulingCalendar = () => {
       return;
     }
 
-    // Verificar se o slot está ocupado
+    // Verifica se o slot está ocupado
     const isOccupied = appointments.some(appointment => {
       const appointmentDate = appointment.appointment_date;
       const appointmentStartTime = appointment.start_time.substring(0, 5);
@@ -242,7 +292,7 @@ export const useSchedulingCalendar = () => {
       const isDateMatch = appointmentDate === date;
       const isTimeInRange = time >= appointmentStartTime && time < appointmentEndTime;
       
-      console.log(`Verificando agendamento:`, {
+      console.log(`🔍 Verificando agendamento:`, {
         appointmentDate,
         appointmentStartTime,
         appointmentEndTime,
@@ -256,7 +306,7 @@ export const useSchedulingCalendar = () => {
       return isDateMatch && isTimeInRange;
     });
 
-    console.log('Slot ocupado?', isOccupied);
+    console.log('📋 Slot ocupado?', isOccupied);
 
     if (isOccupied) {
       toast({
@@ -267,9 +317,11 @@ export const useSchedulingCalendar = () => {
       return;
     }
 
+    // Valida se o horário não está no passado
     const validation = validateSlotClick(date, time);
     
     if (!validation.isValid) {
+      console.log('⏰ Validação de horário falhou:', validation.message);
       toast({
         title: "Atenção",
         description: validation.message,
@@ -278,6 +330,9 @@ export const useSchedulingCalendar = () => {
       return;
     }
 
+    console.log('✅ Slot válido, abrindo formulário de agendamento');
+
+    // Se chegou até aqui, o slot é válido
     setSelectedSlot({
       date,
       time,
@@ -286,21 +341,31 @@ export const useSchedulingCalendar = () => {
     setIsAppointmentFormOpen(true);
   };
 
+  /**
+   * Callback executado após criação/edição/exclusão de agendamento
+   * Recarrega os dados e fecha formulários
+   */
   const handleAppointmentCreated = () => {
+    console.log('♻️ Recarregando dados após modificação de agendamento');
     fetchAppointments();
     fetchBlockedPeriods();
     setIsAppointmentFormOpen(false);
     setSelectedSlot(null);
   };
 
+  /**
+   * Fecha o formulário de agendamento
+   */
   const closeAppointmentForm = () => {
     setIsAppointmentFormOpen(false);
     setSelectedSlot(null);
   };
 
+  // Busca dados do profissional selecionado
   const selectedProfessionalData = professionals.find(p => p.id === selectedProfessional);
 
   return {
+    // Estados
     professionals,
     selectedProfessional,
     setSelectedProfessional,
@@ -313,6 +378,8 @@ export const useSchedulingCalendar = () => {
     selectedSlot,
     loading,
     selectedProfessionalData,
+    
+    // Funções
     handleSlotClick,
     handleAppointmentCreated,
     closeAppointmentForm,

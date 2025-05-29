@@ -416,6 +416,18 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_brasilia_date: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_brasilia_now: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_brasilia_time: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       is_authenticated_user: {
         Args: Record<PropertyKey, never>
         Returns: boolean
