@@ -15,6 +15,7 @@ import { TeamMember, Appointment } from '@/types';
 import { useTimeValidation } from '@/hooks/useTimeValidation';
 import { useBlockedPeriods } from '@/hooks/useBlockedPeriods';
 import { getBrasiliaDate, formatBrasiliaDate, isValidTimeString } from '@/utils/timezoneUtils';
+import { getAppointmentsForSlot, sanitizeTimeString } from '@/utils/scheduleCalculations';
 
 export const useSchedulingCalendar = () => {
   // Estados principais da agenda
@@ -56,6 +57,7 @@ export const useSchedulingCalendar = () => {
     if (selectedProfessional) {
       fetchAppointments();
     } else {
+      console.log('⚠️ Limpando agendamentos - nenhum profissional selecionado');
       setAppointments([]); // Limpa agendamentos quando não há profissional selecionado
     }
   }, [selectedProfessional, currentWeek]);
@@ -250,7 +252,7 @@ export const useSchedulingCalendar = () => {
   const handleSlotClick = (date: string, time: string) => {
     console.log('=== 🖱️ CLIQUE NO SLOT ===');
     console.log('📅 Data:', date, '🕐 Hora:', time);
-    console.log('🔍 Total de agendamentos para verificar:', appointments.length);
+    console.log('🔍 Total de agendamentos carregados:', appointments.length);
 
     // Validações básicas
     if (!selectedProfessional) {
@@ -282,38 +284,27 @@ export const useSchedulingCalendar = () => {
       return;
     }
 
-    // Verifica se o slot está ocupado - CORRIGIDO
-    const isOccupied = appointments.some(appointment => {
-      const appointmentDate = appointment.appointment_date;
-      const appointmentStartTime = appointment.start_time.substring(0, 5); // HH:MM
-      const appointmentEndTime = appointment.end_time.substring(0, 5); // HH:MM
-      
-      const isDateMatch = appointmentDate === date;
-      const isTimeInRange = time >= appointmentStartTime && time < appointmentEndTime;
-      
-      const result = isDateMatch && isTimeInRange;
-      
-      console.log(`🔍 Verificando agendamento:`, {
-        appointmentId: appointment.id,
-        appointmentDate,
-        appointmentStartTime,
-        appointmentEndTime,
-        clickedDate: date,
-        clickedTime: time,
-        isDateMatch,
-        isTimeInRange,
-        resultado: result
-      });
-      
-      return result;
+    // Verifica se o slot está ocupado usando função corrigida
+    const slotDate = new Date(date + 'T00:00:00');
+    const occupyingAppointments = getAppointmentsForSlot(appointments, slotDate, time);
+    
+    console.log('📋 Verificação de ocupação:', {
+      slotDate: date,
+      slotTime: time,
+      appointmentsFound: occupyingAppointments.length,
+      appointments: occupyingAppointments.map(app => ({
+        id: app.id,
+        client: app.client_name,
+        start: app.start_time,
+        end: app.end_time
+      }))
     });
 
-    console.log('📋 Slot ocupado?', isOccupied);
-
-    if (isOccupied) {
+    if (occupyingAppointments.length > 0) {
+      const appointment = occupyingAppointments[0];
       toast({
         title: "Horário ocupado",
-        description: "Este horário já está agendado. Passe o mouse sobre o agendamento para ver os detalhes.",
+        description: `Este horário já está agendado para ${appointment.client_name} (${sanitizeTimeString(appointment.start_time)}-${sanitizeTimeString(appointment.end_time)}).`,
         variant: "destructive",
       });
       return;

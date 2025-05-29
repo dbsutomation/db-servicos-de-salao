@@ -106,6 +106,12 @@ export const getAppointmentsForSlot = (
   
   const dateString = date.toISOString().split('T')[0]; // YYYY-MM-DD
   
+  console.log('🔍 Procurando agendamentos para slot:', {
+    dateString,
+    time,
+    totalAppointments: appointments.length
+  });
+  
   const matchingAppointments = appointments.filter(appointment => {
     // Validação dos dados do agendamento
     if (!isValidAppointmentData(appointment)) {
@@ -124,13 +130,17 @@ export const getAppointmentsForSlot = (
       
       const matches = isSameDate && isTimeInRange;
       
-      if (matches) {
-        console.log('✅ Agendamento encontrado para slot:', {
-          slot: `${dateString} ${time}`,
-          appointment: `${appointmentDate} ${appointmentStartTime}-${appointmentEndTime}`,
-          client: appointment.client_name
-        });
-      }
+      console.log('🔍 Verificando agendamento:', {
+        appointmentId: appointment.id,
+        appointmentDate,
+        appointmentStartTime,
+        appointmentEndTime,
+        slotDate: dateString,
+        slotTime: time,
+        isSameDate,
+        isTimeInRange,
+        matches
+      });
       
       return matches;
     } catch (error) {
@@ -139,7 +149,7 @@ export const getAppointmentsForSlot = (
     }
   });
   
-  console.log(`🔍 Slot ${dateString} ${time}: ${matchingAppointments.length} agendamentos encontrados`);
+  console.log(`✅ Slot ${dateString} ${time}: ${matchingAppointments.length} agendamentos encontrados`);
   return matchingAppointments;
 };
 
@@ -177,31 +187,69 @@ export const isPastAppointment = (appointment: Appointment): boolean => {
 
 /**
  * Valida se os dados de um agendamento estão corretos
+ * Corrigido para aceitar horários no formato HH:MM:SS que vem do banco
  * @param appointment - Agendamento para validar
  * @returns boolean - True se válido
  */
 export const isValidAppointmentData = (appointment: any): boolean => {
-  const isValid = (
-    appointment &&
-    typeof appointment === 'object' &&
-    typeof appointment.appointment_date === 'string' &&
-    appointment.appointment_date.length === 10 && // YYYY-MM-DD
-    isValidTimeString(appointment.start_time) &&
-    isValidTimeString(appointment.end_time)
-  );
-  
-  if (!isValid) {
-    console.log('❌ Dados de agendamento inválidos:', {
-      appointment,
-      hasObject: appointment && typeof appointment === 'object',
-      hasDate: typeof appointment?.appointment_date === 'string',
-      dateLength: appointment?.appointment_date?.length,
-      hasStartTime: isValidTimeString(appointment?.start_time),
-      hasEndTime: isValidTimeString(appointment?.end_time)
-    });
+  if (!appointment || typeof appointment !== 'object') {
+    console.log('❌ Agendamento não é um objeto válido:', appointment);
+    return false;
   }
+
+  // Verifica se a data do agendamento está presente e no formato correto
+  if (!appointment.appointment_date || 
+      typeof appointment.appointment_date !== 'string' || 
+      appointment.appointment_date.length !== 10) {
+    console.log('❌ Data do agendamento inválida:', appointment.appointment_date);
+    return false;
+  }
+
+  // Verifica se os horários estão presentes
+  if (!appointment.start_time || !appointment.end_time) {
+    console.log('❌ Horários ausentes:', {
+      start_time: appointment.start_time,
+      end_time: appointment.end_time
+    });
+    return false;
+  }
+
+  // Valida os horários - aceita tanto HH:MM quanto HH:MM:SS
+  const startTimeValid = isValidTimeFormatFromDB(appointment.start_time);
+  const endTimeValid = isValidTimeFormatFromDB(appointment.end_time);
+
+  if (!startTimeValid || !endTimeValid) {
+    console.log('❌ Formatos de horário inválidos:', {
+      start_time: appointment.start_time,
+      end_time: appointment.end_time,
+      startTimeValid,
+      endTimeValid
+    });
+    return false;
+  }
+
+  console.log('✅ Dados de agendamento válidos:', {
+    id: appointment.id,
+    date: appointment.appointment_date,
+    start_time: appointment.start_time,
+    end_time: appointment.end_time
+  });
+
+  return true;
+};
+
+/**
+ * Valida se um horário está no formato correto do banco de dados
+ * Aceita tanto HH:MM quanto HH:MM:SS
+ * @param time - Horário para validar
+ * @returns boolean - True se válido
+ */
+export const isValidTimeFormatFromDB = (time: string): boolean => {
+  if (!time || typeof time !== 'string') return false;
   
-  return isValid;
+  // Regex para HH:MM ou HH:MM:SS
+  const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/;
+  return timeRegex.test(time);
 };
 
 /**
@@ -211,11 +259,18 @@ export const isValidAppointmentData = (appointment: any): boolean => {
  * @returns string - Horário sanitizado
  */
 export const sanitizeTimeString = (time: string, fallback: string = '00:00'): string => {
-  if (!time || typeof time !== 'string') return fallback;
+  if (!time || typeof time !== 'string') {
+    console.log('⚠️ Horário inválido, usando fallback:', { time, fallback });
+    return fallback;
+  }
   
   // Remove segundos se existirem (HH:MM:SS -> HH:MM)
   const cleanTime = time.substring(0, 5);
   
-  if (!isValidTimeString(cleanTime)) return fallback;
+  if (!isValidTimeString(cleanTime)) {
+    console.log('⚠️ Horário sanitizado inválido, usando fallback:', { cleanTime, fallback });
+    return fallback;
+  }
+  
   return cleanTime;
 };
