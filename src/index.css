@@ -76,3 +76,18 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Classes personalizadas para estilo Microsoft Teams */
+@layer utilities {
+  .bg-gray-25 {
+    background-color: #fafafa;
+  }
+  
+  .bg-blue-25 {
+    background-color: #f8faff;
+  }
+  
+  .text-blue-900 {
+    color: #1e3a8a;
+  }
+}

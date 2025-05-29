@@ -39,7 +39,7 @@ const TimeSlot = memo(({
     }
   }, [dateString, time, isBlocked, isPast, onSlotClick]);
 
-  // Renderizar slot de agendamento completo
+  // Renderizar slot de agendamento completo - estilo Teams
   if (isOccupied && isFirstSlot && appointment) {
     return (
       <AppointmentSlot
@@ -52,25 +52,25 @@ const TimeSlot = memo(({
     );
   }
 
-  // Renderizar continuação do agendamento sem bordas
+  // Renderizar continuação do agendamento sem bordas - estilo Teams
   if (isOccupied && !isFirstSlot) {
     return (
       <div 
-        className="bg-blue-100 h-full border-0"
+        className="bg-blue-50 h-full"
         aria-label="Continuação do agendamento"
       />
     );
   }
 
-  // Renderizar slot disponível ou bloqueado
+  // Renderizar slot disponível ou bloqueado - estilo Teams
   const getSlotClasses = () => {
     if (isBlocked) {
-      return 'bg-orange-100 border-l-4 border-orange-400 text-orange-700 cursor-not-allowed';
+      return 'bg-orange-50 border-l-2 border-orange-300 text-orange-700 cursor-not-allowed';
     }
     if (isPast) {
-      return 'bg-gray-100 text-gray-400 cursor-not-allowed';
+      return 'bg-gray-50 text-gray-400 cursor-not-allowed';
     }
-    return 'hover:bg-green-50 hover:border-l-4 hover:border-green-400 focus:bg-green-50 focus:border-l-4 focus:border-green-400 focus:outline-none cursor-pointer';
+    return 'hover:bg-blue-50 focus:bg-blue-50 focus:outline-none cursor-pointer transition-colors duration-150';
   };
 
   const getAriaLabel = () => {
@@ -81,15 +81,15 @@ const TimeSlot = memo(({
 
   return (
     <button
-      className={`w-full h-full text-xs transition-colors flex items-center justify-center ${getSlotClasses()}`}
+      className={`w-full h-full text-xs flex items-center justify-center ${getSlotClasses()}`}
       disabled={isBlocked || isPast}
       onClick={handleSlotClick}
       aria-label={getAriaLabel()}
       type="button"
     >
       {isBlocked && (
-        <span className="text-orange-600 font-medium text-center px-1">
-          Indisponível
+        <span className="text-orange-600 font-medium text-center px-2 py-1 bg-orange-100 rounded text-xs">
+          Bloqueado
         </span>
       )}
     </button>
