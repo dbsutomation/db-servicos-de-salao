@@ -91,9 +91,9 @@ const WeeklyScheduleGrid = ({
       {/* Grid de horários - alinhamento corrigido */}
       <div className="max-h-[500px] overflow-y-auto">
         {mainHours.map((time) => (
-          <div key={time} className="grid border-b border-gray-200 last:border-b-0 min-h-[60px] hover:bg-gray-25 transition-colors" style={{ gridTemplateColumns: '140px repeat(6, 1fr)' }}>
+          <div key={time} className="grid border-b border-gray-100 last:border-b-0 min-h-[60px] hover:bg-gray-25 transition-colors" style={{ gridTemplateColumns: '140px repeat(6, 1fr)' }}>
             {/* Coluna de horários - padding igual ao header */}
-            <div className="px-4 py-3 text-sm font-medium text-gray-700 border-r border-gray-200 bg-gray-100 flex items-center justify-center">
+            <div className="px-4 py-3 text-sm font-medium text-gray-700 border-r border-gray-200 bg-gray-50 flex items-center justify-center">
               {time}
             </div>
             
@@ -110,7 +110,7 @@ const WeeklyScheduleGrid = ({
               return (
                 <div 
                   key={slotKey} 
-                  className="px-8 pay-3 relative border-r border-gray-200 last:border-r-0 min-h-[100px] hover:bg-blue-25 transition-colors"
+                  className="px-4 relative border-r border-gray-100 last:border-r-0 min-h-[60px] hover:bg-blue-25 transition-colors"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <TimeSlot
