@@ -68,13 +68,13 @@ const WeeklyScheduleGrid = ({
 
   return (
     <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100" onClick={handleGridClick}>
-      {/* Header da grade - corrigido o alinhamento */}
-      <div className="grid grid-cols-[120px_repeat(6,1fr)] bg-gray-50 border-b border-gray-200">
-        <div className="p-4 text-sm font-semibold text-gray-700 border-r border-gray-200 flex items-center justify-center min-h-[70px] bg-white">
+      {/* Header da grade - alinhamento perfeito */}
+      <div className="grid grid-cols-[140px_repeat(6,1fr)] bg-gray-50 border-b border-gray-200">
+        <div className="px-4 py-3 text-sm font-semibold text-gray-700 border-r border-gray-200 flex items-center justify-center min-h-[70px] bg-white">
           Horário
         </div>
         {weekDays.map((day) => (
-          <div key={day.toISOString()} className="p-4 text-center border-r border-gray-200 last:border-r-0 min-h-[70px] flex flex-col justify-center bg-gray-50">
+          <div key={day.toISOString()} className="px-4 py-3 text-center border-r border-gray-200 last:border-r-0 min-h-[70px] flex flex-col justify-center bg-gray-50">
             <div className="text-xs font-medium text-blue-600 uppercase tracking-wide mb-1">
               {format(day, 'EEEE', { locale: ptBR })}
             </div>
@@ -88,12 +88,12 @@ const WeeklyScheduleGrid = ({
         ))}
       </div>
 
-      {/* Grid de horários - corrigido o alinhamento */}
+      {/* Grid de horários - alinhamento perfeito */}
       <div className="max-h-[500px] overflow-y-auto">
         {mainHours.map((time) => (
-          <div key={time} className="grid grid-cols-[120px_repeat(6,1fr)] border-b border-gray-100 last:border-b-0 min-h-[60px] hover:bg-gray-25 transition-colors">
-            {/* Coluna de horários - largura fixa */}
-            <div className="p-3 text-sm font-medium text-gray-600 border-r border-gray-100 bg-gray-50 flex items-center justify-center">
+          <div key={time} className="grid grid-cols-[140px_repeat(6,1fr)] border-b border-gray-100 last:border-b-0 min-h-[60px] hover:bg-gray-25 transition-colors">
+            {/* Coluna de horários - mesma largura do header */}
+            <div className="px-4 py-3 text-sm font-medium text-gray-600 border-r border-gray-100 bg-gray-50 flex items-center justify-center">
               {time}
             </div>
             
