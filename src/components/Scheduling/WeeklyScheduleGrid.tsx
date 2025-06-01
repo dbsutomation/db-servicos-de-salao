@@ -69,7 +69,7 @@ const WeeklyScheduleGrid = ({
   return (
     <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100" onClick={handleGridClick}>
       {/* Header da grade - alinhamento corrigido */}
-      <div className="grid bg-gray-50 border-b border-gray-600" style={{ gridTemplateColumns: '140px repeat(6, 1fr)' }}>
+      <div className="grid bg-gray-50 border-b border-gray-200" style={{ gridTemplateColumns: '140px repeat(6, 1fr)' }}>
         <div className="px-4 py-3 text-sm font-semibold text-gray-700 border-r border-gray-200 flex items-center justify-center min-h-[70px] bg-white">
           Horário
         </div>
@@ -89,7 +89,7 @@ const WeeklyScheduleGrid = ({
       </div>
 
       {/* Grid de horários - alinhamento corrigido */}
-      <div className="max-h-[500px] overflow-y-auto">
+      <div className="max-h-[700px] overflow-y-auto">
         {mainHours.map((time) => (
           <div key={time} className="grid border-b border-gray-200 last:border-b-0 min-h-[60px] hover:bg-gray-25 transition-colors" style={{ gridTemplateColumns: '140px repeat(6, 1fr)' }}>
             {/* Coluna de horários - padding igual ao header */}
