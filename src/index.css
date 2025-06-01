@@ -87,7 +87,10 @@
     background-color: #f8faff;
   }
   
-  .text-blue-500 {
+  .text-blue-900 {
     color: #1e3a8a;
   }
+  * {
+  outline: 1px solid red;
+}
 }
