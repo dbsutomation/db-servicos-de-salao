@@ -39,38 +39,40 @@ const TimeSlot = memo(({
     }
   }, [dateString, time, isBlocked, isPast, onSlotClick]);
 
-  // Renderizar slot de agendamento completo - estilo Teams
+  // Renderizar slot de agendamento completo - ajuste para padding do container
   if (isOccupied && isFirstSlot && appointment) {
     return (
-      <AppointmentSlot
-        appointment={appointment}
-        onEdit={onEditAppointment}
-        onDelete={onDeleteAppointment}
-        showActions={showAppointmentActions}
-        onToggleActions={onToggleAppointmentActions}
-      />
+      <div className="h-full -mx-4 px-4">
+        <AppointmentSlot
+          appointment={appointment}
+          onEdit={onEditAppointment}
+          onDelete={onDeleteAppointment}
+          showActions={showAppointmentActions}
+          onToggleActions={onToggleAppointmentActions}
+        />
+      </div>
     );
   }
 
-  // Renderizar continuação do agendamento sem bordas - estilo Teams
+  // Renderizar continuação do agendamento - ajuste para padding do container
   if (isOccupied && !isFirstSlot) {
     return (
       <div 
-        className="bg-blue-50 h-full"
+        className="bg-blue-50 h-full -mx-4"
         aria-label="Continuação do agendamento"
       />
     );
   }
 
-  // Renderizar slot disponível ou bloqueado - estilo Teams
+  // Renderizar slot disponível ou bloqueado - ajuste para padding do container
   const getSlotClasses = () => {
     if (isBlocked) {
-      return 'bg-orange-50 border-l-2 border-orange-300 text-orange-700 cursor-not-allowed';
+      return 'bg-orange-50 border-l-2 border-orange-300 text-orange-700 cursor-not-allowed -mx-4 px-4';
     }
     if (isPast) {
-      return 'bg-gray-50 text-gray-400 cursor-not-allowed';
+      return 'bg-gray-50 text-gray-400 cursor-not-allowed -mx-4 px-4';
     }
-    return 'hover:bg-blue-50 focus:bg-blue-50 focus:outline-none cursor-pointer transition-colors duration-150';
+    return 'hover:bg-blue-50 focus:bg-blue-50 focus:outline-none cursor-pointer transition-colors duration-150 -mx-4 px-4';
   };
 
   const getAriaLabel = () => {
