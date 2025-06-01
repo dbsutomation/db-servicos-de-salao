@@ -174,14 +174,32 @@ export const isFirstSlotOfAppointment = (time: string, appointment: Appointment)
  * @returns boolean - True se o agendamento já passou
  */
 export const isPastAppointment = (appointment: Appointment): boolean => {
-  if (!isValidAppointmentData(appointment)) return true;
+  if (!isValidAppointmentData(appointment)) {
+    console.log('❌ Dados de agendamento inválidos para verificar se passou:', appointment);
+    return true;
+  }
   
   try {
-    const appointmentDate = parseISO(appointment.appointment_date + 'T00:00:00');
-    return isPastTimeSlot(appointmentDate, appointment.start_time);
+    // Cria a data corretamente a partir da string YYYY-MM-DD
+    const appointmentDate = new Date(appointment.appointment_date + 'T00:00:00');
+    const startTime = sanitizeTimeString(appointment.start_time);
+    
+    console.log('🕐 Verificando se agendamento passou:', {
+      appointmentId: appointment.id,
+      date: appointment.appointment_date,
+      startTime,
+      dateObject: appointmentDate
+    });
+    
+    // Verifica se o agendamento já passou considerando o fuso de Brasília
+    const hasPassed = isPastInBrasilia(appointmentDate, startTime);
+    
+    console.log(`${hasPassed ? '⏰' : '✅'} Agendamento ${appointment.id}: ${hasPassed ? 'passou' : 'ainda não passou'}`);
+    
+    return hasPassed;
   } catch (error) {
-    console.warn('❌ Erro ao verificar se agendamento passou:', error);
-    return true;
+    console.warn('❌ Erro ao verificar se agendamento passou:', error, appointment);
+    return true; // Em caso de erro, considera como passado por segurança
   }
 };
 
