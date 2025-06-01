@@ -79,7 +79,7 @@
 
 /* Classes personalizadas para estilo Microsoft Teams */
 @layer utilities {
-  .bg-gray-25 {
+  .bg-gray-24 {
     background-color: #fafafa;
   }
   
@@ -90,7 +90,5 @@
   .text-blue-900 {
     color: #1e3a8a;
   }
-  * {
-  outline: 1px solid red;
-}
+
 }
