@@ -66,15 +66,21 @@ const WeeklyScheduleGrid = ({
     );
   }
 
+  // Estilos consistentes para todas as células
+  const cellStyles = 'px-4 py-3';
+  const timeCellStyles = `${cellStyles} text-sm font-medium text-gray-600 border-r border-gray-100 bg-gray-50 flex items-center justify-center`;
+  const dayCellStyles = `${cellStyles} text-center border-r border-gray-200 last:border-r-0 min-h-[70px] flex flex-col justify-center bg-gray-50`;
+  const slotCellStyles = 'border-r border-gray-100 last:border-r-0 min-h-[60px] hover:bg-blue-25 transition-colors relative';
+
   return (
     <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100" onClick={handleGridClick}>
-      {/* Header da grade - definição correta das colunas */}
+      {/* Header da grade - padding consistente */}
       <div className="grid bg-gray-50 border-b border-gray-200" style={{ gridTemplateColumns: '140px repeat(6, 1fr)' }}>
-        <div className="px-4 py-3 text-sm font-semibold text-gray-700 border-r border-gray-200 flex items-center justify-center min-h-[70px] bg-white">
+        <div className={`${cellStyles} text-sm font-semibold text-gray-700 border-r border-gray-200 flex items-center justify-center min-h-[70px] bg-white`}>
           Horário
         </div>
         {weekDays.map((day) => (
-          <div key={day.toISOString()} className="px-4 py-3 text-center border-r border-gray-200 last:border-r-0 min-h-[70px] flex flex-col justify-center bg-gray-50">
+          <div key={day.toISOString()} className={dayCellStyles}>
             <div className="text-xs font-medium text-blue-600 uppercase tracking-wide mb-1">
               {format(day, 'EEEE', { locale: ptBR })}
             </div>
@@ -88,16 +94,16 @@ const WeeklyScheduleGrid = ({
         ))}
       </div>
 
-      {/* Grid de horários - correção do padding para alinhamento perfeito */}
+      {/* Grid de horários - padding consistente com header */}
       <div className="max-h-[500px] overflow-y-auto">
         {mainHours.map((time) => (
           <div key={time} className="grid border-b border-gray-100 last:border-b-0 min-h-[70px] hover:bg-gray-25 transition-colors" style={{ gridTemplateColumns: '140px repeat(6, 1fr)' }}>
             {/* Coluna de horários - padding consistente com header */}
-            <div className="px-4 py-3 text-sm font-medium text-gray-600 border-r border-gray-100 bg-gray-50 flex items-center justify-center">
+            <div className={timeCellStyles}>
               {time}
             </div>
             
-            {/* Colunas dos dias - CORREÇÃO: padding px-4 para alinhamento perfeito com header */}
+            {/* Colunas dos dias - SEM padding próprio, delegado ao TimeSlot */}
             {weekDays.map((day) => {
               const dateString = format(day, 'yyyy-MM-dd');
               const slotAppointments = getAppointmentsForSlot(appointments, day, time);
@@ -110,7 +116,7 @@ const WeeklyScheduleGrid = ({
               return (
                 <div 
                   key={slotKey} 
-                  className="px-4 py-0 relative border-r border-gray-100 last:border-r-0 min-h-[60px] hover:bg-blue-25 transition-colors"
+                  className={slotCellStyles}
                   onClick={(e) => e.stopPropagation()}
                 >
                   <TimeSlot

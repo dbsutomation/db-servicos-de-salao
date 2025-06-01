@@ -39,10 +39,13 @@ const TimeSlot = memo(({
     }
   }, [dateString, time, isBlocked, isPast, onSlotClick]);
 
-  // Renderizar slot de agendamento completo - ajuste para padding do container
+  // Padding consistente com as células da grade (px-4)
+  const basePadding = 'px-4 py-3';
+
+  // Renderizar slot de agendamento completo
   if (isOccupied && isFirstSlot && appointment) {
     return (
-      <div className="h-full -mx-4 px-4">
+      <div className={`h-full ${basePadding}`}>
         <AppointmentSlot
           appointment={appointment}
           onEdit={onEditAppointment}
@@ -54,25 +57,25 @@ const TimeSlot = memo(({
     );
   }
 
-  // Renderizar continuação do agendamento - ajuste para padding do container
+  // Renderizar continuação do agendamento
   if (isOccupied && !isFirstSlot) {
     return (
       <div 
-        className="bg-blue-50 h-full -mx-4"
+        className={`bg-blue-50 h-full ${basePadding}`}
         aria-label="Continuação do agendamento"
       />
     );
   }
 
-  // Renderizar slot disponível ou bloqueado - ajuste para padding do container
+  // Renderizar slot disponível ou bloqueado
   const getSlotClasses = () => {
     if (isBlocked) {
-      return 'bg-orange-50 border-l-2 border-orange-300 text-orange-700 cursor-not-allowed -mx-4 px-4';
+      return `bg-orange-50 border-l-2 border-orange-300 text-orange-700 cursor-not-allowed ${basePadding}`;
     }
     if (isPast) {
-      return 'bg-gray-50 text-gray-400 cursor-not-allowed -mx-4 px-4';
+      return `bg-gray-50 text-gray-400 cursor-not-allowed ${basePadding}`;
     }
-    return 'hover:bg-blue-50 focus:bg-blue-50 focus:outline-none cursor-pointer transition-colors duration-150 -mx-4 px-4';
+    return `hover:bg-blue-50 focus:bg-blue-50 focus:outline-none cursor-pointer transition-colors duration-150 ${basePadding}`;
   };
 
   const getAriaLabel = () => {
