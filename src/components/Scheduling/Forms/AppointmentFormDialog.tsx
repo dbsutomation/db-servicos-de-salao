@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -10,7 +11,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Service, Client, TeamMember } from '@/types';
@@ -35,7 +35,7 @@ interface SelectedService {
   quantity: number;
 }
 
-const AppointmentFormDialog = ({
+export const AppointmentFormDialog = ({
   isOpen,
   onClose,
   selectedSlot,
@@ -70,36 +70,19 @@ const AppointmentFormDialog = ({
 
   // Filter services based on selected professional's categories
   useEffect(() => {
-    console.log('Filtering services for professional:', selectedProfessional?.name);
-    console.log('Professional categories:', selectedProfessional?.categories);
-    console.log('All services:', services.map(s => ({ name: s.name, category: s.category })));
-
     if (services.length > 0 && selectedProfessional) {
       const professionalCategories = selectedProfessional.categories || [];
       
-      console.log('Professional categories array:', professionalCategories);
-      
       if (professionalCategories.length === 0) {
-        console.log('Professional has no categories, showing all services');
         setFilteredServices(services);
       } else {
-        // Filter services by professional's categories
         const filtered = services.filter(service => {
-          if (!service.category) {
-            console.log(`Service "${service.name}" has no category`);
-            return false;
-          }
-          
-          const hasCategory = professionalCategories.includes(service.category);
-          console.log(`Service "${service.name}" (category: ${service.category}) - included: ${hasCategory}`);
-          return hasCategory;
+          if (!service.category) return false;
+          return professionalCategories.includes(service.category);
         });
-        
-        console.log('Filtered services:', filtered.map(s => s.name));
         setFilteredServices(filtered);
       }
     } else {
-      console.log('No professional selected or no services loaded, showing all services');
       setFilteredServices(services);
     }
   }, [services, selectedProfessional]);
@@ -123,7 +106,6 @@ const AppointmentFormDialog = ({
 
       if (error) throw error;
       
-      // Mapear os dados do banco para o formato esperado
       const mappedClients: Client[] = (data || []).map(client => ({
         id: client.id,
         name: client.name,
@@ -149,7 +131,6 @@ const AppointmentFormDialog = ({
         .order('name');
 
       if (error) throw error;
-      console.log('Services fetched from database:', data);
       setServices(data || []);
     } catch (error) {
       console.error('Erro ao buscar serviços:', error);
@@ -179,7 +160,6 @@ const AppointmentFormDialog = ({
 
       if (error) throw error;
 
-      // Mapear os dados do banco para o formato esperado
       const mappedClient: Client = {
         id: data.id,
         name: data.name,
@@ -205,7 +185,6 @@ const AppointmentFormDialog = ({
   };
 
   const addService = () => {
-    // Add service with null service (blank field) so user must select
     setSelectedServices(prev => [...prev, { service: null, quantity: 1 }]);
   };
 
@@ -266,7 +245,6 @@ const AppointmentFormDialog = ({
 
     let clientId = selectedClient;
 
-    // Criar novo cliente se necessário
     if (showNewClientForm) {
       const newClientId = await createNewClient();
       if (!newClientId) return;
@@ -282,7 +260,6 @@ const AppointmentFormDialog = ({
       return;
     }
 
-    // Check if all services are selected
     const hasUnselectedServices = selectedServices.some(item => !item.service);
     if (hasUnselectedServices) {
       toast({
@@ -309,7 +286,6 @@ const AppointmentFormDialog = ({
       const totalValue = calculateTotalValue();
       const endTime = calculateEndTime();
 
-      // Criar o agendamento
       const { data: appointment, error: appointmentError } = await supabase
         .from('appointments')
         .insert({
@@ -328,9 +304,8 @@ const AppointmentFormDialog = ({
 
       if (appointmentError) throw appointmentError;
 
-      // Criar os serviços do agendamento
       const appointmentServices = selectedServices
-        .filter(item => item.service) // Only include items with selected services
+        .filter(item => item.service)
         .map(item => ({
           appointment_id: appointment.id,
           service_id: item.service!.id,
@@ -364,7 +339,6 @@ const AppointmentFormDialog = ({
 
   if (!selectedSlot) return null;
 
-  // Corrigir o problema de fuso horário na data
   const selectedDate = new Date(selectedSlot.date + 'T12:00:00');
 
   return (
@@ -549,7 +523,7 @@ const AppointmentFormDialog = ({
             </Button>
             <Button type="submit" disabled={loading}>
               {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Salvar Agendamento
+              Criar Agendamento
             </Button>
           </div>
         </form>
@@ -557,5 +531,3 @@ const AppointmentFormDialog = ({
     </Dialog>
   );
 };
-
-export default AppointmentFormDialog;

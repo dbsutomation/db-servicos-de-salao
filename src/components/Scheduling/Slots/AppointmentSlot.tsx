@@ -13,7 +13,7 @@ interface AppointmentSlotProps {
   onToggleActions: () => void;
 }
 
-const AppointmentSlot = memo(({ 
+export const AppointmentSlot = memo(({ 
   appointment, 
   onEdit, 
   onDelete, 
@@ -40,7 +40,7 @@ const AppointmentSlot = memo(({
   }, [onToggleActions]);
 
   return (
-    <div className="bg-blue-50 border-l-4 border-blue-500 h-full text-xs relative p-3 group transition-all duration-200 hover:bg-blue-100 hover:shadow-sm rounded-r-md">
+    <div className="bg-blue-50 border-l-4 border-blue-500 h-full text-xs relative group transition-all duration-200 hover:bg-blue-100 hover:shadow-sm rounded-r-md">
       <div className="font-semibold text-sm text-blue-900 truncate mb-1">
         {appointment.client_name || 'Cliente não identificado'}
       </div>
@@ -100,5 +100,3 @@ const AppointmentSlot = memo(({
 });
 
 AppointmentSlot.displayName = 'AppointmentSlot';
-
-export default AppointmentSlot;

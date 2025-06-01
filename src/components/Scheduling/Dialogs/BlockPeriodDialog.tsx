@@ -26,7 +26,7 @@ interface BlockPeriodDialogProps {
   onPeriodBlocked: () => void;
 }
 
-const BlockPeriodDialog = ({
+export const BlockPeriodDialog = ({
   isOpen,
   onClose,
   professionalId,
@@ -75,7 +75,6 @@ const BlockPeriodDialog = ({
     setLoading(true);
 
     try {
-      // Criar período bloqueado
       const { error } = await supabase
         .from('blocked_periods')
         .insert({
@@ -220,5 +219,3 @@ const BlockPeriodDialog = ({
     </Dialog>
   );
 };
-
-export default BlockPeriodDialog;

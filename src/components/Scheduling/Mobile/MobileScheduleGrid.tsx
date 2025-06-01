@@ -1,6 +1,6 @@
 
 import React, { useMemo, useCallback } from 'react';
-import { format, addDays, startOfWeek, isSameDay, isToday } from 'date-fns';
+import { format, addDays, startOfWeek, isSameDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Appointment } from '@/types';
@@ -17,7 +17,7 @@ interface MobileScheduleGridProps {
   onDateChange: (date: Date) => void;
 }
 
-const MobileScheduleGrid = ({
+export const MobileScheduleGrid = ({
   currentWeek,
   appointments,
   onSlotClick,
@@ -181,5 +181,3 @@ const MobileScheduleGrid = ({
     </div>
   );
 };
-
-export default MobileScheduleGrid;

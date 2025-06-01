@@ -21,7 +21,7 @@ interface DeleteAppointmentDialogProps {
   appointment: Appointment | null;
 }
 
-const DeleteAppointmentDialog = ({ 
+export const DeleteAppointmentDialog = ({ 
   open, 
   onOpenChange, 
   onConfirm,
@@ -58,5 +58,3 @@ const DeleteAppointmentDialog = ({
     </AlertDialog>
   );
 };
-
-export default DeleteAppointmentDialog;

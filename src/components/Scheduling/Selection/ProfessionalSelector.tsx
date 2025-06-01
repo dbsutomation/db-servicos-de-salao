@@ -10,7 +10,7 @@ interface ProfessionalSelectorProps {
   onProfessionalChange: (value: string) => void;
 }
 
-const ProfessionalSelector = ({ 
+export const ProfessionalSelector = ({ 
   professionals, 
   selectedProfessional, 
   onProfessionalChange 
@@ -37,5 +37,3 @@ const ProfessionalSelector = ({
     </Card>
   );
 };
-
-export default ProfessionalSelector;

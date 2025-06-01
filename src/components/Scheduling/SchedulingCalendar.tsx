@@ -2,14 +2,14 @@
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import WeeklyScheduleGrid from './WeeklyScheduleGrid';
-import MobileScheduleGrid from './MobileScheduleGrid';
-import AppointmentFormDialog from './AppointmentFormDialog';
-import EditAppointmentDialog from './EditAppointmentDialog';
-import DeleteAppointmentDialog from './DeleteAppointmentDialog';
-import BlockPeriodDialog from './BlockPeriodDialog';
-import ProfessionalSelector from './ProfessionalSelector';
-import WeekNavigation from './WeekNavigation';
+import { WeeklyScheduleGrid } from './Grid/WeeklyScheduleGrid';
+import { MobileScheduleGrid } from './Mobile/MobileScheduleGrid';
+import { AppointmentFormDialog } from './Forms/AppointmentFormDialog';
+import { EditAppointmentDialog } from './Forms/EditAppointmentDialog';
+import { DeleteAppointmentDialog } from './Dialogs/DeleteAppointmentDialog';
+import { BlockPeriodDialog } from './Dialogs/BlockPeriodDialog';
+import { ProfessionalSelector } from './Selection/ProfessionalSelector';
+import { WeekNavigation } from './Navigation/WeekNavigation';
 import { useSchedulingCalendar } from '@/hooks/useSchedulingCalendar';
 import { useMediaQuery } from '@/hooks/use-mobile';
 import { Appointment } from '@/types';
@@ -17,7 +17,7 @@ import { CalendarOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-const SchedulingCalendar = () => {
+export const SchedulingCalendar = () => {
   const {
     professionals,
     selectedProfessional,
@@ -60,7 +60,6 @@ const SchedulingCalendar = () => {
     if (!appointmentToDelete) return;
 
     try {
-      // Excluir serviços do agendamento primeiro
       const { error: servicesError } = await supabase
         .from('appointment_services')
         .delete()
@@ -68,7 +67,6 @@ const SchedulingCalendar = () => {
 
       if (servicesError) throw servicesError;
 
-      // Excluir o agendamento
       const { error: appointmentError } = await supabase
         .from('appointments')
         .delete()
@@ -81,7 +79,7 @@ const SchedulingCalendar = () => {
         description: "Agendamento excluído com sucesso!",
       });
 
-      handleAppointmentCreated(); // Recarrega os dados
+      handleAppointmentCreated();
       setIsDeleteDialogOpen(false);
       setAppointmentToDelete(null);
     } catch (error) {
@@ -95,13 +93,13 @@ const SchedulingCalendar = () => {
   };
 
   const handleAppointmentUpdated = () => {
-    handleAppointmentCreated(); // Reutiliza a função para recarregar os dados
+    handleAppointmentCreated();
     setIsEditDialogOpen(false);
     setAppointmentToEdit(null);
   };
 
   const handlePeriodBlocked = () => {
-    handleAppointmentCreated(); // Recarrega os dados
+    handleAppointmentCreated();
     setIsBlockPeriodDialogOpen(false);
   };
 
@@ -217,5 +215,3 @@ const SchedulingCalendar = () => {
     </div>
   );
 };
-
-export default SchedulingCalendar;

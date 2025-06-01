@@ -1,7 +1,7 @@
 
 import React from 'react';
 import MainLayout from '@/components/Layout/MainLayout';
-import SchedulingCalendar from '@/components/Scheduling/SchedulingCalendar';
+import { SchedulingCalendar } from '@/components/Scheduling/SchedulingCalendar';
 
 const Scheduling = () => {
   return (

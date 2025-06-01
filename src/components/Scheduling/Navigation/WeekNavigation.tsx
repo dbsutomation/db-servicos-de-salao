@@ -11,7 +11,7 @@ interface WeekNavigationProps {
   professionalName?: string;
 }
 
-const WeekNavigation = ({ currentWeek, onWeekChange, professionalName }: WeekNavigationProps) => {
+export const WeekNavigation = ({ currentWeek, onWeekChange, professionalName }: WeekNavigationProps) => {
   const navigateWeek = (direction: 'prev' | 'next') => {
     const newWeek = direction === 'prev' 
       ? subWeeks(currentWeek, 1) 
@@ -55,5 +55,3 @@ const WeekNavigation = ({ currentWeek, onWeekChange, professionalName }: WeekNav
     </div>
   );
 };
-
-export default WeekNavigation;

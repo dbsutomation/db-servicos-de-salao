@@ -1,7 +1,7 @@
 
 import React, { memo, useCallback } from 'react';
 import { Appointment } from '@/types';
-import AppointmentSlot from './AppointmentSlot';
+import { AppointmentSlot } from './AppointmentSlot';
 
 interface TimeSlotProps {
   dateString: string;
@@ -17,7 +17,7 @@ interface TimeSlotProps {
   onToggleAppointmentActions: () => void;
 }
 
-const TimeSlot = memo(({
+export const TimeSlot = memo(({
   dateString,
   time,
   appointments,
@@ -39,21 +39,16 @@ const TimeSlot = memo(({
     }
   }, [dateString, time, isBlocked, isPast, onSlotClick]);
 
-  // Padding consistente com as células da grade (px-4)
-  const basePadding = 'px-4 py-3';
-
   // Renderizar slot de agendamento completo
   if (isOccupied && isFirstSlot && appointment) {
     return (
-      <div className={`h-full ${basePadding}`}>
-        <AppointmentSlot
-          appointment={appointment}
-          onEdit={onEditAppointment}
-          onDelete={onDeleteAppointment}
-          showActions={showAppointmentActions}
-          onToggleActions={onToggleAppointmentActions}
-        />
-      </div>
+      <AppointmentSlot
+        appointment={appointment}
+        onEdit={onEditAppointment}
+        onDelete={onDeleteAppointment}
+        showActions={showAppointmentActions}
+        onToggleActions={onToggleAppointmentActions}
+      />
     );
   }
 
@@ -61,7 +56,7 @@ const TimeSlot = memo(({
   if (isOccupied && !isFirstSlot) {
     return (
       <div 
-        className={`bg-blue-50 h-full ${basePadding}`}
+        className="bg-blue-50 h-full"
         aria-label="Continuação do agendamento"
       />
     );
@@ -70,12 +65,12 @@ const TimeSlot = memo(({
   // Renderizar slot disponível ou bloqueado
   const getSlotClasses = () => {
     if (isBlocked) {
-      return `bg-orange-50 border-l-2 border-orange-300 text-orange-700 cursor-not-allowed ${basePadding}`;
+      return 'bg-orange-50 border-l-2 border-orange-300 text-orange-700 cursor-not-allowed';
     }
     if (isPast) {
-      return `bg-gray-50 text-gray-400 cursor-not-allowed ${basePadding}`;
+      return 'bg-gray-50 text-gray-400 cursor-not-allowed';
     }
-    return `hover:bg-blue-50 focus:bg-blue-50 focus:outline-none cursor-pointer transition-colors duration-150 ${basePadding}`;
+    return 'hover:bg-blue-50 focus:bg-blue-50 focus:outline-none cursor-pointer transition-colors duration-150';
   };
 
   const getAriaLabel = () => {
@@ -102,5 +97,3 @@ const TimeSlot = memo(({
 });
 
 TimeSlot.displayName = 'TimeSlot';
-
-export default TimeSlot;

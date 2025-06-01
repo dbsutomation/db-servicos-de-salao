@@ -13,7 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Service, Client, TeamMember, Appointment } from '@/types';
+import { Service, Client, Appointment } from '@/types';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Loader2, Plus, Trash2 } from 'lucide-react';
@@ -30,7 +30,7 @@ interface SelectedService {
   quantity: number;
 }
 
-const EditAppointmentDialog = ({
+export const EditAppointmentDialog = ({
   isOpen,
   onClose,
   appointment,
@@ -70,7 +70,6 @@ const EditAppointmentDialog = ({
     if (!appointment) return;
 
     try {
-      // Buscar os serviços do agendamento
       const { data: appointmentServices, error } = await supabase
         .from('appointment_services')
         .select(`
@@ -81,7 +80,6 @@ const EditAppointmentDialog = ({
 
       if (error) throw error;
 
-      // Mapear os serviços
       const mappedServices: SelectedService[] = appointmentServices.map(as => ({
         service: as.services,
         quantity: as.quantity
@@ -235,7 +233,6 @@ const EditAppointmentDialog = ({
       const totalValue = calculateTotalValue();
       const endTime = calculateEndTime();
 
-      // Atualizar o agendamento
       const { error: appointmentError } = await supabase
         .from('appointments')
         .update({
@@ -251,7 +248,6 @@ const EditAppointmentDialog = ({
 
       if (appointmentError) throw appointmentError;
 
-      // Remover serviços antigos
       const { error: deleteError } = await supabase
         .from('appointment_services')
         .delete()
@@ -259,7 +255,6 @@ const EditAppointmentDialog = ({
 
       if (deleteError) throw deleteError;
 
-      // Criar novos serviços
       const appointmentServices = selectedServices
         .filter(item => item.service)
         .map(item => ({
@@ -445,5 +440,3 @@ const EditAppointmentDialog = ({
     </Dialog>
   );
 };
-
-export default EditAppointmentDialog;
