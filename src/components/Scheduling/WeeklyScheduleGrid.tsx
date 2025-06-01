@@ -110,7 +110,7 @@ const WeeklyScheduleGrid = ({
               return (
                 <div 
                   key={slotKey} 
-                  className="px-4 pay-3 relative border-r border-gray-200 last:border-r-0 min-h-[100px] hover:bg-blue-25 transition-colors"
+                  className="px-8 pay-3 relative border-r border-gray-200 last:border-r-0 min-h-[100px] hover:bg-blue-25 transition-colors"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <TimeSlot
