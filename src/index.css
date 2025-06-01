@@ -79,7 +79,7 @@
 
 /* Classes personalizadas para estilo Microsoft Teams */
 @layer utilities {
-  .bg-gray-24 {
+  .bg-gray-4 {
     background-color: #fafafa;
   }
   
