@@ -93,7 +93,7 @@ const WeeklyScheduleGrid = ({
         {mainHours.map((time) => (
           <div key={time} className="grid border-b border-gray-100 last:border-b-0 min-h-[60px] hover:bg-gray-25 transition-colors" style={{ gridTemplateColumns: '140px repeat(6, 1fr)' }}>
             {/* Coluna de horários - padding igual ao header */}
-            <div className="px-4 py-3 text-sm font-medium text-gray-600 border-r border-gray-100 bg-gray-50 flex items-center justify-center">
+            <div className="px-4 py-3 text-sm font-medium text-gray-700 border-r border-gray-200 bg-gray-50 flex items-center justify-center">
               {time}
             </div>
             
