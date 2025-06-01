@@ -68,7 +68,7 @@ const WeeklyScheduleGrid = ({
 
   return (
     <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100" onClick={handleGridClick}>
-      {/* Header da grade - grid preciso */}
+      {/* Header da grade - alinhamento corrigido */}
       <div className="grid bg-gray-50 border-b border-gray-200" style={{ gridTemplateColumns: '140px repeat(6, 1fr)' }}>
         <div className="px-4 py-3 text-sm font-semibold text-gray-700 border-r border-gray-200 flex items-center justify-center min-h-[70px] bg-white">
           Horário
@@ -88,16 +88,16 @@ const WeeklyScheduleGrid = ({
         ))}
       </div>
 
-      {/* Grid de horários - grid idêntico */}
+      {/* Grid de horários - alinhamento corrigido */}
       <div className="max-h-[500px] overflow-y-auto">
         {mainHours.map((time) => (
           <div key={time} className="grid border-b border-gray-100 last:border-b-0 min-h-[60px] hover:bg-gray-25 transition-colors" style={{ gridTemplateColumns: '140px repeat(6, 1fr)' }}>
-            {/* Coluna de horários - exatamente igual ao header */}
+            {/* Coluna de horários - padding igual ao header */}
             <div className="px-4 py-3 text-sm font-medium text-gray-600 border-r border-gray-100 bg-gray-50 flex items-center justify-center">
               {time}
             </div>
             
-            {/* Colunas dos dias */}
+            {/* Colunas dos dias - padding igual ao header */}
             {weekDays.map((day) => {
               const dateString = format(day, 'yyyy-MM-dd');
               const slotAppointments = getAppointmentsForSlot(appointments, day, time);
@@ -110,7 +110,7 @@ const WeeklyScheduleGrid = ({
               return (
                 <div 
                   key={slotKey} 
-                  className="relative border-r border-gray-100 last:border-r-0 min-h-[60px] hover:bg-blue-25 transition-colors"
+                  className="px-4 relative border-r border-gray-100 last:border-r-0 min-h-[60px] hover:bg-blue-25 transition-colors"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <TimeSlot
