@@ -1,3 +1,4 @@
+
 /**
  * Cálculos e validações para o sistema de agendamento
  * 
@@ -130,7 +131,7 @@ export const getAppointmentsForSlot = (
         return false;
       }
       
-      // CORREÇÃO: Verifica se o horário está no intervalo do agendamento
+      // Verifica se o horário está no intervalo do agendamento
       // O slot deve estar entre o início (inclusive) e fim (exclusive) do agendamento
       const isTimeInRange = time >= appointmentStartTime && time < appointmentEndTime;
       
@@ -177,39 +178,57 @@ export const getAppointmentsForSlot = (
 };
 
 /**
- * Verifica se um determinado horário é a primeira linha de um agendamento específico
+ * Verifica se um determinado horário é o primeiro slot VISÍVEL de um agendamento na grade
  * 
- * Esta função determina se um slot de horário deve renderizar as informações completas
- * do agendamento ou apenas uma continuação visual. A lógica foi corrigida para garantir
- * que agendamentos se distribuam adequadamente entre os horários do mesmo dia.
+ * CORREÇÃO PRINCIPAL: Esta função agora identifica corretamente o primeiro slot visível
+ * na grade onde o agendamento deve mostrar suas informações completas.
  * 
- * Correções implementadas:
- * - Agendamentos agora se distribuem entre os slots de horário do mesmo dia
- * - Primeira linha é sempre o horário de início real do agendamento
- * - Não há mais invasão visual de dias anteriores ou seguintes
+ * Exemplo: Se um agendamento vai das 08:30 às 10:00, e a grade mostra apenas horários
+ * principais (09:00, 10:00, 11:00), então o slot das 09:00 deve mostrar as informações
+ * completas, mesmo não sendo exatamente o horário de início.
  * 
  * @param {string} slotTime - Horário do slot sendo verificado (formato HH:MM)
  * @param {Appointment} appointment - Dados do agendamento
  * @returns {boolean} true se este slot deve mostrar as informações completas
  */
 export const isFirstSlotOfAppointment = (slotTime: string, appointment: Appointment): boolean => {
-  // Sanitiza os horários para comparação consistente (remove segundos se houver)
   const appointmentStartTime = sanitizeTimeString(appointment.start_time);
+  const appointmentEndTime = sanitizeTimeString(appointment.end_time);
   const normalizedSlotTime = sanitizeTimeString(slotTime);
   
   console.log('🔍 Verificando primeira linha do agendamento:', {
     slotTime: normalizedSlotTime,
     appointmentStart: appointmentStartTime,
+    appointmentEnd: appointmentEndTime,
     appointmentId: appointment.id,
     clientName: appointment.client_name
   });
   
-  // A primeira linha é sempre o horário exato de início do agendamento
-  const isFirst = normalizedSlotTime === appointmentStartTime;
+  // Primeiro, verifica se este slot contém o agendamento
+  const slotContainsAppointment = normalizedSlotTime >= appointmentStartTime && normalizedSlotTime < appointmentEndTime;
   
-  console.log(`${isFirst ? '✅' : '❌'} Slot ${normalizedSlotTime} ${isFirst ? 'É' : 'NÃO é'} primeira linha do agendamento`);
+  if (!slotContainsAppointment) {
+    console.log(`❌ Slot ${normalizedSlotTime} não contém o agendamento`);
+    return false;
+  }
   
-  return isFirst;
+  // Agora verifica se este é o primeiro slot VISÍVEL da grade que contém o agendamento
+  const mainHours = generateMainHours();
+  
+  // Encontra todos os slots da grade que contêm este agendamento
+  const slotsWithAppointment = mainHours.filter(hour => 
+    hour >= appointmentStartTime && hour < appointmentEndTime
+  );
+  
+  console.log('📋 Slots que contêm o agendamento:', slotsWithAppointment);
+  
+  // O primeiro slot visível é onde devemos mostrar as informações completas
+  const firstVisibleSlot = slotsWithAppointment[0];
+  const isFirstVisible = normalizedSlotTime === firstVisibleSlot;
+  
+  console.log(`${isFirstVisible ? '✅' : '❌'} Slot ${normalizedSlotTime} ${isFirstVisible ? 'É' : 'NÃO é'} o primeiro slot visível do agendamento (primeiro visível: ${firstVisibleSlot})`);
+  
+  return isFirstVisible;
 };
 
 /**
