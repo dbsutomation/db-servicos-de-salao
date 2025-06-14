@@ -17,7 +17,21 @@ import { CalendarOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+/**
+ * Componente principal do sistema de agendamento
+ * 
+ * Gerencia todo o fluxo de agendamentos incluindo:
+ * - Seleção de profissionais
+ * - Visualização da agenda (desktop e mobile)
+ * - Criação, edição e exclusão de agendamentos
+ * - Bloqueio de períodos
+ * - Navegação entre semanas
+ * 
+ * Este componente atua como orquestrador, delegando responsabilidades
+ * específicas para subcomponentes especializados.
+ */
 export const SchedulingCalendar = () => {
+  // Hook personalizado que gerencia toda a lógica de estado da agenda
   const {
     professionals,
     selectedProfessional,
@@ -37,29 +51,44 @@ export const SchedulingCalendar = () => {
     isSlotBlocked
   } = useSchedulingCalendar();
 
+  // Estados para controlar dialogs de ação
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isBlockPeriodDialogOpen, setIsBlockPeriodDialogOpen] = useState(false);
   const [appointmentToEdit, setAppointmentToEdit] = useState<Appointment | null>(null);
   const [appointmentToDelete, setAppointmentToDelete] = useState<Appointment | null>(null);
 
+  // Hook para detectar dispositivos móveis
   const isMobile = useMediaQuery('(max-width: 768px)');
   const { toast } = useToast();
 
+  /**
+   * Inicia o processo de edição de um agendamento
+   * Armazena o agendamento selecionado e abre o dialog de edição
+   */
   const handleEditAppointment = (appointment: Appointment) => {
     setAppointmentToEdit(appointment);
     setIsEditDialogOpen(true);
   };
 
+  /**
+   * Inicia o processo de exclusão de um agendamento
+   * Armazena o agendamento selecionado e abre o dialog de confirmação
+   */
   const handleDeleteAppointment = (appointment: Appointment) => {
     setAppointmentToDelete(appointment);
     setIsDeleteDialogOpen(true);
   };
 
+  /**
+   * Confirma e executa a exclusão de um agendamento
+   * Remove primeiro os serviços relacionados, depois o agendamento principal
+   */
   const handleConfirmDelete = async () => {
     if (!appointmentToDelete) return;
 
     try {
+      // Remove serviços relacionados ao agendamento
       const { error: servicesError } = await supabase
         .from('appointment_services')
         .delete()
@@ -67,6 +96,7 @@ export const SchedulingCalendar = () => {
 
       if (servicesError) throw servicesError;
 
+      // Remove o agendamento principal
       const { error: appointmentError } = await supabase
         .from('appointments')
         .delete()
@@ -74,11 +104,13 @@ export const SchedulingCalendar = () => {
 
       if (appointmentError) throw appointmentError;
 
+      // Feedback de sucesso
       toast({
         title: "Sucesso",
         description: "Agendamento excluído com sucesso!",
       });
 
+      // Atualiza a interface e limpa estados
       handleAppointmentCreated();
       setIsDeleteDialogOpen(false);
       setAppointmentToDelete(null);
@@ -92,22 +124,36 @@ export const SchedulingCalendar = () => {
     }
   };
 
+  /**
+   * Callback executado após atualização bem-sucedida de agendamento
+   * Recarrega dados e fecha dialogs
+   */
   const handleAppointmentUpdated = () => {
     handleAppointmentCreated();
     setIsEditDialogOpen(false);
     setAppointmentToEdit(null);
   };
 
+  /**
+   * Callback executado após bloqueio bem-sucedido de período
+   * Recarrega dados e fecha dialog
+   */
   const handlePeriodBlocked = () => {
     handleAppointmentCreated();
     setIsBlockPeriodDialogOpen(false);
   };
 
+  /**
+   * Fecha o dialog de edição e limpa estado
+   */
   const closeEditDialog = () => {
     setIsEditDialogOpen(false);
     setAppointmentToEdit(null);
   };
 
+  /**
+   * Fecha o dialog de exclusão e limpa estado
+   */
   const closeDeleteDialog = () => {
     setIsDeleteDialogOpen(false);
     setAppointmentToDelete(null);
@@ -115,21 +161,26 @@ export const SchedulingCalendar = () => {
 
   return (
     <div className="space-y-6">
+      {/* Seletor de profissional - sempre visível no topo */}
       <ProfessionalSelector
         professionals={professionals}
         selectedProfessional={selectedProfessional}
         onProfessionalChange={setSelectedProfessional}
       />
 
+      {/* Agenda principal - só aparece quando um profissional está selecionado */}
       {selectedProfessional && (
         <Card className="shadow-lg border-gray-200">
+          {/* Header da agenda - layout diferente para desktop e mobile */}
           {!isMobile && (
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              {/* Navegação da semana e nome do profissional */}
               <WeekNavigation
                 currentWeek={currentWeek}
                 onWeekChange={setCurrentWeek}
                 professionalName={selectedProfessionalData?.name}
               />
+              {/* Botão para bloquear período */}
               <Button
                 variant="outline"
                 size="sm"
@@ -142,6 +193,7 @@ export const SchedulingCalendar = () => {
             </div>
           )}
           
+          {/* Header simplificado para mobile */}
           {isMobile && (
             <div className="p-4 border-b border-gray-200 space-y-3">
               <h2 className="text-lg font-semibold text-gray-900">
@@ -159,6 +211,7 @@ export const SchedulingCalendar = () => {
             </div>
           )}
 
+          {/* Grade da agenda - componente diferente para desktop e mobile */}
           <div className="overflow-hidden">
             {isMobile ? (
               <MobileScheduleGrid
@@ -184,6 +237,9 @@ export const SchedulingCalendar = () => {
         </Card>
       )}
 
+      {/* Dialogs de ação - gerenciam fluxos específicos */}
+      
+      {/* Dialog para criar novo agendamento */}
       <AppointmentFormDialog
         isOpen={isAppointmentFormOpen}
         onClose={closeAppointmentForm}
@@ -192,6 +248,7 @@ export const SchedulingCalendar = () => {
         onAppointmentCreated={handleAppointmentCreated}
       />
 
+      {/* Dialog para editar agendamento existente */}
       <EditAppointmentDialog
         isOpen={isEditDialogOpen}
         onClose={closeEditDialog}
@@ -199,6 +256,7 @@ export const SchedulingCalendar = () => {
         onAppointmentUpdated={handleAppointmentUpdated}
       />
 
+      {/* Dialog de confirmação para exclusão */}
       <DeleteAppointmentDialog
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
@@ -206,6 +264,7 @@ export const SchedulingCalendar = () => {
         appointment={appointmentToDelete}
       />
 
+      {/* Dialog para bloquear períodos */}
       <BlockPeriodDialog
         isOpen={isBlockPeriodDialogOpen}
         onClose={() => setIsBlockPeriodDialogOpen(false)}
