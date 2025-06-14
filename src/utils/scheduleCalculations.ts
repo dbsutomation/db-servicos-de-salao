@@ -1,4 +1,5 @@
 
+
 /**
  * Cálculos e validações para o sistema de agendamento
  * 
@@ -95,27 +96,14 @@ export const getAppointmentsForSlot = (
 ): Appointment[] => {
   // Validações de entrada
   if (!isValid(date) || !isValidTimeString(time) || !Array.isArray(appointments)) {
-    console.log('❌ Validação falhou:', { 
-      dateValid: isValid(date), 
-      timeValid: isValidTimeString(time), 
-      appointmentsArray: Array.isArray(appointments),
-      appointmentsLength: appointments?.length || 0
-    });
     return [];
   }
   
   const dateString = date.toISOString().split('T')[0]; // YYYY-MM-DD
   
-  console.log('🔍 Procurando agendamentos para slot:', {
-    dateString,
-    time,
-    totalAppointments: appointments.length
-  });
-  
   const matchingAppointments = appointments.filter(appointment => {
     // Validação dos dados do agendamento
     if (!isValidAppointmentData(appointment)) {
-      console.log('❌ Dados de agendamento inválidos:', appointment);
       return false;
     }
     
@@ -135,57 +123,21 @@ export const getAppointmentsForSlot = (
       // O slot deve estar entre o início (inclusive) e fim (exclusive) do agendamento
       const isTimeInRange = time >= appointmentStartTime && time < appointmentEndTime;
       
-      const matches = isSameDate && isTimeInRange;
-      
-      console.log('🔍 Verificando agendamento:', {
-        appointmentId: appointment.id,
-        clientName: appointment.client_name,
-        appointmentDate,
-        appointmentStartTime,
-        appointmentEndTime,
-        slotDate: dateString,
-        slotTime: time,
-        isSameDate,
-        isTimeInRange,
-        matches,
-        timeComparison: {
-          slotTime: time,
-          startTime: appointmentStartTime,
-          endTime: appointmentEndTime,
-          slotGteStart: time >= appointmentStartTime,
-          slotLtEnd: time < appointmentEndTime
-        }
-      });
-      
-      return matches;
+      return isSameDate && isTimeInRange;
     } catch (error) {
-      console.warn('❌ Erro ao processar agendamento para slot:', error, appointment);
       return false;
     }
   });
-  
-  console.log(`✅ Slot ${dateString} ${time}: ${matchingAppointments.length} agendamentos encontrados`);
-  if (matchingAppointments.length > 0) {
-    console.log('📋 Agendamentos encontrados:', matchingAppointments.map(app => ({
-      id: app.id,
-      client: app.client_name,
-      start: app.start_time,
-      end: app.end_time
-    })));
-  }
   
   return matchingAppointments;
 };
 
 /**
- * Verifica se um determinado horário é o primeiro slot VISÍVEL de um agendamento na grade
+ * Verifica se um determinado horário é o primeiro slot de um agendamento
  * 
- * CORREÇÃO PRINCIPAL: Esta função agora identifica corretamente o primeiro slot visível
- * na grade onde o agendamento deve mostrar suas informações completas.
- * 
- * Exemplo: Se um agendamento vai das 08:30 às 10:00, e a grade mostra apenas horários
- * principais (09:00, 10:00, 11:00), então o slot das 09:00 deve mostrar as informações
- * completas, mesmo não sendo exatamente o horário de início.
+ * Para um agendamento das 08:00 às 10:00:
+ * - 08:00: mostra informações completas (isFirstSlot = true)
+ * - 09:00: mostra continuação (isFirstSlot = false)
  * 
  * @param {string} slotTime - Horário do slot sendo verificado (formato HH:MM)
  * @param {Appointment} appointment - Dados do agendamento
@@ -193,42 +145,10 @@ export const getAppointmentsForSlot = (
  */
 export const isFirstSlotOfAppointment = (slotTime: string, appointment: Appointment): boolean => {
   const appointmentStartTime = sanitizeTimeString(appointment.start_time);
-  const appointmentEndTime = sanitizeTimeString(appointment.end_time);
   const normalizedSlotTime = sanitizeTimeString(slotTime);
   
-  console.log('🔍 Verificando primeira linha do agendamento:', {
-    slotTime: normalizedSlotTime,
-    appointmentStart: appointmentStartTime,
-    appointmentEnd: appointmentEndTime,
-    appointmentId: appointment.id,
-    clientName: appointment.client_name
-  });
-  
-  // Primeiro, verifica se este slot contém o agendamento
-  const slotContainsAppointment = normalizedSlotTime >= appointmentStartTime && normalizedSlotTime < appointmentEndTime;
-  
-  if (!slotContainsAppointment) {
-    console.log(`❌ Slot ${normalizedSlotTime} não contém o agendamento`);
-    return false;
-  }
-  
-  // Agora verifica se este é o primeiro slot VISÍVEL da grade que contém o agendamento
-  const mainHours = generateMainHours();
-  
-  // Encontra todos os slots da grade que contêm este agendamento
-  const slotsWithAppointment = mainHours.filter(hour => 
-    hour >= appointmentStartTime && hour < appointmentEndTime
-  );
-  
-  console.log('📋 Slots que contêm o agendamento:', slotsWithAppointment);
-  
-  // O primeiro slot visível é onde devemos mostrar as informações completas
-  const firstVisibleSlot = slotsWithAppointment[0];
-  const isFirstVisible = normalizedSlotTime === firstVisibleSlot;
-  
-  console.log(`${isFirstVisible ? '✅' : '❌'} Slot ${normalizedSlotTime} ${isFirstVisible ? 'É' : 'NÃO é'} o primeiro slot visível do agendamento (primeiro visível: ${firstVisibleSlot})`);
-  
-  return isFirstVisible;
+  // Simplesmente verifica se o slot é exatamente o horário de início
+  return normalizedSlotTime === appointmentStartTime;
 };
 
 /**
@@ -238,7 +158,6 @@ export const isFirstSlotOfAppointment = (slotTime: string, appointment: Appointm
  */
 export const isPastAppointment = (appointment: Appointment): boolean => {
   if (!isValidAppointmentData(appointment)) {
-    console.log('❌ Dados de agendamento inválidos para verificar se passou:', appointment);
     return true;
   }
   
@@ -247,21 +166,9 @@ export const isPastAppointment = (appointment: Appointment): boolean => {
     const appointmentDate = new Date(appointment.appointment_date + 'T00:00:00');
     const startTime = sanitizeTimeString(appointment.start_time);
     
-    console.log('🕐 Verificando se agendamento passou:', {
-      appointmentId: appointment.id,
-      date: appointment.appointment_date,
-      startTime,
-      dateObject: appointmentDate
-    });
-    
     // Verifica se o agendamento já passou considerando o fuso de Brasília
-    const hasPassed = isPastInBrasilia(appointmentDate, startTime);
-    
-    console.log(`${hasPassed ? '⏰' : '✅'} Agendamento ${appointment.id}: ${hasPassed ? 'passou' : 'ainda não passou'}`);
-    
-    return hasPassed;
+    return isPastInBrasilia(appointmentDate, startTime);
   } catch (error) {
-    console.warn('❌ Erro ao verificar se agendamento passou:', error, appointment);
     return true; // Em caso de erro, considera como passado por segurança
   }
 };
@@ -274,7 +181,6 @@ export const isPastAppointment = (appointment: Appointment): boolean => {
  */
 export const isValidAppointmentData = (appointment: any): boolean => {
   if (!appointment || typeof appointment !== 'object') {
-    console.log('❌ Agendamento não é um objeto válido:', appointment);
     return false;
   }
 
@@ -282,16 +188,11 @@ export const isValidAppointmentData = (appointment: any): boolean => {
   if (!appointment.appointment_date || 
       typeof appointment.appointment_date !== 'string' || 
       appointment.appointment_date.length !== 10) {
-    console.log('❌ Data do agendamento inválida:', appointment.appointment_date);
     return false;
   }
 
   // Verifica se os horários estão presentes
   if (!appointment.start_time || !appointment.end_time) {
-    console.log('❌ Horários ausentes:', {
-      start_time: appointment.start_time,
-      end_time: appointment.end_time
-    });
     return false;
   }
 
@@ -299,24 +200,7 @@ export const isValidAppointmentData = (appointment: any): boolean => {
   const startTimeValid = isValidTimeFormatFromDB(appointment.start_time);
   const endTimeValid = isValidTimeFormatFromDB(appointment.end_time);
 
-  if (!startTimeValid || !endTimeValid) {
-    console.log('❌ Formatos de horário inválidos:', {
-      start_time: appointment.start_time,
-      end_time: appointment.end_time,
-      startTimeValid,
-      endTimeValid
-    });
-    return false;
-  }
-
-  console.log('✅ Dados de agendamento válidos:', {
-    id: appointment.id,
-    date: appointment.appointment_date,
-    start_time: appointment.start_time,
-    end_time: appointment.end_time
-  });
-
-  return true;
+  return startTimeValid && endTimeValid;
 };
 
 /**
@@ -341,7 +225,6 @@ export const isValidTimeFormatFromDB = (time: string): boolean => {
  */
 export const sanitizeTimeString = (time: string, fallback: string = '00:00'): string => {
   if (!time || typeof time !== 'string') {
-    console.log('⚠️ Horário inválido, usando fallback:', { time, fallback });
     return fallback;
   }
   
@@ -349,9 +232,9 @@ export const sanitizeTimeString = (time: string, fallback: string = '00:00'): st
   const cleanTime = time.substring(0, 5);
   
   if (!isValidTimeString(cleanTime)) {
-    console.log('⚠️ Horário sanitizado inválido, usando fallback:', { cleanTime, fallback });
     return fallback;
   }
   
   return cleanTime;
 };
+
