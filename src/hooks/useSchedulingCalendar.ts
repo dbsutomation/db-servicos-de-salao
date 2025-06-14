@@ -1,31 +1,10 @@
 
 /**
- * Hook principal para gerenciamento da agenda de agendamentos
+ * Hook principal para gerenciamento da agenda
  * 
- * Este hook centraliza toda a lógica de estado e operações da agenda,
- * fornecendo uma interface limpa e consistente para os componentes.
- * 
- * Responsabilidades principais:
- * - Gerenciamento de estado da agenda (profissionais, agendamentos, etc)
- * - Operações CRUD de agendamentos via Supabase
- * - Validações de horários e disponibilidade
- * - Integração com fusos horários (Brasília - UTC-3)
- * - Cache e otimização de consultas
- * - Tratamento de erros e feedback para usuário
- * 
- * Características técnicas:
- * - Usa timezone de Brasília para todos os cálculos de data/hora
- * - Implementa logs detalhados para debug e monitoramento
- * - Otimiza performance com carregamento condicional
- * - Integra com hooks auxiliares para funcionalidades específicas
- * - Garante consistência de dados entre componentes
- * 
- * Fluxo de dados:
- * 1. Carrega profissionais ativos do sistema
- * 2. Quando profissional é selecionado, carrega seus agendamentos
- * 3. Carrega períodos bloqueados e valida disponibilidade
- * 4. Fornece handlers para todas as operações de agendamento
- * 5. Mantém estado sincronizado após mudanças
+ * Centraliza toda a lógica de estado e operações da agenda,
+ * garantindo que todas as operações considerem o fuso horário
+ * de Brasília e tenham logs detalhados para debug
  */
 
 import { useState, useEffect } from 'react';
@@ -38,134 +17,54 @@ import { useBlockedPeriods } from '@/hooks/useBlockedPeriods';
 import { getBrasiliaDate, formatBrasiliaDate, isValidTimeString } from '@/utils/timezoneUtils';
 import { getAppointmentsForSlot, sanitizeTimeString } from '@/utils/scheduleCalculations';
 
-/**
- * Hook personalizado para gerenciamento completo da agenda
- * 
- * @returns {Object} Objeto contendo estados e funções da agenda
- */
 export const useSchedulingCalendar = () => {
-  
-  // === ESTADOS PRINCIPAIS ===
-  
-  /**
-   * Lista de profissionais ativos no sistema
-   * Carregada uma vez na inicialização e usada para seleção
-   */
+  // Estados principais da agenda
   const [professionals, setProfessionals] = useState<TeamMember[]>([]);
-  
-  /**
-   * ID do profissional atualmente selecionado
-   * Controla qual agenda está sendo visualizada
-   */
   const [selectedProfessional, setSelectedProfessional] = useState<string>('');
-  
-  /**
-   * Data da semana atual sendo exibida na agenda
-   * Usa timezone de Brasília para garantir consistência
-   */
-  const [currentWeek, setCurrentWeek] = useState(getBrasiliaDate());
-  
-  /**
-   * Data selecionada (usado principalmente em mobile)
-   * Mantém sincronia com a visualização de agenda
-   */
-  const [selectedDate, setSelectedDate] = useState(getBrasiliaDate());
-  
-  /**
-   * Lista de agendamentos do profissional selecionado para a semana atual
-   * Inclui dados relacionados (cliente, serviços) formatados para exibição
-   */
+  const [currentWeek, setCurrentWeek] = useState(getBrasiliaDate()); // Usa data de Brasília
+  const [selectedDate, setSelectedDate] = useState(getBrasiliaDate()); // Usa data de Brasília
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-  
-  /**
-   * Controla visibilidade do formulário de criação de agendamento
-   */
   const [isAppointmentFormOpen, setIsAppointmentFormOpen] = useState(false);
-  
-  /**
-   * Dados do slot selecionado para criação de agendamento
-   * Inclui data, horário e profissional
-   */
   const [selectedSlot, setSelectedSlot] = useState<{
     date: string;
     time: string;
     professionalId: string;
   } | null>(null);
-  
-  /**
-   * Estado de carregamento para operações assíncronas
-   */
   const [loading, setLoading] = useState(false);
 
-  // === HOOKS AUXILIARES ===
-  
-  /**
-   * Hook para exibição de notificações ao usuário
-   */
+  // Hooks auxiliares
   const { toast } = useToast();
-  
-  /**
-   * Hook para validação de horários e regras de negócio
-   */
   const { validateSlotClick } = useTimeValidation();
 
-  // === CÁLCULOS DE PERÍODO ===
-  
-  /**
-   * Cálculo do início e fim da semana atual
-   * Considera domingo como primeiro dia da semana (padrão brasileiro)
-   * Usa timezone de Brasília para garantir consistência
-   */
+  // Calcula início e fim da semana considerando o fuso horário de Brasília
   const weekStart = startOfWeek(currentWeek, { weekStartsOn: 0 }); // Domingo
   const weekEnd = endOfWeek(currentWeek, { weekStartsOn: 0 }); // Sábado
   
-  /**
-   * Hook para gerenciamento de períodos bloqueados
-   * Carrega e valida bloqueios para o profissional e período selecionados
-   */
+  // Hook para períodos bloqueados
   const { isSlotBlocked, fetchBlockedPeriods } = useBlockedPeriods(
     selectedProfessional, 
     weekStart, 
     weekEnd
   );
 
-  // === EFEITOS DE CARREGAMENTO ===
-  
-  /**
-   * Carrega profissionais quando o componente monta
-   * Executa apenas uma vez na inicialização
-   */
+  // Busca profissionais quando o componente monta
   useEffect(() => {
     fetchProfessionals();
   }, []);
 
-  /**
-   * Carrega agendamentos quando profissional ou semana muda
-   * Limpa agendamentos quando nenhum profissional está selecionado
-   */
+  // Busca agendamentos quando profissional ou semana muda
   useEffect(() => {
     if (selectedProfessional) {
       fetchAppointments();
     } else {
       console.log('⚠️ Limpando agendamentos - nenhum profissional selecionado');
-      setAppointments([]);
+      setAppointments([]); // Limpa agendamentos quando não há profissional selecionado
     }
   }, [selectedProfessional, currentWeek]);
 
-  // === FUNÇÕES DE CARREGAMENTO DE DADOS ===
-  
   /**
    * Busca todos os profissionais ativos do sistema
-   * 
-   * Operações realizadas:
-   * 1. Consulta tabela 'users' filtrando por 'has_access = true'
-   * 2. Ordena por nome para melhor experiência do usuário
-   * 3. Mapeia dados do Supabase para tipo TeamMember
-   * 4. Atualiza estado e exibe logs de debug
-   * 5. Trata erros com notificação ao usuário
-   * 
-   * @async
-   * @function fetchProfessionals
+   * Mapeia os dados do Supabase para o formato esperado pelo frontend
    */
   const fetchProfessionals = async () => {
     try {
@@ -179,14 +78,14 @@ export const useSchedulingCalendar = () => {
 
       if (error) throw error;
 
-      // Mapeamento de dados do banco para o tipo TeamMember
+      // Mapeia dados do banco para o tipo TeamMember
       const teamMembers: TeamMember[] = data.map(user => ({
         id: user.id,
         name: user.name,
         profession: user.profession || '',
         phone: user.phone || '',
         email: user.email,
-        password: '', // Não carregamos senhas por segurança
+        password: '',
         hasAccess: user.has_access,
         isManager: user.is_manager,
         avatar: user.avatar || '',
@@ -195,7 +94,6 @@ export const useSchedulingCalendar = () => {
 
       setProfessionals(teamMembers);
       console.log(`✅ ${teamMembers.length} profissionais carregados`);
-      
     } catch (error) {
       console.error('❌ Erro ao buscar profissionais:', error);
       toast({
@@ -208,25 +106,7 @@ export const useSchedulingCalendar = () => {
 
   /**
    * Busca agendamentos do profissional selecionado para a semana atual
-   * 
-   * Operações realizadas:
-   * 1. Valida se há profissional selecionado
-   * 2. Consulta agendamentos do período com dados relacionados (cliente)
-   * 3. Busca serviços associados aos agendamentos encontrados
-   * 4. Monta mapa de serviços para acesso eficiente
-   * 5. Formata dados para exibição na interface
-   * 6. Atualiza estado com logs detalhados de debug
-   * 7. Trata erros preservando experiência do usuário
-   * 
-   * Detalhes técnicos:
-   * - Usa JOIN para carregar dados do cliente em uma consulta
-   * - Faz consulta separada para serviços (limitação do Supabase)
-   * - Aplica fallbacks para campos opcionais
-   * - Sanitiza horários para formato de exibição
-   * - Logs detalhados para debug e monitoramento
-   * 
-   * @async
-   * @function fetchAppointments
+   * Inclui dados relacionados (cliente, serviços) e formata para exibição
    */
   const fetchAppointments = async () => {
     if (!selectedProfessional) {
@@ -244,7 +124,7 @@ export const useSchedulingCalendar = () => {
       console.log('📅 Período:', startDateStr, 'até', endDateStr);
       console.log('🌎 Timezone usado: America/Sao_Paulo (UTC-3)');
 
-      // Consulta principal: agendamentos com dados do cliente
+      // Busca agendamentos básicos com join dos dados do cliente
       const { data: appointmentsData, error: appointmentsError } = await supabase
         .from('appointments')
         .select(`
@@ -273,7 +153,7 @@ export const useSchedulingCalendar = () => {
         return;
       }
 
-      // Consulta secundária: serviços dos agendamentos
+      // Busca serviços dos agendamentos
       const appointmentIds = appointmentsData.map(app => app.id);
       console.log('🔍 Buscando serviços para agendamentos:', appointmentIds);
 
@@ -290,10 +170,10 @@ export const useSchedulingCalendar = () => {
 
       if (servicesError) {
         console.error('❌ Erro ao buscar serviços:', servicesError);
-        // Continuamos sem os serviços em caso de erro
+        // Não vamos falhar por causa dos serviços, continuamos sem eles
       }
 
-      // Criação do mapa de serviços para acesso eficiente
+      // Cria mapa para acesso rápido aos serviços
       const servicesMap = new Map();
       appointmentServicesData?.forEach(item => {
         if (!servicesMap.has(item.appointment_id)) {
@@ -304,7 +184,7 @@ export const useSchedulingCalendar = () => {
         }
       });
 
-      // Processamento e formatação dos agendamentos
+      // Processa e formata os agendamentos
       const formattedAppointments: Appointment[] = appointmentsData.map((appointment: any) => {
         const client = appointment.clients;
         const services = servicesMap.get(appointment.id) || [];
@@ -318,7 +198,6 @@ export const useSchedulingCalendar = () => {
           services: services.map((s: any) => s.name)
         });
 
-        // Concatenação dos nomes dos serviços
         const serviceNames = services
           .map((s: any) => s.name)
           .filter(Boolean)
@@ -363,34 +242,19 @@ export const useSchedulingCalendar = () => {
     }
   };
 
-  // === HANDLERS DE INTERAÇÃO ===
-  
   /**
    * Manipula o clique em um slot da agenda
+   * Valida disponibilidade, bloqueios e horários passados
    * 
-   * Fluxo de validações:
-   * 1. Verifica se há profissional selecionado
-   * 2. Valida formato do horário
-   * 3. Verifica se slot está bloqueado
- * 4. Verifica se slot está ocupado
-   * 5. Valida se horário não está no passado
-   * 6. Abre formulário de agendamento se válido
-   * 
-   * Logs detalhados:
-   * - Estado inicial da validação
-   * - Resultados de cada verificação
-   * - Razão de falha quando aplicável
-   * - Sucesso e abertura do formulário
-   * 
-   * @param {string} date - Data do slot clicado (YYYY-MM-DD)
-   * @param {string} time - Horário do slot clicado (HH:MM)
+   * @param date - Data do slot clicado (YYYY-MM-DD)
+   * @param time - Horário do slot clicado (HH:MM)
    */
   const handleSlotClick = (date: string, time: string) => {
     console.log('=== 🖱️ CLIQUE NO SLOT ===');
     console.log('📅 Data:', date, '🕐 Hora:', time);
     console.log('🔍 Total de agendamentos carregados:', appointments.length);
 
-    // Validação: profissional selecionado
+    // Validações básicas
     if (!selectedProfessional) {
       toast({
         title: "Atenção",
@@ -400,7 +264,6 @@ export const useSchedulingCalendar = () => {
       return;
     }
 
-    // Validação: formato do horário
     if (!isValidTimeString(time)) {
       toast({
         title: "Erro",
@@ -410,7 +273,7 @@ export const useSchedulingCalendar = () => {
       return;
     }
 
-    // Validação: slot bloqueado
+    // Verifica se o slot está bloqueado
     if (isSlotBlocked(date, time)) {
       console.log('🚫 Slot bloqueado');
       toast({
@@ -421,7 +284,7 @@ export const useSchedulingCalendar = () => {
       return;
     }
 
-    // Validação: slot ocupado
+    // Verifica se o slot está ocupado usando função corrigida
     const slotDate = new Date(date + 'T00:00:00');
     const occupyingAppointments = getAppointmentsForSlot(appointments, slotDate, time);
     
@@ -447,7 +310,7 @@ export const useSchedulingCalendar = () => {
       return;
     }
 
-    // Validação: horário no passado
+    // Valida se o horário não está no passado
     const validation = validateSlotClick(date, time);
     
     if (!validation.isValid) {
@@ -462,7 +325,7 @@ export const useSchedulingCalendar = () => {
 
     console.log('✅ Slot válido, abrindo formulário de agendamento');
 
-    // Abertura do formulário para slot válido
+    // Se chegou até aqui, o slot é válido
     setSelectedSlot({
       date,
       time,
@@ -473,13 +336,7 @@ export const useSchedulingCalendar = () => {
 
   /**
    * Callback executado após criação/edição/exclusão de agendamento
-   * 
-   * Operações realizadas:
-   * 1. Recarrega lista de agendamentos
-   * 2. Atualiza períodos bloqueados
-   * 3. Fecha formulários abertos
-   * 4. Limpa estados temporários
-   * 5. Log da operação de recarga
+   * Recarrega os dados e fecha formulários
    */
   const handleAppointmentCreated = () => {
     console.log('♻️ Recarregando dados após modificação de agendamento');
@@ -490,25 +347,18 @@ export const useSchedulingCalendar = () => {
   };
 
   /**
-   * Fecha o formulário de agendamento e limpa estados
+   * Fecha o formulário de agendamento
    */
   const closeAppointmentForm = () => {
     setIsAppointmentFormOpen(false);
     setSelectedSlot(null);
   };
 
-  // === DADOS DERIVADOS ===
-  
-  /**
-   * Busca dados completos do profissional selecionado
-   * Usado para exibir informações na interface
-   */
+  // Busca dados do profissional selecionado
   const selectedProfessionalData = professionals.find(p => p.id === selectedProfessional);
 
-  // === RETORNO DO HOOK ===
-  
   return {
-    // Estados principais
+    // Estados
     professionals,
     selectedProfessional,
     setSelectedProfessional,
@@ -522,7 +372,7 @@ export const useSchedulingCalendar = () => {
     loading,
     selectedProfessionalData,
     
-    // Funções de interação
+    // Funções
     handleSlotClick,
     handleAppointmentCreated,
     closeAppointmentForm,
