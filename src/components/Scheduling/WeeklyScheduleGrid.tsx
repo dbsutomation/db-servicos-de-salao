@@ -1,10 +1,9 @@
-
 import React, { useMemo, useState, useCallback } from 'react';
 import { format, addDays, startOfWeek } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Appointment } from '@/types';
 import { Loader2 } from 'lucide-react';
-import TimeSlot from './TimeSlot';
+import { TimeSlot } from './TimeSlot';
 import {
   isPastTimeSlot,
   getAppointmentsForSlot,
