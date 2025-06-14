@@ -123,14 +123,22 @@ export const getAppointmentsForSlot = (
       const appointmentStartTime = sanitizeTimeString(appointment.start_time);
       const appointmentEndTime = sanitizeTimeString(appointment.end_time);
       
-      // Verifica se é o mesmo dia e se o horário está no intervalo
+      // Verifica se é o mesmo dia
       const isSameDate = appointmentDate === dateString;
+      
+      if (!isSameDate) {
+        return false;
+      }
+      
+      // CORREÇÃO: Verifica se o horário está no intervalo do agendamento
+      // O slot deve estar entre o início (inclusive) e fim (exclusive) do agendamento
       const isTimeInRange = time >= appointmentStartTime && time < appointmentEndTime;
       
       const matches = isSameDate && isTimeInRange;
       
       console.log('🔍 Verificando agendamento:', {
         appointmentId: appointment.id,
+        clientName: appointment.client_name,
         appointmentDate,
         appointmentStartTime,
         appointmentEndTime,
@@ -138,7 +146,14 @@ export const getAppointmentsForSlot = (
         slotTime: time,
         isSameDate,
         isTimeInRange,
-        matches
+        matches,
+        timeComparison: {
+          slotTime: time,
+          startTime: appointmentStartTime,
+          endTime: appointmentEndTime,
+          slotGteStart: time >= appointmentStartTime,
+          slotLtEnd: time < appointmentEndTime
+        }
       });
       
       return matches;
@@ -149,6 +164,15 @@ export const getAppointmentsForSlot = (
   });
   
   console.log(`✅ Slot ${dateString} ${time}: ${matchingAppointments.length} agendamentos encontrados`);
+  if (matchingAppointments.length > 0) {
+    console.log('📋 Agendamentos encontrados:', matchingAppointments.map(app => ({
+      id: app.id,
+      client: app.client_name,
+      start: app.start_time,
+      end: app.end_time
+    })));
+  }
+  
   return matchingAppointments;
 };
 
