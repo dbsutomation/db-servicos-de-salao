@@ -47,7 +47,7 @@ export const useSchedulingDialogs = (onDataChange: () => void) => {
 
   /**
    * Confirma e executa a exclusão de um agendamento
-   * Executa operações de exclusão de forma transacional para evitar inconsistências
+   * Executa operações de exclusão de forma sequencial com tratamento de erro robusto
    */
   const handleConfirmDelete = useCallback(async () => {
     if (!appointmentToDelete) return;
@@ -55,39 +55,40 @@ export const useSchedulingDialogs = (onDataChange: () => void) => {
     setIsDeleting(true);
     
     try {
-      // Inicia transação usando RPC para garantir atomicidade
-      const { error } = await supabase.rpc('delete_appointment_with_services', {
-        appointment_id: appointmentToDelete.id
-      });
+      console.log('Iniciando exclusão do agendamento:', appointmentToDelete.id);
+      
+      // Remove serviços relacionados ao agendamento
+      const { error: servicesError } = await supabase
+        .from('appointment_services')
+        .delete()
+        .eq('appointment_id', appointmentToDelete.id);
 
-      if (error) {
-        // Se RPC não existir, faz exclusão sequencial com tratamento de erro
-        console.warn('RPC não disponível, usando exclusão sequencial');
-        
-        // Remove serviços relacionados ao agendamento
-        const { error: servicesError } = await supabase
-          .from('appointment_services')
-          .delete()
-          .eq('appointment_id', appointmentToDelete.id);
-
-        if (servicesError) throw servicesError;
-
-        // Remove o agendamento principal
-        const { error: appointmentError } = await supabase
-          .from('appointments')
-          .delete()
-          .eq('id', appointmentToDelete.id);
-
-        if (appointmentError) {
-          // Tenta rollback dos serviços se a exclusão do agendamento falhar
-          toast({
-            title: "Erro crítico",
-            description: "Falha na exclusão. Entre em contato com o suporte técnico.",
-            variant: "destructive",
-          });
-          throw appointmentError;
-        }
+      if (servicesError) {
+        console.error('Erro ao excluir serviços:', servicesError);
+        throw servicesError;
       }
+
+      console.log('Serviços excluídos com sucesso');
+
+      // Remove o agendamento principal
+      const { error: appointmentError } = await supabase
+        .from('appointments')
+        .delete()
+        .eq('id', appointmentToDelete.id);
+
+      if (appointmentError) {
+        console.error('Erro ao excluir agendamento:', appointmentError);
+        // Se falhar aqui, os serviços já foram removidos
+        // Idealmente deveríamos ter uma transação, mas informamos o usuário
+        toast({
+          title: "Erro crítico",
+          description: "Falha na exclusão do agendamento. Entre em contato com o suporte técnico.",
+          variant: "destructive",
+        });
+        throw appointmentError;
+      }
+
+      console.log('Agendamento excluído com sucesso');
 
       toast({
         title: "Sucesso",
