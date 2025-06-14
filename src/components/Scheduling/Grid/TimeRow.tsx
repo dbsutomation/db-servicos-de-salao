@@ -50,9 +50,7 @@ export const TimeRow = ({
         const appointment = slotAppointments[0];
         const isPast = isPastTimeSlot(day, time);
         const isBlocked = isSlotBlocked(dateString, time);
-        
-        // Determina se é primeira linha do agendamento
-        const isFirstSlot = appointment ? isFirstSlotOfAppointment(time, appointment) : false;
+        const isFirstSlot = appointment && isFirstSlotOfAppointment(time, appointment);
         const slotKey = `${dateString}-${time}`;
 
         return (
