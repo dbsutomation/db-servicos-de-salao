@@ -50,8 +50,19 @@ export const TimeRow = ({
         const appointment = slotAppointments[0];
         const isPast = isPastTimeSlot(day, time);
         const isBlocked = isSlotBlocked(dateString, time);
+        
+        // CORREÇÃO: Verifica se é primeira linha baseado no horário de início real
         const isFirstSlot = appointment && isFirstSlotOfAppointment(time, appointment);
         const slotKey = `${dateString}-${time}`;
+
+        console.log('🎯 Renderizando slot:', {
+          date: dateString,
+          time,
+          hasAppointment: !!appointment,
+          isFirstSlot,
+          appointmentStart: appointment?.start_time,
+          appointmentEnd: appointment?.end_time
+        });
 
         return (
           <div 

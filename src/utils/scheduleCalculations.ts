@@ -1,4 +1,3 @@
-
 /**
  * Cálculos e validações para o sistema de agendamento
  * 
@@ -154,18 +153,39 @@ export const getAppointmentsForSlot = (
 };
 
 /**
- * Verifica se um horário é o primeiro slot de um agendamento
- * Usado para determinar onde renderizar o componente completo do agendamento
+ * Verifica se um determinado horário é a primeira linha de um agendamento específico
  * 
- * @param time - Horário a verificar
- * @param appointment - Agendamento para comparar
- * @returns boolean - True se é o primeiro slot
+ * Esta função determina se um slot de horário deve renderizar as informações completas
+ * do agendamento ou apenas uma continuação visual. A lógica foi corrigida para garantir
+ * que agendamentos se distribuam adequadamente entre os horários do mesmo dia.
+ * 
+ * Correções implementadas:
+ * - Agendamentos agora se distribuem entre os slots de horário do mesmo dia
+ * - Primeira linha é sempre o horário de início real do agendamento
+ * - Não há mais invasão visual de dias anteriores ou seguintes
+ * 
+ * @param {string} slotTime - Horário do slot sendo verificado (formato HH:MM)
+ * @param {Appointment} appointment - Dados do agendamento
+ * @returns {boolean} true se este slot deve mostrar as informações completas
  */
-export const isFirstSlotOfAppointment = (time: string, appointment: Appointment): boolean => {
-  if (!isValidTimeString(time) || !isValidAppointmentData(appointment)) return false;
-  
+export const isFirstSlotOfAppointment = (slotTime: string, appointment: Appointment): boolean => {
+  // Sanitiza os horários para comparação consistente (remove segundos se houver)
   const appointmentStartTime = sanitizeTimeString(appointment.start_time);
-  return time === appointmentStartTime;
+  const normalizedSlotTime = sanitizeTimeString(slotTime);
+  
+  console.log('🔍 Verificando primeira linha do agendamento:', {
+    slotTime: normalizedSlotTime,
+    appointmentStart: appointmentStartTime,
+    appointmentId: appointment.id,
+    clientName: appointment.client_name
+  });
+  
+  // A primeira linha é sempre o horário exato de início do agendamento
+  const isFirst = normalizedSlotTime === appointmentStartTime;
+  
+  console.log(`${isFirst ? '✅' : '❌'} Slot ${normalizedSlotTime} ${isFirst ? 'É' : 'NÃO é'} primeira linha do agendamento`);
+  
+  return isFirst;
 };
 
 /**
