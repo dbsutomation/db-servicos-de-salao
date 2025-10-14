@@ -499,8 +499,8 @@ export function useCheckoutForm() {
       // Clear the cart
       clearCart();
       
-      // Navigate to the services page
-      navigate('/services');
+      // Navigate to the records page
+      navigate('/records');
       
       console.log('=== FIM DO CHECKOUT ===');
     } catch (error: any) {
