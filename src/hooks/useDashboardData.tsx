@@ -141,25 +141,25 @@ export const useDashboardData = () => {
     
     // Apply date filter
     if (dateFilter === 'today') {
-      const today = format(toZonedTime(new Date(), timeZone), 'yyyy-MM-dd');
-      records = records.filter(record => record.date === today);
+      const todayStr = format(toZonedTime(new Date(), timeZone), 'yyyy-MM-dd');
+      records = records.filter(record => record.date === todayStr);
     } else if (dateFilter === 'week') {
-      const oneWeekAgo = new Date();
-      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-      records = records.filter(record => 
-        new Date(record.date) >= oneWeekAgo
-      );
+      // Últimos 7 dias (inclusivo) em horário de Brasília, evitando problemas de timezone
+      const endStr = format(localNow, 'yyyy-MM-dd');
+      const startStr = format(addDays(localNow, -6), 'yyyy-MM-dd');
+      records = records.filter(record => record.date >= startStr && record.date <= endStr);
     } else if (dateFilter === 'month') {
-      const oneMonthAgo = new Date();
+      // Últimos 30 dias (inclusivo)
+      const endStr = format(localNow, 'yyyy-MM-dd');
+      const oneMonthAgo = new Date(localNow);
       oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-      records = records.filter(record => 
-        new Date(record.date) >= oneMonthAgo
-      );
+      const startStr = format(oneMonthAgo, 'yyyy-MM-dd');
+      records = records.filter(record => record.date >= startStr && record.date <= endStr);
     } else if (dateFilter === 'custom' && startDate && endDate) {
-      records = records.filter(record => {
-        const recordDate = parseISO(record.date);
-        return isAfter(recordDate, startDate) && isBefore(recordDate, addDays(endDate, 1));
-      });
+      // Comparação inclusiva por data (YYYY-MM-DD) para evitar exclusão das bordas
+      const startStr = format(startDate, 'yyyy-MM-dd');
+      const endStr = format(endDate, 'yyyy-MM-dd');
+      records = records.filter(record => record.date >= startStr && record.date <= endStr);
     }
     
     // Sort records by date (newest first)
