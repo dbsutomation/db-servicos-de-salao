@@ -418,16 +418,34 @@ export function useCheckoutForm() {
 
   // Handle form submission
   const onSubmit = async (values: CheckoutFormValues) => {
+    console.log('=== INÍCIO DO CHECKOUT ===');
+    console.log('Valores do formulário:', values);
+    console.log('Itens no carrinho:', cartItems);
+    
     const clientId = values.client;
     const teamMemberId = values.teamMember;
     
     const client = clients.find(c => c.id === clientId);
     const teamMember = teamMembers.find(t => t.id === teamMemberId);
     
+    console.log('Cliente selecionado:', client);
+    console.log('Profissional selecionado:', teamMember);
+    
     if (!client || !teamMember) {
+      console.error('Cliente ou profissional não encontrado');
       toast({
         title: "Erro",
         description: "Cliente ou profissional não encontrado",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (cartItems.length === 0) {
+      console.error('Carrinho está vazio');
+      toast({
+        title: "Erro",
+        description: "O carrinho está vazio",
         variant: "destructive",
       });
       return;
@@ -443,21 +461,34 @@ export function useCheckoutForm() {
       }
 
       // Process each cart item
+      console.log('Processando itens do carrinho...');
       for (const item of cartItems) {
-        const { error } = await supabase
+        const recordData = {
+          client_id: client.id,
+          professional_id: teamMember.id,
+          service_id: item.service.id,
+          payment_method: paymentMethodString,
+          commission_amount: item.service.price * (item.service.commission / 100),
+          service_value: item.service.price * item.quantity,
+          tip_amount: item.tipAmount || 0
+        };
+        
+        console.log('Inserindo registro:', recordData);
+        
+        const { data, error } = await supabase
           .from('service_records')
-          .insert({
-            client_id: client.id,
-            professional_id: teamMember.id,
-            service_id: item.service.id,
-            payment_method: paymentMethodString,
-            commission_amount: item.service.price * (item.service.commission / 100),
-            service_value: item.service.price * item.quantity,
-            tip_amount: item.tipAmount || 0
-          });
+          .insert(recordData)
+          .select();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Erro ao inserir registro:', error);
+          throw error;
+        }
+        
+        console.log('Registro inserido com sucesso:', data);
       }
+      
+      console.log('Todos os registros inseridos com sucesso!');
       
       // Show success message
       toast({
@@ -470,7 +501,10 @@ export function useCheckoutForm() {
       
       // Navigate to the services page
       navigate('/services');
+      
+      console.log('=== FIM DO CHECKOUT ===');
     } catch (error: any) {
+      console.error('Erro ao registrar serviços:', error);
       toast({
         title: "Erro ao registrar serviços",
         description: error.message || "Ocorreu um erro ao salvar os registros",
