@@ -23,7 +23,7 @@ export const useDashboardData = () => {
   const endOfCurrentMonth = endOfMonth(localNow);
   
   const { currentUser } = useAuth();
-  const [dateFilter, setDateFilter] = useState('all'); // Default to show all records
+  const [dateFilter, setDateFilter] = useState('week'); // Default to show last 7 days
   const [startDate, setStartDate] = useState<Date | undefined>(startOfCurrentWeek);
   const [endDate, setEndDate] = useState<Date | undefined>(endOfCurrentWeek);
   const [selectedProfessional, setSelectedProfessional] = useState<string | null>(null);

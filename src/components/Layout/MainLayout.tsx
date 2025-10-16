@@ -49,12 +49,6 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       requiredRoles: ['/team']
     },
     {
-      path: '/records',
-      label: 'Despesas',
-      icon: <BarChart3 size={20} />,
-      requiredRoles: ['/records']
-    },
-    {
       path: '/cart',
       label: 'Carrinho',
       icon: <ShoppingBag size={20} />,
