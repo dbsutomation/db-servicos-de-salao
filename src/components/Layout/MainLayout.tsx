@@ -43,12 +43,6 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       requiredRoles: ['/clients']
     },
     {
-      path: '/scheduling',
-      label: 'Agendamentos',
-      icon: <Calendar size={20} />,
-      requiredRoles: ['/scheduling']
-    },
-    {
       path: '/team',
       label: 'Profissionais',
       icon: <User size={20} />,
