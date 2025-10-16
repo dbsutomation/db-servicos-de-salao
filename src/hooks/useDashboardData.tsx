@@ -63,7 +63,9 @@ export const useDashboardData = () => {
             services:service_id (id, name, price, type, category),
             clients:client_id (id, name),
             users:professional_id (id, name, profession)
-          `);
+          `)
+          .range(0, 9999)
+          .order('date', { ascending: false });
 
         if (recordsError) {
           throw recordsError;
