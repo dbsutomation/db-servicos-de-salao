@@ -10,7 +10,6 @@ import Index from "./pages/Index";
 import Services from "./pages/Services";
 import Clients from "./pages/Clients";
 import Team from "./pages/Team";
-import Records from "./pages/Records";
 import Cart from "./pages/Cart";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
@@ -70,14 +69,6 @@ const AppRoutes = () => {
         <CartProvider>
           <ProtectedRoute requiredRoutes={["/team"]}>
             <Team />
-          </ProtectedRoute>
-        </CartProvider>
-      } />
-      
-      <Route path="/records" element={
-        <CartProvider>
-          <ProtectedRoute requiredRoutes={["/records"]}>
-            <Records />
           </ProtectedRoute>
         </CartProvider>
       } />
