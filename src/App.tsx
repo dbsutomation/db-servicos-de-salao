@@ -12,7 +12,6 @@ import Clients from "./pages/Clients";
 import Team from "./pages/Team";
 import Records from "./pages/Records";
 import Cart from "./pages/Cart";
-import Scheduling from "./pages/Scheduling";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 
@@ -87,14 +86,6 @@ const AppRoutes = () => {
         <CartProvider>
           <ProtectedRoute requiredRoutes={["/cart"]}>
             <Cart />
-          </ProtectedRoute>
-        </CartProvider>
-      } />
-      
-      <Route path="/scheduling" element={
-        <CartProvider>
-          <ProtectedRoute requiredRoutes={["/scheduling"]}>
-            <Scheduling />
           </ProtectedRoute>
         </CartProvider>
       } />
