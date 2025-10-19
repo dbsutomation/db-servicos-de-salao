@@ -5,25 +5,37 @@ import { toast } from '@/hooks/use-toast';
 
 export const fetchTeamMembers = async (): Promise<TeamMember[]> => {
   try {
+    // Fetch users with their roles from user_roles table
     const { data, error } = await supabase
       .from('users')
-      .select('*');
+      .select(`
+        *,
+        user_roles (
+          role
+        )
+      `);
     
     if (error) throw error;
     
     // Transform data to match TeamMember type
-    const transformedData = data.map(user => ({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      hasAccess: user.has_access,
-      isManager: user.is_manager,
-      phone: user.phone || '',
-      profession: user.profession || '',
-      password: '',
-      avatar: user.avatar || '/placeholder.svg',
-      categories: user.categories || []
-    }));
+    const transformedData = data.map((user: any) => {
+      // Check if user has manager role in user_roles array
+      const userRoles = Array.isArray(user.user_roles) ? user.user_roles : [];
+      const isManager = userRoles.some((roleEntry: any) => roleEntry.role === 'manager');
+      
+      return {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        hasAccess: user.has_access,
+        isManager: isManager,
+        phone: user.phone || '',
+        profession: user.profession || '',
+        password: '',
+        avatar: user.avatar || '/placeholder.svg',
+        categories: user.categories || []
+      };
+    });
     
     return transformedData;
   } catch (error: any) {
@@ -52,9 +64,26 @@ export const updateTeamMember = async (memberId: string, data: any): Promise<boo
       phone: data.phone || null,
       profession: data.profession || null,
       has_access: data.hasAccess,
-      is_manager: data.isManager,
       categories: data.categories || []
     };
+    
+    // Update role in user_roles table separately (only managers can do this)
+    if (data.isManager !== undefined) {
+      const newRole = data.isManager ? 'manager' : 'professional';
+      
+      // Delete existing role and insert new one
+      await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', memberId);
+      
+      await supabase
+        .from('user_roles')
+        .insert({
+          user_id: memberId,
+          role: newRole
+        });
+    }
     
     const { data: existingMember, error: checkError } = await supabase
       .from('users')
@@ -110,7 +139,6 @@ export const createTeamMember = async (data: any): Promise<boolean> => {
       phone: data.phone || null,
       profession: data.profession || null,
       has_access: data.hasAccess,
-      is_manager: data.isManager,
       categories: data.categories || []
     };
     
@@ -118,6 +146,17 @@ export const createTeamMember = async (data: any): Promise<boolean> => {
       .from('users')
       .insert(insertData)
       .select();
+    
+    // Insert role into user_roles table
+    if (newMember && newMember.length > 0) {
+      const role = data.isManager ? 'manager' : 'professional';
+      await supabase
+        .from('user_roles')
+        .insert({
+          user_id: id,
+          role: role
+        });
+    }
       
     if (error) {
       console.error("Erro na operação de inserção:", error);
