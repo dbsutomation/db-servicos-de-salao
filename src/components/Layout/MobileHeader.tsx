@@ -34,7 +34,7 @@ const MobileHeader = ({ toggleMobileMenu }: MobileHeaderProps) => {
           <MenuIcon size={24} />
         </Button>
         <h1 className="text-lg font-bold text-salon-purple">
-          Gestão do Salão
+          Gestão de Produtos e Serviços
         </h1>
         
         {currentUser && (
