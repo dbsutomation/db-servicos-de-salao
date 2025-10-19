@@ -41,18 +41,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setTimeout(async () => {
             try {
               console.log("Buscando dados adicionais do usuário:", newSession.user.id);
-              // Fetch user data and role from user_roles table
               const { data, error } = await supabase
                 .from('users')
                 .select('*')
                 .eq('id', newSession.user.id)
-                .single();
-              
-              // Fetch user role from user_roles table
-              const { data: roleData } = await supabase
-                .from('user_roles')
-                .select('role')
-                .eq('user_id', newSession.user.id)
                 .single();
                 
               if (error) {
@@ -85,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   phone: data.phone || '',
                   password: '',
                   hasAccess: data.has_access,
-                  isManager: roleData?.role === 'manager', // Use role from user_roles table
+                  isManager: data.is_manager,
                   avatar: data.avatar || ''
                 };
                 
