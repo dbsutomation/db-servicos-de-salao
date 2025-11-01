@@ -65,7 +65,7 @@ const DashboardFilters: React.FC<DashboardFiltersProps> = ({
         <SelectContent>
           <SelectItem value="all">Todos os períodos</SelectItem>
           <SelectItem value="today">Hoje</SelectItem>
-          <SelectItem value="week">Últimos 7 dias</SelectItem>
+          <SelectItem value="week">Semana Atual</SelectItem>
           <SelectItem value="month">Último mês</SelectItem>
           <SelectItem value="custom">Período personalizado</SelectItem>
         </SelectContent>

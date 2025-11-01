@@ -14,9 +14,9 @@ export const useDashboardData = () => {
   const now = new Date();
   const localNow = toZonedTime(now, timeZone);
   
-  // Calculate start (Sunday) and end (Saturday) of the current week
-  const startOfCurrentWeek = startOfWeek(localNow, { weekStartsOn: 0 }); // 0 = Sunday
-  const endOfCurrentWeek = endOfWeek(localNow, { weekStartsOn: 0 }); // Week ends on Saturday
+  // Calculate start (Monday) and end (Sunday) of the current week
+  const startOfCurrentWeek = startOfWeek(localNow, { weekStartsOn: 1 }); // 1 = Monday
+  const endOfCurrentWeek = endOfWeek(localNow, { weekStartsOn: 1 }); // Week ends on Sunday
   
   // Calculate start and end of current month
   const startOfCurrentMonth = startOfMonth(localNow);
@@ -160,12 +160,12 @@ export const useDashboardData = () => {
       records = records.filter(record => record.date === todayStr);
       console.log('[FILTER DEBUG] Registros após filtro "hoje":', records.length);
     } else if (dateFilter === 'week') {
-      // Últimos 7 dias (inclusivo) em horário de Brasília
-      const endStr = format(localNow, 'yyyy-MM-dd');
-      const startStr = format(addDays(localNow, -6), 'yyyy-MM-dd');
-      console.log('[FILTER DEBUG] Filtro "semana" - de', startStr, 'até', endStr);
+      // Semana atual (segunda a domingo) em horário de Brasília
+      const startStr = format(startOfCurrentWeek, 'yyyy-MM-dd');
+      const endStr = format(endOfCurrentWeek, 'yyyy-MM-dd');
+      console.log('[FILTER DEBUG] Filtro "semana atual" - de', startStr, 'até', endStr);
       records = records.filter(record => record.date >= startStr && record.date <= endStr);
-      console.log('[FILTER DEBUG] Registros após filtro "semana":', records.length);
+      console.log('[FILTER DEBUG] Registros após filtro "semana atual":', records.length);
     } else if (dateFilter === 'month') {
       // Últimos 30 dias (inclusivo)
       const endStr = format(localNow, 'yyyy-MM-dd');
