@@ -65,7 +65,11 @@ export function useCheckoutForm() {
           
         if (teamError) throw teamError;
         
-        setClients(clientsData || []);
+        // Sort clients alphabetically by name
+        const sortedClients = (clientsData || []).sort((a, b) => 
+          a.name.localeCompare(b.name, 'pt-BR')
+        );
+        setClients(sortedClients);
         
         // Map the team data to match TeamMember interface
         const mappedTeamData = teamData?.map(member => ({
