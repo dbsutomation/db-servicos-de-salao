@@ -81,6 +81,14 @@ const AppRoutes = () => {
           </ProtectedRoute>
         </CartProvider>
       } />
+
+      <Route path="/expenses" element={
+        <CartProvider>
+          <ProtectedRoute requiredRoutes={["/expenses"]}>
+            <Expenses />
+          </ProtectedRoute>
+        </CartProvider>
+      } />
       
       <Route path="*" element={<NotFound />} />
     </Routes>
