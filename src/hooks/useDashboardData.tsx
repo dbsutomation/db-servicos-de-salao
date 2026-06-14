@@ -240,17 +240,23 @@ export const useDashboardData = () => {
     });
   }, [expenses, dateFilter, startDate, endDate, startOfCurrentWeek, endOfCurrentWeek, localNow]);
 
-  // Calculate expenses using filtered expenses
+  // Calculate expenses using filtered expenses (period only, not affected by client search)
   const totalExpenses = filteredExpenses.reduce((total, expense) => total + Number(expense.amount), 0);
 
-  // Calculate quick stats
-  const totalServices = filteredRecords.length;
-  const totalCommissions = filteredRecords.reduce((total, record) => total + Number(record.commissionAmount || 0), 0);
-  const totalServiceValue = filteredRecords.reduce((total, record) => total + Number(record.serviceValue || record.service?.price || 0), 0);
-  const totalRevenue = totalServiceValue; // Revenue is the total value of all services/products
-  const totalTips = filteredRecords.reduce((total, record) => total + Number(record.tipAmount || 0), 0);
-  const netProfit = totalRevenue - totalExpenses - totalCommissions; // Net profit = revenue - expenses - commissions
-  const totalClients = new Set(filteredRecords.map(record => record.client?.id)).size;
+  // Period stats (from filteredRecords, not affected by client search)
+  const periodServiceValue = filteredRecords.reduce((total, record) => total + Number(record.serviceValue || record.service?.price || 0), 0);
+  const periodCommissions = filteredRecords.reduce((total, record) => total + Number(record.commissionAmount || 0), 0);
+
+  // Client-filtered stats (for indicators that should reflect the search)
+  const totalServices = clientFilteredRecords.length;
+  const totalCommissions = clientFilteredRecords.reduce((total, record) => total + Number(record.commissionAmount || 0), 0);
+  const totalServiceValue = clientFilteredRecords.reduce((total, record) => total + Number(record.serviceValue || record.service?.price || 0), 0);
+  const totalRevenue = totalServiceValue;
+  const totalTips = clientFilteredRecords.reduce((total, record) => total + Number(record.tipAmount || 0), 0);
+  const totalClients = clientSearchTerm.trim() && clientFilteredRecords.length > 0
+    ? 1
+    : new Set(clientFilteredRecords.map(record => record.client?.id)).size;
+  const netProfit = periodServiceValue - totalExpenses - periodCommissions;
   
   // Calculate most used services
   const topServices = useMemo(() => {
