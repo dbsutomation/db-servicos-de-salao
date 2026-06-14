@@ -116,7 +116,9 @@ const Index = () => {
               serviceRecordsList={serviceRecordsList}
               totalCommissions={totalCommissions}
               totalServiceValue={totalServiceValue}
-              totalTips={totalTips || 0} // Ensure we pass a number, defaulting to 0 if totalTips is undefined
+              totalTips={totalTips || 0}
+              searchTerm={clientSearchTerm}
+              setSearchTerm={setClientSearchTerm}
             />
           </>
         )}
