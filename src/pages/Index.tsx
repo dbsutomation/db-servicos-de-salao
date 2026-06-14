@@ -24,6 +24,8 @@ const Index = () => {
     setSelectedProfessional,
     selectedType,
     setSelectedType,
+    clientSearchTerm,
+    setClientSearchTerm,
     totalExpenses,
     totalServices,
     totalCommissions,
