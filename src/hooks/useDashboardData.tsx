@@ -202,23 +202,34 @@ export const useDashboardData = () => {
     return records;
   }, [serviceRecords, dateFilter, startDate, endDate, selectedProfessional, selectedType, currentUser]);
 
-  // Filter expenses to only show those from the current month for the dashboard
+  // Filter expenses using the SAME date filter as service records
   const filteredExpenses = useMemo(() => {
-    return expenses.filter(expense => {
+    if (!expenses || expenses.length === 0) return [];
+
+    const todayStr = format(toZonedTime(new Date(), timeZone), 'yyyy-MM-dd');
+    const weekStart = format(startOfCurrentWeek, 'yyyy-MM-dd');
+    const weekEnd = format(endOfCurrentWeek, 'yyyy-MM-dd');
+    const oneMonthAgo = new Date(localNow);
+    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+    const monthStart = format(oneMonthAgo, 'yyyy-MM-dd');
+    const monthEnd = format(localNow, 'yyyy-MM-dd');
+
+    return expenses.filter((expense) => {
       if (!expense.expense_date) return false;
-      
-      try {
-        const expenseDate = parseISO(expense.expense_date);
-        return isWithinInterval(expenseDate, {
-          start: startOfCurrentMonth,
-          end: endOfCurrentMonth
-        });
-      } catch (e) {
-        return false;
+      const d = expense.expense_date;
+
+      if (dateFilter === 'today') return d === todayStr;
+      if (dateFilter === 'week') return d >= weekStart && d <= weekEnd;
+      if (dateFilter === 'month') return d >= monthStart && d <= monthEnd;
+      if (dateFilter === 'custom' && startDate && endDate) {
+        const s = format(startDate, 'yyyy-MM-dd');
+        const e = format(endDate, 'yyyy-MM-dd');
+        return d >= s && d <= e;
       }
+      return true; // 'all'
     });
-  }, [expenses, startOfCurrentMonth, endOfCurrentMonth]);
-  
+  }, [expenses, dateFilter, startDate, endDate, startOfCurrentWeek, endOfCurrentWeek, localNow]);
+
   // Calculate expenses using filtered expenses
   const totalExpenses = filteredExpenses.reduce((total, expense) => total + Number(expense.amount), 0);
 
