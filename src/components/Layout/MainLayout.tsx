@@ -54,6 +54,12 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       label: 'Carrinho',
       icon: <ShoppingBag size={20} />,
       requiredRoles: ['/cart']
+    },
+    {
+      path: '/expenses',
+      label: 'Despesas',
+      icon: <Receipt size={20} />,
+      requiredRoles: ['/expenses']
     }
   ];
 
