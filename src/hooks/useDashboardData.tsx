@@ -28,6 +28,7 @@ export const useDashboardData = () => {
   const [endDate, setEndDate] = useState<Date | undefined>(endOfCurrentWeek);
   const [selectedProfessional, setSelectedProfessional] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<string>('all');
+  const [clientSearchTerm, setClientSearchTerm] = useState('');
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [serviceRecords, setServiceRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -202,6 +203,15 @@ export const useDashboardData = () => {
     return records;
   }, [serviceRecords, dateFilter, startDate, endDate, selectedProfessional, selectedType, currentUser]);
 
+  // Filter records by client search term (for indicators that should reflect the search)
+  const clientFilteredRecords = useMemo(() => {
+    if (!clientSearchTerm.trim()) return filteredRecords;
+    const term = clientSearchTerm.toLowerCase();
+    return filteredRecords.filter(record =>
+      record.client?.name?.toLowerCase().includes(term)
+    );
+  }, [filteredRecords, clientSearchTerm]);
+
   // Filter expenses using the SAME date filter as service records
   const filteredExpenses = useMemo(() => {
     if (!expenses || expenses.length === 0) return [];
@@ -230,21 +240,27 @@ export const useDashboardData = () => {
     });
   }, [expenses, dateFilter, startDate, endDate, startOfCurrentWeek, endOfCurrentWeek, localNow]);
 
-  // Calculate expenses using filtered expenses
+  // Calculate expenses using filtered expenses (period only, not affected by client search)
   const totalExpenses = filteredExpenses.reduce((total, expense) => total + Number(expense.amount), 0);
 
-  // Calculate quick stats
-  const totalServices = filteredRecords.length;
-  const totalCommissions = filteredRecords.reduce((total, record) => total + Number(record.commissionAmount || 0), 0);
-  const totalServiceValue = filteredRecords.reduce((total, record) => total + Number(record.serviceValue || record.service?.price || 0), 0);
-  const totalRevenue = totalServiceValue; // Revenue is the total value of all services/products
-  const totalTips = filteredRecords.reduce((total, record) => total + Number(record.tipAmount || 0), 0);
-  const netProfit = totalRevenue - totalExpenses - totalCommissions; // Net profit = revenue - expenses - commissions
-  const totalClients = new Set(filteredRecords.map(record => record.client?.id)).size;
+  // Period stats (from filteredRecords, not affected by client search)
+  const periodServiceValue = filteredRecords.reduce((total, record) => total + Number(record.serviceValue || record.service?.price || 0), 0);
+  const periodCommissions = filteredRecords.reduce((total, record) => total + Number(record.commissionAmount || 0), 0);
+
+  // Client-filtered stats (for indicators that should reflect the search)
+  const totalServices = clientFilteredRecords.length;
+  const totalCommissions = clientFilteredRecords.reduce((total, record) => total + Number(record.commissionAmount || 0), 0);
+  const totalServiceValue = clientFilteredRecords.reduce((total, record) => total + Number(record.serviceValue || record.service?.price || 0), 0);
+  const totalRevenue = totalServiceValue;
+  const totalTips = clientFilteredRecords.reduce((total, record) => total + Number(record.tipAmount || 0), 0);
+  const totalClients = clientSearchTerm.trim() && clientFilteredRecords.length > 0
+    ? 1
+    : new Set(clientFilteredRecords.map(record => record.client?.id)).size;
+  const netProfit = periodServiceValue - totalExpenses - periodCommissions;
   
-  // Calculate most used services
+  // Calculate most used services (from clientFilteredRecords)
   const topServices = useMemo(() => {
-    const serviceCounts: Record<string, number> = filteredRecords.reduce((acc: Record<string, number>, record) => {
+    const serviceCounts: Record<string, number> = clientFilteredRecords.reduce((acc: Record<string, number>, record) => {
       if (record.service?.id) {
         const serviceId = record.service.id;
         acc[serviceId] = (acc[serviceId] || 0) + 1;
@@ -258,14 +274,14 @@ export const useDashboardData = () => {
     
     entries.sort((a, b) => b[1] - a[1]);
     const [serviceId, count] = entries[0];
-    const service = filteredRecords.find(r => r.service?.id === serviceId)?.service;
+    const service = clientFilteredRecords.find(r => r.service?.id === serviceId)?.service;
     
     return service ? { name: service.name || 'Não disponível', count } : { name: 'Não disponível', count: 0 };
-  }, [filteredRecords]);
+  }, [clientFilteredRecords]);
 
-  // Calculate top clients
+  // Calculate top clients (from clientFilteredRecords)
   const topClient = useMemo(() => {
-    const clientCounts: Record<string, number> = filteredRecords.reduce((acc: Record<string, number>, record) => {
+    const clientCounts: Record<string, number> = clientFilteredRecords.reduce((acc: Record<string, number>, record) => {
       if (record.client?.id) {
         const clientId = record.client.id;
         acc[clientId] = (acc[clientId] || 0) + 1;
@@ -279,12 +295,12 @@ export const useDashboardData = () => {
     
     entries.sort((a, b) => b[1] - a[1]);
     const [clientId, count] = entries[0];
-    const client = filteredRecords.find(r => r.client?.id === clientId)?.client;
+    const client = clientFilteredRecords.find(r => r.client?.id === clientId)?.client;
     
     return client ? { name: client.name || 'Não disponível', count } : { name: 'Não disponível', count: 0 };
-  }, [filteredRecords]);
+  }, [clientFilteredRecords]);
   
-  // Calculate payment method stats
+  // Calculate payment method stats (from filteredRecords, period only, not affected by client search)
   const paymentMethodStats = useMemo(() => {
     const stats = filteredRecords.reduce((acc: Record<string, number>, record) => {
       const method = record.paymentMethod || 'Não especificado';
@@ -327,6 +343,8 @@ export const useDashboardData = () => {
     setSelectedProfessional,
     selectedType,
     setSelectedType,
+    clientSearchTerm,
+    setClientSearchTerm,
     totalExpenses,
     totalServices,
     totalCommissions,

@@ -39,7 +39,9 @@ interface ServiceRecordsTableProps {
   serviceRecordsList: DisplayServiceRecord[];
   totalCommissions: number;
   totalServiceValue: number;
-  totalTips: number; // Changed from optional to required since we're using it
+  totalTips: number;
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
 }
 
 const formSchema = z.object({
@@ -57,9 +59,10 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
   serviceRecordsList,
   totalCommissions,
   totalServiceValue,
-  totalTips
+  totalTips,
+  searchTerm,
+  setSearchTerm
 }) => {
-  const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const { currentUser } = useAuth();
   const { toast } = useToast();
