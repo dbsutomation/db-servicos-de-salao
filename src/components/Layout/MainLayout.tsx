@@ -8,7 +8,8 @@ import {
   User, 
   BarChart3, 
   ShoppingBag,
-  Calendar
+  Calendar,
+  Receipt
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMediaQuery } from '@/hooks/use-mobile';
@@ -53,6 +54,12 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       label: 'Carrinho',
       icon: <ShoppingBag size={20} />,
       requiredRoles: ['/cart']
+    },
+    {
+      path: '/expenses',
+      label: 'Despesas',
+      icon: <Receipt size={20} />,
+      requiredRoles: ['/expenses']
     }
   ];
 
