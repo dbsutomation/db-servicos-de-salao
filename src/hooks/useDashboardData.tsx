@@ -258,9 +258,9 @@ export const useDashboardData = () => {
     : new Set(clientFilteredRecords.map(record => record.client?.id)).size;
   const netProfit = periodServiceValue - totalExpenses - periodCommissions;
   
-  // Calculate most used services
+  // Calculate most used services (from clientFilteredRecords)
   const topServices = useMemo(() => {
-    const serviceCounts: Record<string, number> = filteredRecords.reduce((acc: Record<string, number>, record) => {
+    const serviceCounts: Record<string, number> = clientFilteredRecords.reduce((acc: Record<string, number>, record) => {
       if (record.service?.id) {
         const serviceId = record.service.id;
         acc[serviceId] = (acc[serviceId] || 0) + 1;
@@ -274,14 +274,14 @@ export const useDashboardData = () => {
     
     entries.sort((a, b) => b[1] - a[1]);
     const [serviceId, count] = entries[0];
-    const service = filteredRecords.find(r => r.service?.id === serviceId)?.service;
+    const service = clientFilteredRecords.find(r => r.service?.id === serviceId)?.service;
     
     return service ? { name: service.name || 'Não disponível', count } : { name: 'Não disponível', count: 0 };
-  }, [filteredRecords]);
+  }, [clientFilteredRecords]);
 
-  // Calculate top clients
+  // Calculate top clients (from clientFilteredRecords)
   const topClient = useMemo(() => {
-    const clientCounts: Record<string, number> = filteredRecords.reduce((acc: Record<string, number>, record) => {
+    const clientCounts: Record<string, number> = clientFilteredRecords.reduce((acc: Record<string, number>, record) => {
       if (record.client?.id) {
         const clientId = record.client.id;
         acc[clientId] = (acc[clientId] || 0) + 1;
@@ -295,12 +295,12 @@ export const useDashboardData = () => {
     
     entries.sort((a, b) => b[1] - a[1]);
     const [clientId, count] = entries[0];
-    const client = filteredRecords.find(r => r.client?.id === clientId)?.client;
+    const client = clientFilteredRecords.find(r => r.client?.id === clientId)?.client;
     
     return client ? { name: client.name || 'Não disponível', count } : { name: 'Não disponível', count: 0 };
-  }, [filteredRecords]);
+  }, [clientFilteredRecords]);
   
-  // Calculate payment method stats
+  // Calculate payment method stats (from filteredRecords, period only, not affected by client search)
   const paymentMethodStats = useMemo(() => {
     const stats = filteredRecords.reduce((acc: Record<string, number>, record) => {
       const method = record.paymentMethod || 'Não especificado';
