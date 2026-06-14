@@ -8,7 +8,8 @@ import {
   User, 
   BarChart3, 
   ShoppingBag,
-  Calendar
+  Calendar,
+  Receipt
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMediaQuery } from '@/hooks/use-mobile';
