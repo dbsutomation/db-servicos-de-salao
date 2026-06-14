@@ -59,9 +59,10 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
   serviceRecordsList,
   totalCommissions,
   totalServiceValue,
-  totalTips
+  totalTips,
+  searchTerm,
+  setSearchTerm
 }) => {
-  const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const { currentUser } = useAuth();
   const { toast } = useToast();
