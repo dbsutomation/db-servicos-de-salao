@@ -11,6 +11,7 @@ import Services from "./pages/Services";
 import Clients from "./pages/Clients";
 import Team from "./pages/Team";
 import Cart from "./pages/Cart";
+import Expenses from "./pages/Expenses";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 
