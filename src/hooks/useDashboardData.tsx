@@ -343,6 +343,8 @@ export const useDashboardData = () => {
     setSelectedProfessional,
     selectedType,
     setSelectedType,
+    clientSearchTerm,
+    setClientSearchTerm,
     totalExpenses,
     totalServices,
     totalCommissions,
