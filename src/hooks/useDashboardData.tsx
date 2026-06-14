@@ -28,6 +28,7 @@ export const useDashboardData = () => {
   const [endDate, setEndDate] = useState<Date | undefined>(endOfCurrentWeek);
   const [selectedProfessional, setSelectedProfessional] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<string>('all');
+  const [clientSearchTerm, setClientSearchTerm] = useState('');
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [serviceRecords, setServiceRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
