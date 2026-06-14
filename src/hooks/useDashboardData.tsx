@@ -203,6 +203,15 @@ export const useDashboardData = () => {
     return records;
   }, [serviceRecords, dateFilter, startDate, endDate, selectedProfessional, selectedType, currentUser]);
 
+  // Filter records by client search term (for indicators that should reflect the search)
+  const clientFilteredRecords = useMemo(() => {
+    if (!clientSearchTerm.trim()) return filteredRecords;
+    const term = clientSearchTerm.toLowerCase();
+    return filteredRecords.filter(record =>
+      record.client?.name?.toLowerCase().includes(term)
+    );
+  }, [filteredRecords, clientSearchTerm]);
+
   // Filter expenses using the SAME date filter as service records
   const filteredExpenses = useMemo(() => {
     if (!expenses || expenses.length === 0) return [];
