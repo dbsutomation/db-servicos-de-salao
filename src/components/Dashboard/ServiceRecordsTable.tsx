@@ -39,7 +39,9 @@ interface ServiceRecordsTableProps {
   serviceRecordsList: DisplayServiceRecord[];
   totalCommissions: number;
   totalServiceValue: number;
-  totalTips: number; // Changed from optional to required since we're using it
+  totalTips: number;
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
 }
 
 const formSchema = z.object({
