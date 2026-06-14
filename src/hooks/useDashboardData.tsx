@@ -239,7 +239,7 @@ export const useDashboardData = () => {
   const totalServiceValue = filteredRecords.reduce((total, record) => total + Number(record.serviceValue || record.service?.price || 0), 0);
   const totalRevenue = totalServiceValue; // Revenue is the total value of all services/products
   const totalTips = filteredRecords.reduce((total, record) => total + Number(record.tipAmount || 0), 0);
-  const netProfit = totalRevenue - totalCommissions - totalExpenses; // Net profit after deducting commissions and expenses
+  const netProfit = totalRevenue - totalExpenses; // Net profit = revenue - expenses
   const totalClients = new Set(filteredRecords.map(record => record.client?.id)).size;
   
   // Calculate most used services
