@@ -353,29 +353,36 @@ const Services = () => {
             <p className="text-lg">Carregando serviços e produtos...</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {filteredServices.map((service) => (
-              <div key={service.id} className="relative">
-                <ServiceCard 
-                  service={service} 
-                />
-                {currentUser?.isManager && (
-                  <Button
-                    onClick={() => handleEditService(service)}
-                    className="absolute top-2 right-2 rounded-full w-8 h-8 p-0 bg-white/80 hover:bg-white"
-                  >
-                    <Pencil className="h-4 w-4 text-salon-purple" />
-                  </Button>
-                )}
-              </div>
-            ))}
-            
-            {filteredServices.length === 0 && !loading && (
-              <div className="col-span-full text-center py-12 text-gray-500 bg-white rounded-lg shadow-md border-2 border-gray-100">
-                {searchTerm || selectedProfessional !== 'all' ? 'Nenhum serviço ou produto encontrado para os filtros aplicados' : 'Nenhum serviço ou produto cadastrado'}
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+              {visibleServices.map((service) => (
+                <div key={service.id} className="relative">
+                  <ServiceCard 
+                    service={service} 
+                  />
+                  {currentUser?.isManager && (
+                    <Button
+                      onClick={() => handleEditService(service)}
+                      className="absolute top-2 right-2 rounded-full w-8 h-8 p-0 bg-white/80 hover:bg-white"
+                    >
+                      <Pencil className="h-4 w-4 text-salon-purple" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+              
+              {filteredServices.length === 0 && !loading && (
+                <div className="col-span-full text-center py-12 text-gray-500 bg-white rounded-lg shadow-md border-2 border-gray-100">
+                  {searchTerm || selectedProfessional !== 'all' ? 'Nenhum serviço ou produto encontrado para os filtros aplicados' : 'Nenhum serviço ou produto cadastrado'}
+                </div>
+              )}
+            </div>
+            {visibleCount < filteredServices.length && (
+              <div ref={sentinelRef} className="flex justify-center py-6 text-sm text-gray-500">
+                Carregando mais...
               </div>
             )}
-          </div>
+          </>
         )}
       </div>
 
