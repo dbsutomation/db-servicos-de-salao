@@ -1,7 +1,7 @@
 
 import React, { useState, ChangeEvent, useEffect, useRef } from 'react';
 import MainLayout from '@/components/Layout/MainLayout';
-import ServiceCard from '@/components/Services/ServiceCard';
+import ServiceListItem from '@/components/Services/ServiceListItem';
 import DurationField from '@/components/Services/DurationField';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
