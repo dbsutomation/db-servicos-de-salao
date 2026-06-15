@@ -1,5 +1,5 @@
 
-import React, { useState, ChangeEvent, useEffect } from 'react';
+import React, { useState, ChangeEvent, useEffect, useRef } from 'react';
 import MainLayout from '@/components/Layout/MainLayout';
 import ServiceCard from '@/components/Services/ServiceCard';
 import DurationField from '@/components/Services/DurationField';
@@ -38,6 +38,9 @@ const Services = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState<Service | null>(null);
   const [loading, setLoading] = useState(true);
+  const PAGE_SIZE = 12;
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   const form = useForm({
     defaultValues: {
@@ -108,6 +111,28 @@ const Services = () => {
 
     return false;
   });
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [searchTerm, selectedProfessional]);
+
+  // Infinite scroll observer
+  useEffect(() => {
+    if (loading) return;
+    if (visibleCount >= filteredServices.length) return;
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        setVisibleCount((c) => Math.min(c + PAGE_SIZE, filteredServices.length));
+      }
+    }, { rootMargin: '200px' });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [loading, visibleCount, filteredServices.length]);
+
+  const visibleServices = filteredServices.slice(0, visibleCount);
 
   const handleEditService = (service: Service) => {
     if (!currentUser?.isManager) {
@@ -328,29 +353,36 @@ const Services = () => {
             <p className="text-lg">Carregando serviços e produtos...</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {filteredServices.map((service) => (
-              <div key={service.id} className="relative">
-                <ServiceCard 
-                  service={service} 
-                />
-                {currentUser?.isManager && (
-                  <Button
-                    onClick={() => handleEditService(service)}
-                    className="absolute top-2 right-2 rounded-full w-8 h-8 p-0 bg-white/80 hover:bg-white"
-                  >
-                    <Pencil className="h-4 w-4 text-salon-purple" />
-                  </Button>
-                )}
-              </div>
-            ))}
-            
-            {filteredServices.length === 0 && !loading && (
-              <div className="col-span-full text-center py-12 text-gray-500 bg-white rounded-lg shadow-md border-2 border-gray-100">
-                {searchTerm || selectedProfessional !== 'all' ? 'Nenhum serviço ou produto encontrado para os filtros aplicados' : 'Nenhum serviço ou produto cadastrado'}
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+              {visibleServices.map((service) => (
+                <div key={service.id} className="relative">
+                  <ServiceCard 
+                    service={service} 
+                  />
+                  {currentUser?.isManager && (
+                    <Button
+                      onClick={() => handleEditService(service)}
+                      className="absolute top-2 right-2 rounded-full w-8 h-8 p-0 bg-white/80 hover:bg-white"
+                    >
+                      <Pencil className="h-4 w-4 text-salon-purple" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+              
+              {filteredServices.length === 0 && !loading && (
+                <div className="col-span-full text-center py-12 text-gray-500 bg-white rounded-lg shadow-md border-2 border-gray-100">
+                  {searchTerm || selectedProfessional !== 'all' ? 'Nenhum serviço ou produto encontrado para os filtros aplicados' : 'Nenhum serviço ou produto cadastrado'}
+                </div>
+              )}
+            </div>
+            {visibleCount < filteredServices.length && (
+              <div ref={sentinelRef} className="flex justify-center py-6 text-sm text-gray-500">
+                Carregando mais...
               </div>
             )}
-          </div>
+          </>
         )}
       </div>
 
