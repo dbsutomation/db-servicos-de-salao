@@ -37,9 +37,6 @@ interface DisplayServiceRecord {
 
 interface ServiceRecordsTableProps {
   serviceRecordsList: DisplayServiceRecord[];
-  totalCommissions: number;
-  totalServiceValue: number;
-  totalTips: number;
   searchTerm: string;
   setSearchTerm: (term: string) => void;
 }
@@ -57,9 +54,6 @@ const ITEMS_PER_PAGE = 20;
 
 const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({ 
   serviceRecordsList,
-  totalCommissions,
-  totalServiceValue,
-  totalTips,
   searchTerm,
   setSearchTerm
 }) => {
@@ -99,8 +93,10 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const paginatedRecords = filteredRecords.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   
-  // Calculate filtered tips (for the current filtered records only)
+  // Calculate filtered totals (for the current filtered records only)
+  const filteredTotalCommissions = filteredRecords.reduce((total, record) => total + (record.commissionAmount || 0), 0);
   const filteredTotalTips = filteredRecords.reduce((total, record) => total + (record.tipAmount || 0), 0);
+  const filteredTotalServiceValue = filteredRecords.reduce((total, record) => total + (record.serviceValue || 0), 0);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -356,7 +352,7 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
                 {new Intl.NumberFormat('pt-BR', {
                   style: 'currency', 
                   currency: 'BRL'
-                }).format(totalCommissions)}
+                }).format(filteredTotalCommissions)}
               </TableCell>
               <TableCell className="text-right font-bold bg-[#F9E79F]">
                 {new Intl.NumberFormat('pt-BR', {
@@ -368,7 +364,7 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
                 {new Intl.NumberFormat('pt-BR', {
                   style: 'currency', 
                   currency: 'BRL'
-                }).format(totalServiceValue)}
+                }).format(filteredTotalServiceValue)}
               </TableCell>
               {currentUser?.isManager && <TableCell></TableCell>}
             </TableRow>

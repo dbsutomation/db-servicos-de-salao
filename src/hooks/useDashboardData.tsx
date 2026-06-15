@@ -243,20 +243,22 @@ export const useDashboardData = () => {
   // Calculate expenses using filtered expenses (period only, not affected by client search)
   const totalExpenses = filteredExpenses.reduce((total, expense) => total + Number(expense.amount), 0);
 
-  // Period stats (from filteredRecords, not affected by client search)
-  const periodServiceValue = filteredRecords.reduce((total, record) => total + Number(record.serviceValue || record.service?.price || 0), 0);
+  // Period stats (for FinancialStats - not affected by client search)
+  const periodRevenue = filteredRecords.reduce((total, record) => total + Number(record.serviceValue || record.service?.price || 0), 0);
   const periodCommissions = filteredRecords.reduce((total, record) => total + Number(record.commissionAmount || 0), 0);
+  const periodTips = filteredRecords.reduce((total, record) => total + Number(record.tipAmount || 0), 0);
 
-  // Client-filtered stats (for indicators that should reflect the search)
+  // Financial indicators (always based on period, never affected by client search)
+  const totalRevenue = periodRevenue;
+  const totalCommissions = periodCommissions;
+  const totalTips = periodTips;
+  const netProfit = periodRevenue - totalExpenses - periodCommissions;
+
+  // Client-filtered stats (for QuantityStats - affected by client search)
   const totalServices = clientFilteredRecords.length;
-  const totalCommissions = clientFilteredRecords.reduce((total, record) => total + Number(record.commissionAmount || 0), 0);
-  const totalServiceValue = clientFilteredRecords.reduce((total, record) => total + Number(record.serviceValue || record.service?.price || 0), 0);
-  const totalRevenue = totalServiceValue;
-  const totalTips = clientFilteredRecords.reduce((total, record) => total + Number(record.tipAmount || 0), 0);
   const totalClients = clientSearchTerm.trim() && clientFilteredRecords.length > 0
     ? 1
     : new Set(clientFilteredRecords.map(record => record.client?.id)).size;
-  const netProfit = periodServiceValue - totalExpenses - periodCommissions;
   
   // Calculate most used services (from clientFilteredRecords)
   const topServices = useMemo(() => {
@@ -314,9 +316,9 @@ export const useDashboardData = () => {
     }));
   }, [filteredRecords]);
 
-  // Format records for the table display
+  // Format records for the table display (filtered by client search)
   const serviceRecordsList = useMemo(() => {
-    return filteredRecords.map(record => ({
+    return clientFilteredRecords.map(record => ({
       id: record.id,
       professional: record.teamMember?.name || 'Não especificado',
       profession: record.teamMember?.profession || 'Não especificado',
@@ -330,7 +332,7 @@ export const useDashboardData = () => {
       serviceValue: Number(record.serviceValue || record.service?.price || 0),
       tipAmount: Number(record.tipAmount || 0)
     }));
-  }, [filteredRecords]);
+  }, [clientFilteredRecords]);
 
   return {
     dateFilter,
