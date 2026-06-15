@@ -350,7 +350,6 @@ export const useDashboardData = () => {
     totalExpenses,
     totalServices,
     totalCommissions,
-    totalServiceValue,
     totalRevenue,
     netProfit,
     totalClients,
