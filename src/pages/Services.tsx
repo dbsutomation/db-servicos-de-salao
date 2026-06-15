@@ -101,13 +101,15 @@ const Services = () => {
       (service.description && service.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (service.category && service.category.toLowerCase().includes(searchTerm.toLowerCase()));
 
-    if (selectedProfessional === 'all') {
-      return matchesSearch;
-    }
+    const matchesCategory = selectedCategory === 'all' || service.category === selectedCategory;
+
+    if (!matchesSearch || !matchesCategory) return false;
+
+    if (selectedProfessional === 'all') return true;
 
     const professional = teamMembers.find(member => member.id === selectedProfessional);
     if (professional && professional.categories && service.category) {
-      return matchesSearch && professional.categories.includes(service.category);
+      return professional.categories.includes(service.category);
     }
 
     return false;
@@ -116,7 +118,7 @@ const Services = () => {
   // Reset pagination when filters change
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
-  }, [searchTerm, selectedProfessional]);
+  }, [searchTerm, selectedProfessional, selectedCategory]);
 
   // Infinite scroll observer
   useEffect(() => {
