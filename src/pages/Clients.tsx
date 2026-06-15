@@ -245,7 +245,7 @@ const Clients = () => {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => handleEdit(client.id)}
+                      onClick={(e) => { e.stopPropagation(); handleEdit(client.id); }}
                       className="h-8 w-8"
                     >
                       <Edit size={16} />
