@@ -112,6 +112,28 @@ const Services = () => {
     return false;
   });
 
+  // Reset pagination when filters change
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [searchTerm, selectedProfessional]);
+
+  // Infinite scroll observer
+  useEffect(() => {
+    if (loading) return;
+    if (visibleCount >= filteredServices.length) return;
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        setVisibleCount((c) => Math.min(c + PAGE_SIZE, filteredServices.length));
+      }
+    }, { rootMargin: '200px' });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [loading, visibleCount, filteredServices.length]);
+
+  const visibleServices = filteredServices.slice(0, visibleCount);
+
   const handleEditService = (service: Service) => {
     if (!currentUser?.isManager) {
       toast({
