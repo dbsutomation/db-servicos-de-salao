@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import MainLayout from '@/components/Layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -15,6 +16,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 const Clients = () => {
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<string | null>(null);
@@ -216,7 +218,8 @@ const Clients = () => {
             {filteredClients.map((client) => (
               <div
                 key={client.id}
-                className="bg-white rounded-lg shadow-md border-2 border-gray-100 overflow-hidden flex flex-col"
+                onClick={() => navigate(`/clients/${client.id}`)}
+                className="bg-white rounded-lg shadow-md border-2 border-gray-100 overflow-hidden flex flex-col cursor-pointer hover:shadow-lg transition-shadow"
               >
                 <div className="p-6 flex items-start gap-4">
                   <Avatar className="h-16 w-16 flex-shrink-0 bg-salon-purple/20">
@@ -242,7 +245,7 @@ const Clients = () => {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => handleEdit(client.id)}
+                      onClick={(e) => { e.stopPropagation(); handleEdit(client.id); }}
                       className="h-8 w-8"
                     >
                       <Edit size={16} />
@@ -251,7 +254,7 @@ const Clients = () => {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => confirmDeleteClient(client.id)}
+                        onClick={(e) => { e.stopPropagation(); confirmDeleteClient(client.id); }}
                         className="h-8 w-8 text-destructive"
                       >
                         <Trash2 size={16} />
