@@ -1,7 +1,7 @@
 
 import React, { useState, ChangeEvent, useEffect, useRef } from 'react';
 import MainLayout from '@/components/Layout/MainLayout';
-import ServiceCard from '@/components/Services/ServiceCard';
+import ServiceListItem from '@/components/Services/ServiceListItem';
 import DurationField from '@/components/Services/DurationField';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -33,6 +33,7 @@ const Services = () => {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [selectedProfessional, setSelectedProfessional] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -100,13 +101,15 @@ const Services = () => {
       (service.description && service.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (service.category && service.category.toLowerCase().includes(searchTerm.toLowerCase()));
 
-    if (selectedProfessional === 'all') {
-      return matchesSearch;
-    }
+    const matchesCategory = selectedCategory === 'all' || service.category === selectedCategory;
+
+    if (!matchesSearch || !matchesCategory) return false;
+
+    if (selectedProfessional === 'all') return true;
 
     const professional = teamMembers.find(member => member.id === selectedProfessional);
     if (professional && professional.categories && service.category) {
-      return matchesSearch && professional.categories.includes(service.category);
+      return professional.categories.includes(service.category);
     }
 
     return false;
@@ -115,7 +118,7 @@ const Services = () => {
   // Reset pagination when filters change
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
-  }, [searchTerm, selectedProfessional]);
+  }, [searchTerm, selectedProfessional, selectedCategory]);
 
   // Infinite scroll observer
   useEffect(() => {
@@ -347,33 +350,44 @@ const Services = () => {
             </SelectContent>
           </Select>
         </div>
-        
+
+        <div className="flex flex-wrap gap-2">
+          {[
+            { value: 'all', label: 'Todos' },
+            ...serviceCategories,
+          ].map((cat) => (
+            <Button
+              key={cat.value}
+              type="button"
+              variant={selectedCategory === cat.value ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setSelectedCategory(cat.value)}
+              className={selectedCategory === cat.value ? 'bg-salon-purple hover:bg-salon-dark-purple' : ''}
+            >
+              {cat.label}
+            </Button>
+          ))}
+        </div>
+
         {loading ? (
           <div className="flex justify-center items-center h-64">
             <p className="text-lg">Carregando serviços e produtos...</p>
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            <div className="flex flex-col gap-2">
               {visibleServices.map((service) => (
-                <div key={service.id} className="relative">
-                  <ServiceCard 
-                    service={service} 
-                  />
-                  {currentUser?.isManager && (
-                    <Button
-                      onClick={() => handleEditService(service)}
-                      className="absolute top-2 right-2 rounded-full w-8 h-8 p-0 bg-white/80 hover:bg-white"
-                    >
-                      <Pencil className="h-4 w-4 text-salon-purple" />
-                    </Button>
-                  )}
-                </div>
+                <ServiceListItem
+                  key={service.id}
+                  service={service}
+                  canEdit={currentUser?.isManager}
+                  onEdit={handleEditService}
+                />
               ))}
-              
+
               {filteredServices.length === 0 && !loading && (
-                <div className="col-span-full text-center py-12 text-gray-500 bg-white rounded-lg shadow-md border-2 border-gray-100">
-                  {searchTerm || selectedProfessional !== 'all' ? 'Nenhum serviço ou produto encontrado para os filtros aplicados' : 'Nenhum serviço ou produto cadastrado'}
+                <div className="text-center py-12 text-gray-500 bg-white rounded-lg shadow-md border-2 border-gray-100">
+                  {searchTerm || selectedProfessional !== 'all' || selectedCategory !== 'all' ? 'Nenhum serviço ou produto encontrado para os filtros aplicados' : 'Nenhum serviço ou produto cadastrado'}
                 </div>
               )}
             </div>
