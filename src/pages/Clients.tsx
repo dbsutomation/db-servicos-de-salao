@@ -254,7 +254,7 @@ const Clients = () => {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => confirmDeleteClient(client.id)}
+                        onClick={(e) => { e.stopPropagation(); confirmDeleteClient(client.id); }}
                         className="h-8 w-8 text-destructive"
                       >
                         <Trash2 size={16} />
