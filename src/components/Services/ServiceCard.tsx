@@ -1,7 +1,8 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Service } from '@/types';
 import { useCart } from '@/contexts/CartContext';
 import { Plus, Percent } from 'lucide-react';
@@ -12,6 +13,7 @@ interface ServiceCardProps {
 
 const ServiceCard = ({ service }: ServiceCardProps) => {
   const { addToCart } = useCart();
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   const formattedPrice = new Intl.NumberFormat('pt-BR', {
     style: 'currency',
@@ -20,11 +22,18 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
 
   return (
     <Card className="overflow-hidden transition-shadow hover:shadow-md h-full flex flex-col">
-      <div className="w-full bg-muted overflow-hidden h-40">
+      <div className="w-full bg-muted overflow-hidden h-40 relative">
+        {!imageLoaded && (
+          <Skeleton className="absolute inset-0 w-full h-full" />
+        )}
         <img
           src={service.image}
           alt={service.name}
-          className="w-full h-full object-cover"
+          loading="lazy"
+          decoding="async"
+          onLoad={() => setImageLoaded(true)}
+          onError={() => setImageLoaded(true)}
+          className={`w-full h-full object-cover transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
         />
       </div>
       <div className="flex flex-col flex-grow">
