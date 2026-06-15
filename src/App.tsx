@@ -9,6 +9,7 @@ import { CartProvider } from "./contexts/CartContext";
 import Index from "./pages/Index";
 import Services from "./pages/Services";
 import Clients from "./pages/Clients";
+import ClientProfile from "./pages/ClientProfile";
 import Team from "./pages/Team";
 import Cart from "./pages/Cart";
 import Expenses from "./pages/Expenses";
@@ -62,6 +63,14 @@ const AppRoutes = () => {
         <CartProvider>
           <ProtectedRoute requiredRoutes={["/clients"]}>
             <Clients />
+          </ProtectedRoute>
+        </CartProvider>
+      } />
+
+      <Route path="/clients/:id" element={
+        <CartProvider>
+          <ProtectedRoute requiredRoutes={["/clients"]}>
+            <ClientProfile />
           </ProtectedRoute>
         </CartProvider>
       } />
