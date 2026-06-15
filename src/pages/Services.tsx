@@ -33,6 +33,7 @@ const Services = () => {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [selectedProfessional, setSelectedProfessional] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
