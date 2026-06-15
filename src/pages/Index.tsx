@@ -29,7 +29,6 @@ const Index = () => {
     totalExpenses,
     totalServices,
     totalCommissions,
-    totalServiceValue,
     totalRevenue,
     netProfit,
     totalClients,
@@ -114,9 +113,6 @@ const Index = () => {
             {/* Services Records List */}
             <ServiceRecordsTable 
               serviceRecordsList={serviceRecordsList}
-              totalCommissions={totalCommissions}
-              totalServiceValue={totalServiceValue}
-              totalTips={totalTips || 0}
               searchTerm={clientSearchTerm}
               setSearchTerm={setClientSearchTerm}
             />
