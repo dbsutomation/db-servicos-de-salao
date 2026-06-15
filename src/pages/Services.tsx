@@ -350,33 +350,44 @@ const Services = () => {
             </SelectContent>
           </Select>
         </div>
-        
+
+        <div className="flex flex-wrap gap-2">
+          {[
+            { value: 'all', label: 'Todos' },
+            ...serviceCategories,
+          ].map((cat) => (
+            <Button
+              key={cat.value}
+              type="button"
+              variant={selectedCategory === cat.value ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setSelectedCategory(cat.value)}
+              className={selectedCategory === cat.value ? 'bg-salon-purple hover:bg-salon-dark-purple' : ''}
+            >
+              {cat.label}
+            </Button>
+          ))}
+        </div>
+
         {loading ? (
           <div className="flex justify-center items-center h-64">
             <p className="text-lg">Carregando serviços e produtos...</p>
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            <div className="flex flex-col gap-2">
               {visibleServices.map((service) => (
-                <div key={service.id} className="relative">
-                  <ServiceCard 
-                    service={service} 
-                  />
-                  {currentUser?.isManager && (
-                    <Button
-                      onClick={() => handleEditService(service)}
-                      className="absolute top-2 right-2 rounded-full w-8 h-8 p-0 bg-white/80 hover:bg-white"
-                    >
-                      <Pencil className="h-4 w-4 text-salon-purple" />
-                    </Button>
-                  )}
-                </div>
+                <ServiceListItem
+                  key={service.id}
+                  service={service}
+                  canEdit={currentUser?.isManager}
+                  onEdit={handleEditService}
+                />
               ))}
-              
+
               {filteredServices.length === 0 && !loading && (
-                <div className="col-span-full text-center py-12 text-gray-500 bg-white rounded-lg shadow-md border-2 border-gray-100">
-                  {searchTerm || selectedProfessional !== 'all' ? 'Nenhum serviço ou produto encontrado para os filtros aplicados' : 'Nenhum serviço ou produto cadastrado'}
+                <div className="text-center py-12 text-gray-500 bg-white rounded-lg shadow-md border-2 border-gray-100">
+                  {searchTerm || selectedProfessional !== 'all' || selectedCategory !== 'all' ? 'Nenhum serviço ou produto encontrado para os filtros aplicados' : 'Nenhum serviço ou produto cadastrado'}
                 </div>
               )}
             </div>
