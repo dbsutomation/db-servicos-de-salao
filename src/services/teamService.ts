@@ -106,7 +106,7 @@ export const createTeamMember = async (data: any): Promise<boolean> => {
     
     const insertData = {
       id: id,
-      name: data.name,
+      name: toTitleCase(data.name),
       email: data.email,
       phone: data.phone || null,
       profession: data.profession || null,
