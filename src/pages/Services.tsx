@@ -137,7 +137,7 @@ const Services = () => {
 
   const visibleServices = filteredServices.slice(0, visibleCount);
 
-  const handleEditService = (service: Service) => {
+  const handleEditService = async (service: Service) => {
     if (!currentUser?.isManager) {
       toast({
         title: "Acesso negado",
@@ -146,19 +146,32 @@ const Services = () => {
       });
       return;
     }
-    
+
+    // Lazy-load image only when entering edit mode
+    let serviceImage = '/placeholder.svg';
+    try {
+      const { data: imgData } = await supabase
+        .from('services')
+        .select('image')
+        .eq('id', service.id)
+        .maybeSingle();
+      if (imgData?.image) serviceImage = imgData.image;
+    } catch (e) {
+      // ignore, fallback to placeholder
+    }
+
     setEditingService(service);
     form.reset({
       name: service.name,
       description: service.description || '',
       price: service.price.toString(),
       commission: service.commission.toString(),
-      image: service.image || '/placeholder.svg',
+      image: serviceImage,
       category: service.category || 'cabelo',
       type: service.type || 'servico',
       duration: (service.duration || 60).toString()
     });
-    setImagePreview(service.image || '/placeholder.svg');
+    setImagePreview(serviceImage);
     setOpen(true);
   };
 
