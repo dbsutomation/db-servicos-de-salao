@@ -598,10 +598,11 @@ const Services = () => {
                           type="button" 
                           variant="outline" 
                           onClick={handleCameraCapture}
+                          disabled={uploadingImage}
                           className="flex gap-2 items-center"
                         >
                           <Camera size={18} />
-                          Imagem
+                          {uploadingImage ? 'Enviando...' : 'Imagem'}
                         </Button>
                       </div>
                       <input type="hidden" {...field} />
