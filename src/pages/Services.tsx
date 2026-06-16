@@ -10,13 +10,12 @@ import { Input } from '@/components/ui/input';
 import { useForm } from 'react-hook-form';
 import { Plus, Pencil, Camera, Search } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { Service, TeamMember } from '@/types';
+import { Service } from '@/types';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, AlertDialogTitle, AlertDialogDescription, AlertDialogAction, AlertDialogCancel } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
-import { fetchTeamMembers } from '@/services/teamService';
 
 const serviceCategories = [
   { value: 'Cabelo', label: 'Cabelo' },
@@ -30,8 +29,6 @@ const Services = () => {
   const { currentUser } = useAuth();
   const [open, setOpen] = useState(false);
   const [servicesList, setServicesList] = useState<Service[]>([]);
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
-  const [selectedProfessional, setSelectedProfessional] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -77,10 +74,6 @@ const Services = () => {
         })) || [];
         
         setServicesList(typedServices);
-
-        // Fetch team members
-        const members = await fetchTeamMembers();
-        setTeamMembers(members);
       } catch (error: any) {
         toast({
           title: "Erro ao carregar dados",
@@ -95,7 +88,7 @@ const Services = () => {
     loadData();
   }, []);
 
-  // Filter services based on selected professional and search term
+  // Filter services based on search term and category
   const filteredServices = servicesList.filter(service => {
     const matchesSearch = service.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
       (service.description && service.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -103,22 +96,13 @@ const Services = () => {
 
     const matchesCategory = selectedCategory === 'all' || service.category === selectedCategory;
 
-    if (!matchesSearch || !matchesCategory) return false;
-
-    if (selectedProfessional === 'all') return true;
-
-    const professional = teamMembers.find(member => member.id === selectedProfessional);
-    if (professional && professional.categories && service.category) {
-      return professional.categories.includes(service.category);
-    }
-
-    return false;
+    return matchesSearch && matchesCategory;
   });
 
   // Reset pagination when filters change
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
-  }, [searchTerm, selectedProfessional, selectedCategory]);
+  }, [searchTerm, selectedCategory]);
 
   // Infinite scroll observer
   useEffect(() => {
@@ -367,30 +351,14 @@ const Services = () => {
           }
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-            <Input 
-              placeholder="Buscar por nome, descrição ou categoria" 
-              className="pl-10 border-2 border-gray-200 shadow-sm bg-white"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-
-          <Select value={selectedProfessional} onValueChange={setSelectedProfessional}>
-            <SelectTrigger className="w-full sm:w-64">
-              <SelectValue placeholder="Filtrar por profissional" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os profissionais</SelectItem>
-              {teamMembers.map((member) => (
-                <SelectItem key={member.id} value={member.id}>
-                  {member.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+          <Input 
+            placeholder="Buscar por nome, descrição ou categoria" 
+            className="pl-10 border-2 border-gray-200 shadow-sm bg-white"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
 
         <div className="flex flex-wrap gap-2">
@@ -429,7 +397,7 @@ const Services = () => {
 
               {filteredServices.length === 0 && !loading && (
                 <div className="text-center py-12 text-gray-500 bg-white rounded-lg shadow-md border-2 border-gray-100">
-                  {searchTerm || selectedProfessional !== 'all' || selectedCategory !== 'all' ? 'Nenhum serviço ou produto encontrado para os filtros aplicados' : 'Nenhum serviço ou produto cadastrado'}
+                  {searchTerm || selectedCategory !== 'all' ? 'Nenhum serviço ou produto encontrado para os filtros aplicados' : 'Nenhum serviço ou produto cadastrado'}
                 </div>
               )}
             </div>
