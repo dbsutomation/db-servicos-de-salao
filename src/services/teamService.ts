@@ -48,7 +48,7 @@ export const updateTeamMember = async (memberId: string, data: any): Promise<boo
     console.log("Dados para atualização:", data);
     
     const updateData = {
-      name: data.name,
+      name: toTitleCase(data.name),
       email: data.email,
       phone: data.phone || null,
       profession: data.profession || null,
