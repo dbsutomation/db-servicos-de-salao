@@ -369,7 +369,7 @@ const Services = () => {
         <div className="flex flex-wrap gap-2">
           {[
             { value: 'all', label: 'Todos' },
-            ...serviceCategories,
+            ...serviceCategories.filter(c => !restrictByUser || userCategories.includes(c.value)),
           ].map((cat) => (
             <Button
               key={cat.value}
