@@ -64,7 +64,7 @@ const Services = () => {
         // Fetch services
         const { data: servicesData, error: servicesError } = await supabase
           .from('services')
-          .select('*');
+          .select('id, name, price, commission, category, type, duration, description');
         
         if (servicesError) throw servicesError;
         
@@ -137,7 +137,7 @@ const Services = () => {
 
   const visibleServices = filteredServices.slice(0, visibleCount);
 
-  const handleEditService = (service: Service) => {
+  const handleEditService = async (service: Service) => {
     if (!currentUser?.isManager) {
       toast({
         title: "Acesso negado",
@@ -146,32 +146,74 @@ const Services = () => {
       });
       return;
     }
-    
+
+    // Lazy-load image only when entering edit mode
+    let serviceImage = '/placeholder.svg';
+    try {
+      const { data: imgData } = await supabase
+        .from('services')
+        .select('image')
+        .eq('id', service.id)
+        .maybeSingle();
+      if (imgData?.image) serviceImage = imgData.image;
+    } catch (e) {
+      // ignore, fallback to placeholder
+    }
+
     setEditingService(service);
     form.reset({
       name: service.name,
       description: service.description || '',
       price: service.price.toString(),
       commission: service.commission.toString(),
-      image: service.image || '/placeholder.svg',
+      image: serviceImage,
       category: service.category || 'cabelo',
       type: service.type || 'servico',
       duration: (service.duration || 60).toString()
     });
-    setImagePreview(service.image || '/placeholder.svg');
+    setImagePreview(serviceImage);
     setOpen(true);
   };
 
-  const handleImageUpload = (event: ChangeEvent<HTMLInputElement>) => {
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  const handleImageUpload = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result as string;
-        setImagePreview(result);
-        form.setValue('image', result);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    // Show local preview immediately
+    const localPreview = URL.createObjectURL(file);
+    setImagePreview(localPreview);
+    setUploadingImage(true);
+
+    try {
+      const ext = file.name.split('.').pop() || 'jpg';
+      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from('service-images')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false,
+          contentType: file.type,
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: publicUrlData } = supabase.storage
+        .from('service-images')
+        .getPublicUrl(fileName);
+
+      const publicUrl = publicUrlData.publicUrl;
+      setImagePreview(publicUrl);
+      form.setValue('image', publicUrl);
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao enviar imagem',
+        description: error.message || 'Não foi possível enviar a imagem. Verifique se o bucket service-images existe.',
+        variant: 'destructive',
+      });
+    } finally {
+      setUploadingImage(false);
     }
   };
 
@@ -556,10 +598,11 @@ const Services = () => {
                           type="button" 
                           variant="outline" 
                           onClick={handleCameraCapture}
+                          disabled={uploadingImage}
                           className="flex gap-2 items-center"
                         >
                           <Camera size={18} />
-                          Imagem
+                          {uploadingImage ? 'Enviando...' : 'Imagem'}
                         </Button>
                       </div>
                       <input type="hidden" {...field} />
