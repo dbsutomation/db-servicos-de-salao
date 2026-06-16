@@ -19,11 +19,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { fetchTeamMembers } from '@/services/teamService';
 
 const serviceCategories = [
-  { value: 'cabelo', label: 'Cabelo' },
-  { value: 'depilacao', label: 'Depilação' },
-  { value: 'podologia', label: 'Podologia' },
-  { value: 'sobrancelhas', label: 'Sobrancelhas' },
-  { value: 'unhas', label: 'Unhas' }
+  { value: 'Cabelo', label: 'Cabelo' },
+  { value: 'Depilação', label: 'Depilação' },
+  { value: 'Podologia', label: 'Podologia' },
+  { value: 'Sobrancelhas', label: 'Sobrancelhas' },
+  { value: 'Unhas', label: 'Unhas' }
 ];
 
 const Services = () => {
@@ -50,7 +50,7 @@ const Services = () => {
       price: '',
       commission: '100',
       image: '/placeholder.svg',
-      category: 'cabelo',
+      category: 'Cabelo',
       type: 'servico',
       duration: '60'
     }
@@ -167,7 +167,7 @@ const Services = () => {
       price: service.price.toString(),
       commission: service.commission.toString(),
       image: serviceImage,
-      category: service.category || 'cabelo',
+      category: service.category || 'Cabelo',
       type: service.type || 'servico',
       duration: (service.duration || 60).toString()
     });
@@ -236,7 +236,7 @@ const Services = () => {
       price: '',
       commission: '100',
       image: '/placeholder.svg',
-      category: 'cabelo',
+      category: 'Cabelo',
       type: 'servico',
       duration: '60'
     });
@@ -446,7 +446,7 @@ const Services = () => {
         if (!isOpen) resetForm();
         setOpen(isOpen);
       }}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingService ? 'Editar Item' : 'Adicionar Novo Item'}</DialogTitle>
             <DialogDescription>

@@ -12,19 +12,19 @@ interface ServiceListItemProps {
 }
 
 const categoryColors: Record<string, string> = {
-  cabelo: 'bg-purple-100 text-purple-800 hover:bg-purple-100',
-  depilacao: 'bg-pink-100 text-pink-800 hover:bg-pink-100',
-  podologia: 'bg-blue-100 text-blue-800 hover:bg-blue-100',
-  sobrancelhas: 'bg-amber-100 text-amber-800 hover:bg-amber-100',
-  unhas: 'bg-rose-100 text-rose-800 hover:bg-rose-100',
+  Cabelo: 'bg-purple-100 text-purple-800 hover:bg-purple-100',
+  'Depilação': 'bg-pink-100 text-pink-800 hover:bg-pink-100',
+  Podologia: 'bg-blue-100 text-blue-800 hover:bg-blue-100',
+  Sobrancelhas: 'bg-amber-100 text-amber-800 hover:bg-amber-100',
+  Unhas: 'bg-rose-100 text-rose-800 hover:bg-rose-100',
 };
 
 const categoryLabels: Record<string, string> = {
-  cabelo: 'Cabelo',
-  depilacao: 'Depilação',
-  podologia: 'Podologia',
-  sobrancelhas: 'Sobrancelhas',
-  unhas: 'Unhas',
+  Cabelo: 'Cabelo',
+  'Depilação': 'Depilação',
+  Podologia: 'Podologia',
+  Sobrancelhas: 'Sobrancelhas',
+  Unhas: 'Unhas',
 };
 
 const ServiceListItem = ({ service, canEdit, onEdit }: ServiceListItemProps) => {

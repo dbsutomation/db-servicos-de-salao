@@ -15,11 +15,11 @@ interface TeamListProps {
 }
 
 const serviceCategories = [
-  { value: 'cabelo', label: 'Cabelo' },
-  { value: 'depilacao', label: 'Depilação' },
-  { value: 'podologia', label: 'Podologia' },
-  { value: 'sobrancelhas', label: 'Sobrancelhas' },
-  { value: 'unhas', label: 'Unhas' }
+  { value: 'Cabelo', label: 'Cabelo' },
+  { value: 'Depilação', label: 'Depilação' },
+  { value: 'Podologia', label: 'Podologia' },
+  { value: 'Sobrancelhas', label: 'Sobrancelhas' },
+  { value: 'Unhas', label: 'Unhas' }
 ];
 
 const TeamList = ({ teamMembersList, onEdit, onDelete, loading }: TeamListProps) => {
