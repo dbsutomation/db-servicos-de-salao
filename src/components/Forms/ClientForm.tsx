@@ -69,7 +69,8 @@ const ClientForm = ({ onSuccess, clientId }: ClientFormProps) => {
   }, [clientId, form, toast]);
 
   const onSubmit = (data: ClientFormValues) => {
-    onSuccess(data);
+    const normalized = { ...data, name: toTitleCase(data.name) };
+    onSuccess(normalized);
     form.reset();
   };
 
