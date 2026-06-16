@@ -29,9 +29,8 @@ const Services = () => {
   const { currentUser } = useAuth();
   const [open, setOpen] = useState(false);
   const [servicesList, setServicesList] = useState<Service[]>([]);
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
-  const [selectedProfessional, setSelectedProfessional] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [editingService, setEditingService] = useState<Service | null>(null);
