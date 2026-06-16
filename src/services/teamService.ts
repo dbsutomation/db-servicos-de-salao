@@ -2,6 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { TeamMember } from '@/types';
 import { toast } from '@/hooks/use-toast';
+import { toTitleCase } from '@/lib/formatters';
 
 export const fetchTeamMembers = async (): Promise<TeamMember[]> => {
   try {
@@ -47,7 +48,7 @@ export const updateTeamMember = async (memberId: string, data: any): Promise<boo
     console.log("Dados para atualização:", data);
     
     const updateData = {
-      name: data.name,
+      name: toTitleCase(data.name),
       email: data.email,
       phone: data.phone || null,
       profession: data.profession || null,
@@ -105,7 +106,7 @@ export const createTeamMember = async (data: any): Promise<boolean> => {
     
     const insertData = {
       id: id,
-      name: data.name,
+      name: toTitleCase(data.name),
       email: data.email,
       phone: data.phone || null,
       profession: data.profession || null,

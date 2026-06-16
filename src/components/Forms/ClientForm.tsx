@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { toTitleCase } from '@/lib/formatters';
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -69,7 +70,8 @@ const ClientForm = ({ onSuccess, clientId }: ClientFormProps) => {
   }, [clientId, form, toast]);
 
   const onSubmit = (data: ClientFormValues) => {
-    onSuccess(data);
+    const normalized = { ...data, name: toTitleCase(data.name) };
+    onSuccess(normalized);
     form.reset();
   };
 
