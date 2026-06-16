@@ -238,12 +238,12 @@ const Services = () => {
   const onSubmit = async (data: any) => {
     try {
       const serviceData = {
-        name: data.name,
-        description: data.description,
+        name: toTitleCase(data.name),
+        description: toTitleCase(data.description || ''),
         price: parseFloat(data.price),
         commission: parseFloat(data.commission),
         image: data.image || '/placeholder.svg',
-        category: data.category,
+        category: toTitleCase(data.category),
         type: data.type,
         duration: parseInt(data.duration) || 60
       };
