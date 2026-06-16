@@ -10,13 +10,12 @@ import { Input } from '@/components/ui/input';
 import { useForm } from 'react-hook-form';
 import { Plus, Pencil, Camera, Search } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { Service, TeamMember } from '@/types';
+import { Service } from '@/types';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, AlertDialogTitle, AlertDialogDescription, AlertDialogAction, AlertDialogCancel } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
-import { fetchTeamMembers } from '@/services/teamService';
 
 const serviceCategories = [
   { value: 'Cabelo', label: 'Cabelo' },
