@@ -88,7 +88,10 @@ const Services = () => {
     loadData();
   }, []);
 
-  // Filter services based on search term and category
+  // Filter services based on search term, category, and user's allowed categories
+  const userCategories = currentUser?.categories || [];
+  const restrictByUser = !!currentUser && !currentUser.isManager && userCategories.length > 0;
+
   const filteredServices = servicesList.filter(service => {
     const matchesSearch = service.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
       (service.description && service.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -96,7 +99,9 @@ const Services = () => {
 
     const matchesCategory = selectedCategory === 'all' || service.category === selectedCategory;
 
-    return matchesSearch && matchesCategory;
+    const matchesUserCategory = !restrictByUser || (service.category && userCategories.includes(service.category));
+
+    return matchesSearch && matchesCategory && matchesUserCategory;
   });
 
   // Reset pagination when filters change
@@ -364,7 +369,7 @@ const Services = () => {
         <div className="flex flex-wrap gap-2">
           {[
             { value: 'all', label: 'Todos' },
-            ...serviceCategories,
+            ...serviceCategories.filter(c => !restrictByUser || userCategories.includes(c.value)),
           ].map((cat) => (
             <Button
               key={cat.value}
