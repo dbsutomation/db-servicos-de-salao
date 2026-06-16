@@ -2,6 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { TeamMember } from '@/types';
 import { toast } from '@/hooks/use-toast';
+import { toTitleCase } from '@/lib/formatters';
 
 export const fetchTeamMembers = async (): Promise<TeamMember[]> => {
   try {
