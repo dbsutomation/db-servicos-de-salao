@@ -10,13 +10,27 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { toTitleCase } from '@/lib/formatters';
 
-const formSchema = z.object({
-  name: z.string().min(2, {
-    message: 'Nome deve ter pelo menos 2 caracteres'
-  }),
-  phone: z.string().optional(),
-  email: z.string().email({ message: 'Email inválido' }).optional().or(z.literal(''))
+const phoneRegex = /^\(?\d{2}\)?[\s-]?\d{4,5}-?\d{4}$/;
+
+const baseSchema = z.object({
+  name: z.string().min(2, { message: 'Nome deve ter pelo menos 2 caracteres' }),
 });
+
+const newClientSchema = baseSchema.extend({
+  phone: z.string().min(1, { message: 'Telefone é obrigatório' }).regex(phoneRegex, { message: 'Telefone inválido. Use (DD) NNNNN-NNNN' }),
+  email: z.string().min(1, { message: 'Email é obrigatório' }).email({ message: 'Email inválido' }),
+});
+
+const editClientSchema = baseSchema.extend({
+  phone: z.string().optional().refine((v) => !v || phoneRegex.test(v), { message: 'Telefone inválido. Use (DD) NNNNN-NNNN' }),
+  email: z.string().optional().or(z.literal('')).refine((v) => !v || z.string().email().safeParse(v).success, { message: 'Email inválido' }),
+});
+
+type ClientFormValues = {
+  name: string;
+  phone?: string;
+  email?: string;
+};
 
 type ClientFormValues = z.infer<typeof formSchema>;
 
