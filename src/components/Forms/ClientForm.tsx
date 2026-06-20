@@ -32,8 +32,6 @@ type ClientFormValues = {
   email?: string;
 };
 
-type ClientFormValues = z.infer<typeof formSchema>;
-
 interface ClientFormProps {
   onSuccess: (data: ClientFormValues) => void;
   clientId?: string | null;
@@ -41,8 +39,9 @@ interface ClientFormProps {
 
 const ClientForm = ({ onSuccess, clientId }: ClientFormProps) => {
   const { toast } = useToast();
+  const isEditing = !!clientId;
   const form = useForm<ClientFormValues>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(isEditing ? editClientSchema : newClientSchema),
     defaultValues: {
       name: '',
       phone: '',
