@@ -8,9 +8,10 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { toTitleCase } from '@/lib/formatters';
+import { toTitleCase, formatPhoneMask, normalizePhone } from '@/lib/formatters';
 
-const phoneRegex = /^\(?\d{2}\)?[\s-]?\d{4,5}-?\d{4}$/;
+// Validates the masked phone like "(DD) NNNNN-NNNN" (10 or 11 digits total)
+const phoneRegex = /^\(\d{2}\)\s\d{4,5}-\d{4}$/;
 
 const baseSchema = z.object({
   name: z.string().min(2, { message: 'Nome deve ter pelo menos 2 caracteres' }),
@@ -65,7 +66,7 @@ const ClientForm = ({ onSuccess, clientId }: ClientFormProps) => {
           if (data) {
             form.reset({
               name: data.name,
-              phone: data.phone || '',
+              phone: formatPhoneMask(data.phone || ''),
               email: data.email || ''
             });
           }
@@ -83,7 +84,11 @@ const ClientForm = ({ onSuccess, clientId }: ClientFormProps) => {
   }, [clientId, form, toast]);
 
   const onSubmit = (data: ClientFormValues) => {
-    const normalized = { ...data, name: toTitleCase(data.name) };
+    const normalized = {
+      ...data,
+      name: toTitleCase(data.name),
+      phone: data.phone ? normalizePhone(data.phone) : data.phone,
+    };
     onSuccess(normalized);
     form.reset();
   };
@@ -112,7 +117,16 @@ const ClientForm = ({ onSuccess, clientId }: ClientFormProps) => {
             <FormItem>
               <FormLabel>Telefone</FormLabel>
               <FormControl>
-                <Input placeholder="(00) 00000-0000" {...field} />
+                <Input
+                  placeholder="(00) 00000-0000"
+                  inputMode="numeric"
+                  maxLength={16}
+                  value={field.value || ''}
+                  onChange={(e) => field.onChange(formatPhoneMask(e.target.value))}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                  ref={field.ref}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
