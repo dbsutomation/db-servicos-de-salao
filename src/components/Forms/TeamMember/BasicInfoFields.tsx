@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { PROFESSIONS } from './validationSchema';
 import { UseFormReturn } from 'react-hook-form';
 import { TeamMemberFormValues } from './validationSchema';
+import { formatPhoneMask } from '@/lib/formatters';
 
 interface BasicInfoFieldsProps {
   form: UseFormReturn<TeamMemberFormValues>;
@@ -63,7 +64,16 @@ const BasicInfoFields = ({ form }: BasicInfoFieldsProps) => {
           <FormItem>
             <FormLabel>Telefone</FormLabel>
             <FormControl>
-              <Input placeholder="(00) 00000-0000" {...field} />
+              <Input
+                placeholder="(00) 00000-0000"
+                inputMode="numeric"
+                maxLength={16}
+                value={field.value || ''}
+                onChange={(e) => field.onChange(formatPhoneMask(e.target.value))}
+                onBlur={field.onBlur}
+                name={field.name}
+                ref={field.ref}
+              />
             </FormControl>
             <FormMessage />
           </FormItem>

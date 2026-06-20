@@ -2,7 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { TeamMember } from '@/types';
 import { toast } from '@/hooks/use-toast';
-import { toTitleCase } from '@/lib/formatters';
+import { toTitleCase, normalizePhone } from '@/lib/formatters';
 
 export const fetchTeamMembers = async (): Promise<TeamMember[]> => {
   try {
@@ -50,7 +50,7 @@ export const updateTeamMember = async (memberId: string, data: any): Promise<boo
     const updateData = {
       name: toTitleCase(data.name),
       email: data.email,
-      phone: data.phone || null,
+      phone: data.phone ? normalizePhone(data.phone) : null,
       profession: data.profession || null,
       has_access: data.hasAccess,
       is_manager: data.isManager,
@@ -108,7 +108,7 @@ export const createTeamMember = async (data: any): Promise<boolean> => {
       id: id,
       name: toTitleCase(data.name),
       email: data.email,
-      phone: data.phone || null,
+      phone: data.phone ? normalizePhone(data.phone) : null,
       profession: data.profession || null,
       has_access: data.hasAccess,
       is_manager: data.isManager,

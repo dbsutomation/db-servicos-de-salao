@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { supabase } from '@/integrations/supabase/client';
 import { teamMemberFormSchema, TeamMemberFormValues } from './validationSchema';
 import { toast } from '@/hooks/use-toast';
+import { formatPhoneMask } from '@/lib/formatters';
 
 interface UseTeamMemberFormProps {
   teamMemberId?: string | null;
@@ -59,7 +60,7 @@ const useTeamMemberForm = ({ teamMemberId, onSuccess }: UseTeamMemberFormProps) 
             form.reset({
               name: data.name || '',
               profession: data.profession || '',
-              phone: data.phone || '',
+              phone: formatPhoneMask(data.phone || ''),
               email: data.email || '',
               password: '',
               hasAccess: data.has_access,

@@ -16,7 +16,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
-import { toTitleCase } from '@/lib/formatters';
+import { toTitleCase, formatCurrencyMask, parseCurrency, clampCommission } from '@/lib/formatters';
 
 const serviceCategories = [
   { value: 'Cabelo', label: 'Cabelo' },
@@ -154,7 +154,7 @@ const Services = () => {
     form.reset({
       name: service.name,
       description: service.description || '',
-      price: service.price.toString(),
+      price: formatCurrencyMask(String(Math.round((service.price || 0) * 100))),
       commission: service.commission.toString(),
       image: serviceImage,
       category: service.category || 'Cabelo',
@@ -240,8 +240,8 @@ const Services = () => {
       const serviceData = {
         name: toTitleCase(data.name),
         description: toTitleCase(data.description || ''),
-        price: parseFloat(data.price),
-        commission: parseFloat(data.commission),
+        price: parseCurrency(data.price),
+        commission: Math.max(0, Math.min(100, parseInt(String(data.commission).replace(/\D/g, '') || '0', 10))),
         image: data.image || '/placeholder.svg',
         category: toTitleCase(data.category),
         type: data.type,
@@ -527,9 +527,17 @@ const Services = () => {
                 name="price"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Preço (R$)</FormLabel>
+                    <FormLabel>Preço</FormLabel>
                     <FormControl>
-                      <Input type="number" step="0.01" min="0" placeholder="0.00" {...field} />
+                      <Input
+                        inputMode="numeric"
+                        placeholder="R$ 0,00"
+                        value={field.value || ''}
+                        onChange={(e) => field.onChange(formatCurrencyMask(e.target.value))}
+                        onBlur={field.onBlur}
+                        name={field.name}
+                        ref={field.ref}
+                      />
                     </FormControl>
                   </FormItem>
                 )}
@@ -544,11 +552,27 @@ const Services = () => {
                   <FormItem>
                     <FormLabel>Comissão (%)</FormLabel>
                     <FormControl>
-                      <Input type="number" step="1" min="0" max="100" placeholder="100" {...field} />
+                      <div className="relative">
+                        <Input
+                          type="number"
+                          step="1"
+                          min="0"
+                          max="100"
+                          placeholder="100"
+                          value={field.value ?? ''}
+                          onChange={(e) => field.onChange(clampCommission(e.target.value))}
+                          onBlur={(e) => field.onChange(clampCommission(e.target.value))}
+                          name={field.name}
+                          ref={field.ref}
+                          className="pr-8"
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">%</span>
+                      </div>
                     </FormControl>
                   </FormItem>
                 )}
               />
+
 
               <FormField
                 control={form.control}
