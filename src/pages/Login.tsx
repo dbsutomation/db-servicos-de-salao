@@ -133,27 +133,10 @@ const Login = () => {
         return;
       }
       
-      // Se a autenticação for bem-sucedida, o trigger no Supabase deve criar o usuário na tabela users
-      // ou podemos inserir manualmente aqui para garantir
-      if (authData.user) {
-        console.log('Usuário autenticado criado, ID:', authData.user.id);
-        const { error: usersError } = await supabase
-          .from('users')
-          .insert({
-            id: authData.user.id,
-            name: name || email.split('@')[0],
-            email: email,
-            has_access: true,
-            is_manager: false
-          });
-          
-        if (usersError) {
-          console.error("Erro ao inserir na tabela users:", usersError);
-          // Podemos continuar mesmo com esse erro, já que o usuário foi criado na autenticação
-        } else {
-          console.log('Usuário inserido na tabela users com sucesso');
-        }
-      }
+      // No multi-tenant: o trigger handle_new_user é responsável por criar
+      // o registro em public.users com base no metadata do signUp. Sem metadata
+      // de salão, nada é criado aqui — o usuário precisa ser convidado ou
+      // se cadastrar via /cadastro-cliente/:salonId.
       
       toast({
         title: "Cadastro realizado",
