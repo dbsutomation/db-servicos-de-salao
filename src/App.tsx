@@ -14,6 +14,8 @@ import Team from "./pages/Team";
 import Cart from "./pages/Cart";
 import Expenses from "./pages/Expenses";
 import Login from "./pages/Login";
+import CustomerSignup from "./pages/CustomerSignup";
+import CustomerLogin from "./pages/CustomerLogin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +44,10 @@ const AppRoutes = () => {
       <Route path="/login" element={
         isAuthenticated ? <Navigate to="/" /> : <Login />
       } />
+
+      {/* Rotas públicas de cliente (não passam pela auth interna) */}
+      <Route path="/cadastro-cliente/:salonId" element={<CustomerSignup />} />
+      <Route path="/login-cliente" element={<CustomerLogin />} />
       
       <Route path="/" element={
         <CartProvider>

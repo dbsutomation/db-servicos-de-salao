@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { TeamMember } from '@/types';
 import { toast } from '@/hooks/use-toast';
 import { toTitleCase, normalizePhone } from '@/lib/formatters';
+import { getCurrentSalonId } from '@/lib/salon';
 
 export const fetchTeamMembers = async (): Promise<TeamMember[]> => {
   try {
@@ -104,6 +105,7 @@ export const createTeamMember = async (data: any): Promise<boolean> => {
     
     const id = crypto.randomUUID();
     
+    const salonId = await getCurrentSalonId();
     const insertData = {
       id: id,
       name: toTitleCase(data.name),
@@ -112,13 +114,15 @@ export const createTeamMember = async (data: any): Promise<boolean> => {
       profession: data.profession || null,
       has_access: data.hasAccess,
       is_manager: data.isManager,
-      categories: data.categories || []
+      categories: data.categories || [],
+      salon_id: salonId,
     };
     
     const { data: newMember, error } = await supabase
       .from('users')
-      .insert(insertData)
+      .insert(insertData as any)
       .select();
+      
       
     if (error) {
       console.error("Erro na operação de inserção:", error);

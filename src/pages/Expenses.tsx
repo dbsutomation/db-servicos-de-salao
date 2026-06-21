@@ -15,6 +15,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
+import { getCurrentSalonId } from '@/lib/salon';
 import { Expense } from '@/types';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -105,7 +106,8 @@ const Expenses = () => {
         if (error) throw error;
         toast({ title: 'Despesa atualizada' });
       } else {
-        const { error } = await supabase.from('expenses').insert(payload);
+        const salonId = await getCurrentSalonId();
+        const { error } = await supabase.from('expenses').insert({ ...payload, salon_id: salonId } as any);
         if (error) throw error;
         toast({ title: 'Despesa adicionada' });
       }

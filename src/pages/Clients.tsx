@@ -13,6 +13,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Client } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
+import { getCurrentSalonId } from '@/lib/salon';
 
 const Clients = () => {
   const { currentUser } = useAuth();
@@ -85,14 +86,17 @@ const Clients = () => {
         });
       } else {
         // Add new client to Supabase
+        const salonId = await getCurrentSalonId();
         const { data, error } = await supabase
           .from('clients')
           .insert({
             name: updatedClient.name,
             phone: updatedClient.phone,
-            email: updatedClient.email
-          })
+            email: updatedClient.email,
+            salon_id: salonId,
+          } as any)
           .select();
+          
           
         if (error) throw error;
         

@@ -21,6 +21,7 @@ export type Database = {
           id: string
           name: string
           phone: string | null
+          salon_id: string
           updated_at: string
         }
         Insert: {
@@ -29,6 +30,7 @@ export type Database = {
           id?: string
           name: string
           phone?: string | null
+          salon_id: string
           updated_at?: string
         }
         Update: {
@@ -37,9 +39,66 @@ export type Database = {
           id?: string
           name?: string
           phone?: string | null
+          salon_id?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "clients_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customers: {
+        Row: {
+          client_id: string | null
+          created_at: string
+          email: string
+          id: string
+          name: string
+          phone: string
+          salon_id: string
+          updated_at: string
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string
+          email: string
+          id: string
+          name: string
+          phone: string
+          salon_id: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          phone?: string
+          salon_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customers_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customers_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       expenses: {
         Row: {
@@ -50,6 +109,7 @@ export type Database = {
           id: string
           is_fixed: boolean
           name: string
+          salon_id: string
           updated_at: string
         }
         Insert: {
@@ -60,6 +120,7 @@ export type Database = {
           id?: string
           is_fixed?: boolean
           name: string
+          salon_id: string
           updated_at?: string
         }
         Update: {
@@ -70,9 +131,59 @@ export type Database = {
           id?: string
           is_fixed?: boolean
           name?: string
+          salon_id?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "expenses_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      salons: {
+        Row: {
+          address: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          owner_id: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          owner_id: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          owner_id?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "salons_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       service_records: {
         Row: {
@@ -83,6 +194,7 @@ export type Database = {
           id: string
           payment_method: string | null
           professional_id: string
+          salon_id: string
           service_id: string
           service_value: number
           tip_amount: number | null
@@ -96,6 +208,7 @@ export type Database = {
           id?: string
           payment_method?: string | null
           professional_id: string
+          salon_id: string
           service_id: string
           service_value: number
           tip_amount?: number | null
@@ -109,6 +222,7 @@ export type Database = {
           id?: string
           payment_method?: string | null
           professional_id?: string
+          salon_id?: string
           service_id?: string
           service_value?: number
           tip_amount?: number | null
@@ -127,6 +241,13 @@ export type Database = {
             columns: ["professional_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_records_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
             referencedColumns: ["id"]
           },
           {
@@ -149,6 +270,7 @@ export type Database = {
           image: string | null
           name: string
           price: number
+          salon_id: string
           type: string | null
           updated_at: string
         }
@@ -162,6 +284,7 @@ export type Database = {
           image?: string | null
           name: string
           price: number
+          salon_id: string
           type?: string | null
           updated_at?: string
         }
@@ -175,10 +298,19 @@ export type Database = {
           image?: string | null
           name?: string
           price?: number
+          salon_id?: string
           type?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "services_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -216,6 +348,7 @@ export type Database = {
           name: string
           phone: string | null
           profession: string | null
+          salon_id: string
           updated_at: string
           user_type: string | null
         }
@@ -230,6 +363,7 @@ export type Database = {
           name: string
           phone?: string | null
           profession?: string | null
+          salon_id: string
           updated_at?: string
           user_type?: string | null
         }
@@ -244,10 +378,19 @@ export type Database = {
           name?: string
           phone?: string | null
           profession?: string | null
+          salon_id?: string
           updated_at?: string
           user_type?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "users_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -258,6 +401,7 @@ export type Database = {
       get_brasilia_date: { Args: never; Returns: string }
       get_brasilia_now: { Args: never; Returns: string }
       get_brasilia_time: { Args: never; Returns: string }
+      get_user_salon_id: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
