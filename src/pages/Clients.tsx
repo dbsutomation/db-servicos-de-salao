@@ -13,6 +13,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Client } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
+import { getCurrentSalonId } from '@/lib/salon';
 
 const Clients = () => {
   const { currentUser } = useAuth();

@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { TeamMember } from '@/types';
 import { toast } from '@/hooks/use-toast';
 import { toTitleCase, normalizePhone } from '@/lib/formatters';
+import { getCurrentSalonId } from '@/lib/salon';
 
 export const fetchTeamMembers = async (): Promise<TeamMember[]> => {
   try {
