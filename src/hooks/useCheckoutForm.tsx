@@ -466,6 +466,7 @@ export function useCheckoutForm() {
 
       // Process each cart item
       console.log('Processando itens do carrinho...');
+      const salonId = await getCurrentSalonId();
       for (const item of cartItems) {
         const recordData = {
           client_id: client.id,
@@ -474,15 +475,17 @@ export function useCheckoutForm() {
           payment_method: paymentMethodString,
           commission_amount: item.service.price * (item.service.commission / 100),
           service_value: item.service.price * item.quantity,
-          tip_amount: item.tipAmount || 0
+          tip_amount: item.tipAmount || 0,
+          salon_id: salonId,
         };
         
         console.log('Inserindo registro:', recordData);
         
         const { data, error } = await supabase
           .from('service_records')
-          .insert(recordData)
+          .insert(recordData as any)
           .select();
+
 
         if (error) {
           console.error('Erro ao inserir registro:', error);

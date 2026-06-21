@@ -105,7 +105,8 @@ const Expenses = () => {
         if (error) throw error;
         toast({ title: 'Despesa atualizada' });
       } else {
-        const { error } = await supabase.from('expenses').insert(payload);
+        const salonId = await getCurrentSalonId();
+        const { error } = await supabase.from('expenses').insert({ ...payload, salon_id: salonId } as any);
         if (error) throw error;
         toast({ title: 'Despesa adicionada' });
       }

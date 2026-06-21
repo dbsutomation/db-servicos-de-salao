@@ -269,10 +269,12 @@ const Services = () => {
           description: `${data.name} foi atualizado com sucesso.`
         });
       } else {
+        const salonId = await getCurrentSalonId();
         const { data: newService, error } = await supabase
           .from('services')
-          .insert(serviceData)
+          .insert({ ...serviceData, salon_id: salonId } as any)
           .select();
+          
           
         if (error) throw error;
         

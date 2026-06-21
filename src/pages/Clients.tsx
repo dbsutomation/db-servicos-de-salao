@@ -85,14 +85,17 @@ const Clients = () => {
         });
       } else {
         // Add new client to Supabase
+        const salonId = await getCurrentSalonId();
         const { data, error } = await supabase
           .from('clients')
           .insert({
             name: updatedClient.name,
             phone: updatedClient.phone,
-            email: updatedClient.email
-          })
+            email: updatedClient.email,
+            salon_id: salonId,
+          } as any)
           .select();
+          
           
         if (error) throw error;
         
