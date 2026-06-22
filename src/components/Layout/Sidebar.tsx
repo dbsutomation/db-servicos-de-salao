@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { LogOut, ShoppingCart } from 'lucide-react';
+import { LogOut, ShoppingCart, UserPlus } from 'lucide-react';
 import SidebarLink from './SidebarLink';
 import UserProfile from './UserProfile';
 import { NavItem } from './types';
