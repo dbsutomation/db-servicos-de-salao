@@ -67,6 +67,15 @@ const Sidebar = ({
       <nav className="flex-1 px-2 py-4 space-y-2">
         {renderNavItems()}
         
+        {currentUser?.salonId && (
+          <SidebarLink
+            path={`/cadastro-cliente/${currentUser.salonId}`}
+            label="Cadastro Cliente"
+            icon={<UserPlus size={20} />}
+            onClick={isMobile ? toggleMobileMenu : undefined}
+          />
+        )}
+        
         <Button
           variant="ghost"
           className="flex w-full items-center px-4 py-3 text-sm rounded-md transition-colors text-gray-700 hover:bg-gray-100 justify-start border-2 border-transparent hover:border-gray-200 mt-4"
