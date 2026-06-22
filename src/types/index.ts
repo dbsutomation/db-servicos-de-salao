@@ -32,6 +32,7 @@ export interface TeamMember {
   isManager: boolean;
   avatar?: string;
   categories?: string[]; // Categorias do profissional
+  salonId?: string; // Salão ao qual o usuário pertence
 }
 
 export interface ServiceRecord {
