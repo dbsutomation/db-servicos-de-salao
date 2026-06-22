@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               console.log("Buscando dados adicionais do usuário:", newSession.user.id);
               const { data, error } = await supabase
                 .from('users')
-                .select('*')
+                .select('*, salon_id')
                 .eq('id', newSession.user.id)
                 .single();
                 
