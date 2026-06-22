@@ -79,7 +79,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   hasAccess: data.has_access,
                   isManager: data.is_manager,
                   avatar: data.avatar || '',
-                  categories: (data as any).categories || []
+                  categories: (data as any).categories || [],
+                  salonId: (data as any).salon_id || '',
                 };
                 
                 console.log("Usuário autenticado com sucesso:", teamMember.name);
