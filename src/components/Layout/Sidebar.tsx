@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { LogOut, ShoppingCart } from 'lucide-react';
+import { LogOut, ShoppingCart, UserPlus } from 'lucide-react';
 import SidebarLink from './SidebarLink';
 import UserProfile from './UserProfile';
 import { NavItem } from './types';
@@ -66,6 +66,15 @@ const Sidebar = ({
 
       <nav className="flex-1 px-2 py-4 space-y-2">
         {renderNavItems()}
+        
+        {currentUser?.salonId && (
+          <SidebarLink
+            path={`/cadastro-cliente/${currentUser.salonId}`}
+            label="Cadastro Cliente"
+            icon={<UserPlus size={20} />}
+            onClick={isMobile ? toggleMobileMenu : undefined}
+          />
+        )}
         
         <Button
           variant="ghost"
