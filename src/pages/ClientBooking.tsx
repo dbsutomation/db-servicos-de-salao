@@ -187,6 +187,7 @@ export default function ClientBooking() {
     [services, selectedServiceIds]
   );
   const totalDuration = selectedServices.reduce((acc, s) => acc + (s.duration ?? 0), 0);
+  const totalPrice = selectedServices.reduce((acc, s) => acc + (s.price ?? 0), 0);
 
   const startMinutes = selectedSlot ? timeToMinutes(selectedSlot) : null;
   const endMinutes = startMinutes !== null ? startMinutes + totalDuration : null;
