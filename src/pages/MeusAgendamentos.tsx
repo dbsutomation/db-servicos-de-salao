@@ -74,7 +74,7 @@ export default function MeusAgendamentos() {
       // Buscar nomes dos profissionais
       const profIds = [...new Set(appts.map((a: any) => a.professional_id))];
       const { data: profs } = await supabase
-        .from('professionals')
+        .from('users')
         .select('id, name')
         .in('id', profIds);
 
