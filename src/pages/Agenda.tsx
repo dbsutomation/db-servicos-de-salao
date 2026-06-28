@@ -263,6 +263,41 @@ export default function Agenda() {
     }
   };
 
+  const handleConfirmAndNotify = async (appt: Appt) => {
+    setActing(true);
+    try {
+      const salonId = await getCurrentSalonId();
+      const { error } = await supabase
+        .from('appointments')
+        .update({ status: 'confirmed' })
+        .eq('id', appt.id)
+        .eq('salon_id', salonId);
+      if (error) throw error;
+
+      setAppointments(prev => prev.map(a => a.id === appt.id ? { ...a, status: 'confirmed' } : a));
+
+      const svcList = (appt.services ?? [])
+        .map(s => `${s.service_name} (${s.duration_minutes}min)`)
+        .join(', ');
+      const dateFmt = format(new Date(appt.starts_at), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+      const hourFmt = format(new Date(appt.starts_at), "HH'h'mm");
+      const profName = appt.professional_name || currentUser?.name || '';
+      const msg = `Olá ${appt.client_name}! 😊\n\nSeu agendamento foi confirmado! ✅\n\n✂️ Serviço: ${svcList}\n📆 Data: ${dateFmt}\n🕐 Horário: ${hourFmt}\n👩 Profissional: ${profName}\n\nTe esperamos! 🙏`;
+      const digits = (appt.client_phone ?? '').replace(/\D/g, '');
+      const phone = digits.startsWith('55') ? digits : `55${digits}`;
+      const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+
+      if (digits) window.open(url, '_blank');
+      else toast({ title: 'Cliente sem telefone cadastrado', variant: 'destructive' });
+
+      setSelected(null);
+    } catch (e: any) {
+      toast({ title: 'Erro ao confirmar', description: e.message, variant: 'destructive' });
+    } finally {
+      setActing(false);
+    }
+  };
+
   const handleStart = async () => {
     if (!selected) return;
     setActing(true);
