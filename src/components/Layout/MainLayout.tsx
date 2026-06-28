@@ -74,12 +74,6 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       label: 'Agenda',
       icon: <Calendar size={20} />,
       requiredRoles: ['/agenda']
-    },
-    {
-      path: '/minha-agenda',
-      label: 'Agenda (cliente)',
-      icon: <CalendarDays size={20} />,
-      requiredRoles: ['/minha-agenda']
     }
   ];
 
