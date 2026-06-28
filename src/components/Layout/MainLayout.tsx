@@ -70,6 +70,12 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       requiredRoles: ['/configurar-horarios']
     },
     {
+      path: '/agenda',
+      label: 'Agenda',
+      icon: <Calendar size={20} />,
+      requiredRoles: ['/agenda']
+    },
+    {
       path: '/minha-agenda',
       label: 'Agenda (cliente)',
       icon: <CalendarDays size={20} />,

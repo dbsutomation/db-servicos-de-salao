@@ -18,6 +18,7 @@ import Login from "./pages/Login";
 import CustomerSignup from "./pages/CustomerSignup";
 import CustomerLogin from "./pages/CustomerLogin";
 import ClientBooking from "./pages/ClientBooking";
+import Agenda from "./pages/Agenda";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -108,6 +109,14 @@ const AppRoutes = () => {
         </CartProvider>
       } />
       
+      <Route path="/agenda" element={
+        <CartProvider>
+          <ProtectedRoute requiredRoutes={["/agenda"]}>
+            <Agenda />
+          </ProtectedRoute>
+        </CartProvider>
+      } />
+
       <Route path="/configurar-horarios" element={
         <CartProvider>
           <ProtectedRoute requiredRoutes={["/configurar-horarios"]}>
