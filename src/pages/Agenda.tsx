@@ -467,24 +467,27 @@ export default function Agenda() {
                   <span>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalSelected)}</span>
                 </div>
               </div>
-              <DialogFooter className="flex-col gap-2">
+              <DialogFooter style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {(selected.status === 'scheduled' || selected.status === 'pending') && (
                   <Button
                     className="bg-[#22C55E] hover:bg-[#16A34A] text-white"
+                    style={{ width: '100%' }}
                     onClick={() => handleConfirmAndNotify(selected)}
                     disabled={acting}
                   >
                     ✅ Confirmar e notificar cliente
                   </Button>
                 )}
-                {(selected.status === 'scheduled' || selected.status === 'in_progress') && (
-                  <Button variant="outline" className="text-destructive border-destructive" onClick={() => setCancelConfirmOpen(true)} disabled={acting}>
-                    Cancelar agendamento
-                  </Button>
-                )}
-                {selected.status === 'scheduled' && (
-                  <Button onClick={handleStart} disabled={acting}>Iniciar atendimento</Button>
-                )}
+                <div style={{ display: 'flex', gap: 8, width: '100%' }}>
+                  {(selected.status === 'scheduled' || selected.status === 'in_progress') && (
+                    <Button variant="outline" className="text-destructive border-destructive" style={{ flex: 1 }} onClick={() => setCancelConfirmOpen(true)} disabled={acting}>
+                      Cancelar agendamento
+                    </Button>
+                  )}
+                  {selected.status === 'scheduled' && (
+                    <Button onClick={handleStart} disabled={acting} style={{ flex: 1 }}>Iniciar atendimento</Button>
+                  )}
+                </div>
               </DialogFooter>
             </>
           )}
