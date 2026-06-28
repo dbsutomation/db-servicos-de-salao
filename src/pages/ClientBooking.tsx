@@ -43,6 +43,7 @@ export default function ClientBooking() {
 
   const [salonId, setSalonId] = useState<string | null>(null);
   const [clientId, setClientId] = useState<string | null>(null);
+  const [customerName, setCustomerName] = useState<string | null>(null);
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [services, setServices] = useState<Service[]>([]);
@@ -66,7 +67,7 @@ export default function ClientBooking() {
 
         const { data: customer } = await supabase
           .from('customers')
-          .select('salon_id, client_id')
+          .select('salon_id, client_id, name')
           .eq('id', user.id)
           .maybeSingle();
 
@@ -78,6 +79,7 @@ export default function ClientBooking() {
         }
         setSalonId(sId);
         setClientId(cId);
+        setCustomerName((customer as any)?.name ?? null);
 
         const { data: scheds } = await supabase
           .from('professional_schedules')
@@ -239,12 +241,19 @@ export default function ClientBooking() {
       // WhatsApp
       const phone = (selectedProf.phone ?? '').replace(/\D/g, '');
       if (phone) {
-        const msg =
-          `Olá ${selectedProf.name}! Novo agendamento:\n` +
-          `Data: ${format(starts, "dd/MM/yyyy", { locale: ptBR })}\n` +
-          `Horário: ${format(starts, 'HH:mm')} - ${format(ends, 'HH:mm')}\n` +
-          `Serviços: ${selectedServices.map(s => s.name).join(', ')}`;
-        const url = `https://wa.me/55${phone}?text=${encodeURIComponent(msg)}`;
+        const fullPhone = phone.startsWith('55') ? phone : `55${phone}`;
+        const dateFmt = format(starts, "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+        const horaInicio = format(starts, "HH'h'mm");
+        const svcNomes = selectedServices.map(s => s.name).join(', ');
+        const msg = [
+          `Ol\u00e1 ${selectedProf.name}! Novo agendamento recebido:`,
+          ``,
+          `Cliente: ${customerName ?? 'Cliente'}`,
+          `Servi\u00e7o: ${svcNomes}`,
+          `Data: ${dateFmt}`,
+          `Hor\u00e1rio: ${horaInicio}`,
+        ].join('\n');
+        const url = `https://wa.me/${fullPhone}?text=${encodeURIComponent(msg)}`;
         window.open(url, '_blank');
       }
     } catch (e: any) {
