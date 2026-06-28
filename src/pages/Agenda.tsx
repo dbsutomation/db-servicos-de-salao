@@ -75,6 +75,7 @@ export default function Agenda() {
   const [selected, setSelected] = useState<Appt | null>(null);
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
   const [acting, setActing] = useState(false);
+  const [whatsAppAppt, setWhatsAppAppt] = useState<Appt | null>(null);
 
   const weekDays = useMemo(
     () => Array.from({ length: DAY_COLS }, (_, i) => addDays(weekStart, i)),
