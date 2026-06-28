@@ -160,6 +160,27 @@ export default function Agenda() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [weekStart, profFilter, isManager, currentUser?.id]);
 
+  // Realtime: novas/atualizações de agendamentos atualizam a agenda em tempo real
+  useEffect(() => {
+    if (!currentUser?.id) return;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    (async () => {
+      try {
+        const salonId = await getCurrentSalonId();
+        channel = supabase
+          .channel(`agenda-${currentUser.id}`)
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'appointments', filter: `salon_id=eq.${salonId}` },
+            () => { fetchAppointments(); }
+          )
+          .subscribe();
+      } catch { /* ignore */ }
+    })();
+    return () => { if (channel) supabase.removeChannel(channel); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser?.id, weekStart, profFilter, isManager]);
+
   const goPrevWeek = () => setWeekStart(d => addDays(d, -7));
   const goNextWeek = () => setWeekStart(d => addDays(d, 7));
   const goToday = () => setWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }));
