@@ -282,7 +282,13 @@ export default function Agenda() {
       const dateFmt = format(new Date(appt.starts_at), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR });
       const hourFmt = format(new Date(appt.starts_at), "HH'h'mm");
       const profName = appt.professional_name || currentUser?.name || '';
-      const msg = `Olá ${appt.client_name}! 😊\n\nSeu agendamento foi confirmado! ✅\n\n✂️ Serviço: ${svcList}\n📆 Data: ${dateFmt}\n🕐 Horário: ${hourFmt}\n👩 Profissional: ${profName}\n\nTe esperamos! 🙏`;
+      const msg = "Olá " + appt.client_name + "!\n" +
+        "Seu agendamento foi confirmado! \u2705\n\n" +
+        "\u2702\uFE0F Serviço: " + svcList + "\n" +
+        "\uD83D\uDCC6 Data: " + dateFmt + "\n" +
+        "\uD83D\uDD50 Horário: " + hourFmt + "\n" +
+        "\uD83D\uDC69 Profissional: " + profName + "\n\n" +
+        "Te esperamos! \uD83D\uDE4F";
       const digits = (appt.client_phone ?? '').replace(/\D/g, '');
       const phone = digits.startsWith('55') ? digits : `55${digits}`;
       const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
@@ -520,7 +526,13 @@ export default function Agenda() {
             const dateFmt = format(new Date(whatsAppAppt.starts_at), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR });
             const hourFmt = format(new Date(whatsAppAppt.starts_at), "HH'h'mm");
             const profName = whatsAppAppt.professional_name || currentUser?.name || '';
-            const msg = `Olá ${whatsAppAppt.client_name}! 😊\n\nSeu agendamento foi confirmado! ✅\n\n✂️ Serviço: ${svcList}\n📆 Data: ${dateFmt}\n🕐 Horário: ${hourFmt}\n👩 Profissional: ${profName}\n\nTe esperamos! Qualquer dúvida é só chamar aqui. 🙏`;
+            const msg = "Olá " + whatsAppAppt.client_name + "!\n" +
+              "Seu agendamento foi confirmado! \u2705\n\n" +
+              "\u2702\uFE0F Serviço: " + svcList + "\n" +
+              "\uD83D\uDCC6 Data: " + dateFmt + "\n" +
+              "\uD83D\uDD50 Horário: " + hourFmt + "\n" +
+              "\uD83D\uDC69 Profissional: " + profName + "\n\n" +
+              "Te esperamos! Qualquer dúvida é só chamar aqui. \uD83D\uDE4F";
             const digits = (whatsAppAppt.client_phone ?? '').replace(/\D/g, '');
             const phone = digits.startsWith('55') ? digits : `55${digits}`;
             const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
