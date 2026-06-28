@@ -143,12 +143,16 @@ export default function Agenda() {
         svcByAppt.set(s.appointment_id, arr);
       });
 
-      setAppointments(list.map(a => ({
-        ...a,
-        client_name: clientMap.get(a.client_id) ?? 'Cliente',
-        professional_name: profMap.get(a.professional_id) ?? '',
-        services: svcByAppt.get(a.id) ?? [],
-      })));
+      setAppointments(list.map(a => {
+        const c = clientMap.get(a.client_id) as any;
+        return {
+          ...a,
+          client_name: c?.name ?? 'Cliente',
+          client_phone: c?.phone ?? '',
+          professional_name: profMap.get(a.professional_id) ?? '',
+          services: svcByAppt.get(a.id) ?? [],
+        };
+      }));
     } catch (e: any) {
       toast({ title: 'Erro ao carregar agenda', description: e.message, variant: 'destructive' });
     } finally {
