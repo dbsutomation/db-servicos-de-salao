@@ -13,6 +13,7 @@ import ClientProfile from "./pages/ClientProfile";
 import Team from "./pages/Team";
 import Cart from "./pages/Cart";
 import Expenses from "./pages/Expenses";
+import ProfessionalSchedules from "./pages/ProfessionalSchedules";
 import Login from "./pages/Login";
 import CustomerSignup from "./pages/CustomerSignup";
 import CustomerLogin from "./pages/CustomerLogin";
@@ -105,6 +106,14 @@ const AppRoutes = () => {
         </CartProvider>
       } />
       
+      <Route path="/configurar-horarios" element={
+        <CartProvider>
+          <ProtectedRoute requiredRoutes={["/configurar-horarios"]}>
+            <ProfessionalSchedules />
+          </ProtectedRoute>
+        </CartProvider>
+      } />
+
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

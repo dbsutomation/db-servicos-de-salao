@@ -9,7 +9,8 @@ import {
   BarChart3, 
   ShoppingBag,
   Calendar,
-  Receipt
+  Receipt,
+  Clock
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMediaQuery } from '@/hooks/use-mobile';
@@ -60,6 +61,12 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       label: 'Despesas',
       icon: <Receipt size={20} />,
       requiredRoles: ['/expenses']
+    },
+    {
+      path: '/configurar-horarios',
+      label: 'Horários de trabalho',
+      icon: <Clock size={20} />,
+      requiredRoles: ['/configurar-horarios']
     }
   ];
 
