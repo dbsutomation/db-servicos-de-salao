@@ -48,6 +48,13 @@ const statusStyles: Record<string, string> = {
   completed: 'bg-emerald-500/60 text-white border-emerald-600',
 };
 
+const statusLabel: Record<Appt['status'], string> = {
+  scheduled: 'Agendado',
+  in_progress: 'Em atendimento',
+  completed: 'Concluído',
+  cancelled: 'Cancelado',
+};
+
 export default function Agenda() {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
@@ -334,7 +341,7 @@ export default function Agenda() {
                     </>
                   )}
                   <span className="text-muted-foreground">Status</span>
-                  <span className="font-medium capitalize">{selected.status.replace('_', ' ')}</span>
+                  <span className="font-medium">{statusLabel[selected.status]}</span>
                 </div>
                 <div>
                   <div className="text-muted-foreground mb-1">Serviços</div>
