@@ -46,7 +46,7 @@ const DAY_COLS = 7;
 
 const statusStyles: Record<string, string> = {
   pending: 'bg-[#FFF7ED] text-orange-900 border-l-4 border-l-[#F97316] border border-orange-200',
-  scheduled: 'bg-primary text-primary-foreground border-primary',
+  scheduled: 'bg-[#FFF7ED] text-orange-900 border-l-4 border-l-[#F97316] border border-orange-200',
   confirmed: 'bg-[#F0FDF4] text-green-900 border-l-4 border-l-[#22C55E] border border-green-200',
   in_progress: 'bg-amber-500 text-white border-amber-600',
   completed: 'bg-emerald-500/60 text-white border-emerald-600',
