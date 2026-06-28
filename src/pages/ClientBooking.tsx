@@ -237,25 +237,6 @@ export default function ClientBooking() {
       if (svcErr) throw svcErr;
 
       setConfirmed({ starts, ends, services: selectedServices });
-
-      // WhatsApp
-      const phone = (selectedProf.phone ?? '').replace(/\D/g, '');
-      if (phone) {
-        const fullPhone = phone.startsWith('55') ? phone : `55${phone}`;
-        const dateFmt = format(starts, "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR });
-        const horaInicio = format(starts, "HH'h'mm");
-        const svcNomes = selectedServices.map(s => s.name).join(', ');
-        const msg = [
-          `Ol\u00e1 ${selectedProf.name}! Novo agendamento recebido:`,
-          ``,
-          `Cliente: ${customerName ?? 'Cliente'}`,
-          `Servi\u00e7o: ${svcNomes}`,
-          `Data: ${dateFmt}`,
-          `Hor\u00e1rio: ${horaInicio}`,
-        ].join('\n');
-        const url = `https://wa.me/${fullPhone}?text=${encodeURIComponent(msg)}`;
-        window.open(url, '_blank');
-      }
     } catch (e: any) {
       toast({ title: 'Erro ao agendar', description: e.message, variant: 'destructive' });
     } finally {
