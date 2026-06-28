@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 import { format, addDays, startOfDay, addMinutes } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from '@/hooks/use-toast';
-import { CheckCircle2, Plus, Minus } from 'lucide-react';
+import { CheckCircle2, Plus, Minus, Check } from 'lucide-react';
 
 type Professional = {
   id: string;
@@ -94,7 +94,6 @@ export default function ClientBooking() {
           .in('id', profIds);
 
         setProfessionals(((profs as any[]) ?? [])
-          .filter(p => !p.is_manager)
           .map(p => ({ id: p.id, name: p.name, phone: p.phone, categories: p.categories })));
       } finally {
         setLoading(false);
