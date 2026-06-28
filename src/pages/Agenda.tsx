@@ -134,7 +134,7 @@ export default function Agenda() {
         apptIds.length ? supabase.from('appointment_services').select('id, appointment_id, service_id, service_name, duration_minutes, price').in('appointment_id', apptIds) : Promise.resolve({ data: [] as any[] } as any),
       ]);
 
-      const clientMap = new Map(((clientsRes.data as any[]) ?? []).map(c => [c.id, c.name]));
+      const clientMap = new Map(((clientsRes.data as any[]) ?? []).map(c => [c.id, c]));
       const profMap = new Map(((profsRes.data as any[]) ?? []).map(p => [p.id, p.name]));
       const svcByAppt = new Map<string, any[]>();
       ((svcsRes.data as any[]) ?? []).forEach(s => {
