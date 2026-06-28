@@ -201,11 +201,13 @@ export default function Agenda() {
     const height = Math.max(24, (endMin - startMin) * PX_PER_MIN);
     const svcLabel = (appt.services ?? []).map(s => s.service_name).join(', ');
     return (
-      <button
+      <div
         key={appt.id}
         onClick={() => setSelected(appt)}
+        role="button"
+        tabIndex={0}
         className={cn(
-          'absolute left-1 right-1 rounded-md border px-2 py-1 text-xs text-left shadow-sm hover:opacity-90 transition',
+          'absolute left-1 right-1 rounded-md border px-2 py-1 text-xs text-left shadow-sm hover:opacity-90 transition cursor-pointer overflow-hidden',
           statusStyles[appt.status] ?? statusStyles.scheduled
         )}
         style={{ top, height }}
@@ -228,8 +230,37 @@ export default function Agenda() {
         {appt.status === 'in_progress' && (
           <Badge variant="secondary" className="mt-1 h-4 text-[10px]">Em atendimento</Badge>
         )}
-      </button>
+        {appt.status === 'pending' && (
+          <Button
+            size="sm"
+            className="mt-1 h-6 w-full bg-[#22C55E] hover:bg-[#16A34A] text-white text-[10px] px-2"
+            onClick={(e) => { e.stopPropagation(); handleConfirm(appt); }}
+            disabled={acting}
+          >
+            Confirmar agendamento
+          </Button>
+        )}
+      </div>
     );
+  };
+
+  const handleConfirm = async (appt: Appt) => {
+    setActing(true);
+    try {
+      const salonId = await getCurrentSalonId();
+      const { error } = await supabase
+        .from('appointments')
+        .update({ status: 'confirmed' })
+        .eq('id', appt.id)
+        .eq('salon_id', salonId);
+      if (error) throw error;
+      setAppointments(prev => prev.map(a => a.id === appt.id ? { ...a, status: 'confirmed' } : a));
+      setWhatsAppAppt({ ...appt, status: 'confirmed' });
+    } catch (e: any) {
+      toast({ title: 'Erro ao confirmar', description: e.message, variant: 'destructive' });
+    } finally {
+      setActing(false);
+    }
   };
 
   const handleStart = async () => {
