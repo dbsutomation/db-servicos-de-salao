@@ -10,8 +10,7 @@ import {
   ShoppingBag,
   Calendar,
   Receipt,
-  Clock,
-  CalendarDays
+  Clock
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMediaQuery } from '@/hooks/use-mobile';
