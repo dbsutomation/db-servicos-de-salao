@@ -18,6 +18,7 @@ import Login from "./pages/Login";
 import CustomerSignup from "./pages/CustomerSignup";
 import CustomerLogin from "./pages/CustomerLogin";
 import ClientBooking from "./pages/ClientBooking";
+import MeusAgendamentos from "./pages/MeusAgendamentos";
 import Agenda from "./pages/Agenda";
 import NotFound from "./pages/NotFound";
 
@@ -52,6 +53,7 @@ const AppRoutes = () => {
       <Route path="/cadastro-cliente/:salonId" element={<CustomerSignup />} />
       <Route path="/login-cliente" element={<CustomerLogin />} />
       <Route path="/minha-agenda" element={<ClientBooking />} />
+      <Route path="/meus-agendamentos" element={<MeusAgendamentos />} />
       
       <Route path="/" element={
         <CartProvider>

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -37,6 +37,8 @@ const minutesToTime = (m: number) =>
 
 export default function ClientBooking() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const reagendarState = (location.state as any);
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [loading, setLoading] = useState(true);
   const [confirming, setConfirming] = useState(false);
@@ -236,6 +238,14 @@ export default function ClientBooking() {
       const { error: svcErr } = await supabase.from('appointment_services').insert(rows);
       if (svcErr) throw svcErr;
 
+      // Se é um reagendamento, cancela o agendamento anterior
+      if (reagendarState?.reagendar && reagendarState?.cancelId) {
+        await supabase
+          .from('appointments')
+          .update({ status: 'cancelled', cancelled_at: new Date().toISOString(), cancelled_by: 'client' })
+          .eq('id', reagendarState.cancelId);
+      }
+
       setConfirmed({ starts, ends, services: selectedServices });
     } catch (e: any) {
       toast({ title: 'Erro ao agendar', description: e.message, variant: 'destructive' });
@@ -268,7 +278,19 @@ export default function ClientBooking() {
               <span className="text-muted-foreground">Serviços</span>
               <span className="font-medium">{confirmed.services.map(s => s.name).join(', ')}</span>
             </div>
-            <Button className="w-full" onClick={() => navigate('/login-cliente')}>Voltar</Button>
+            <Button className="w-full" onClick={() => navigate('/meus-agendamentos')}>
+              Ver meus agendamentos
+            </Button>
+            <Button variant="outline" className="w-full" onClick={() => {
+              setConfirmed(null);
+              setStep(1);
+              setSelectedProf(null);
+              setSelectedDate(undefined);
+              setSelectedSlot(null);
+              setSelectedServiceIds([]);
+            }}>
+              Fazer outro agendamento
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -277,6 +299,22 @@ export default function ClientBooking() {
 
   return (
     <div className="max-w-2xl mx-auto p-4 sm:p-8 space-y-6">
+      {/* Header com link para meus agendamentos */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-lg font-semibold">
+          {reagendarState?.reagendar ? 'Reagendar hor\u00e1rio' : 'Novo agendamento'}
+        </h1>
+        <Button variant="ghost" size="sm" onClick={() => navigate('/meus-agendamentos')}>
+          Meus agendamentos
+        </Button>
+      </div>
+
+      {reagendarState?.reagendar && (
+        <div className="bg-orange-50 border border-orange-200 rounded-md px-4 py-3 text-sm text-orange-700">
+          Escolha um novo hor\u00e1rio. O agendamento anterior ser\u00e1 cancelado automaticamente ao confirmar.
+        </div>
+      )}
+
       {/* Stepper */}
       <ol className="flex items-center justify-between gap-2">
         {STEPS.map((label, i) => {
