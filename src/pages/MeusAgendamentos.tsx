@@ -34,7 +34,7 @@ const STATUS_LABEL: Record<string, { label: string; color: string }> = {
   pending:   { label: 'Pendente',    color: 'bg-orange-100 text-orange-700 border-orange-200' },
   confirmed: { label: 'Confirmado',  color: 'bg-green-100 text-green-700 border-green-200' },
   cancelled: { label: 'Cancelado',   color: 'bg-red-100 text-red-700 border-red-200' },
-  completed: { label: 'Conclu\u00eddo',  color: 'bg-blue-100 text-blue-700 border-blue-200' },
+  completed: { label: 'Concluído',  color: 'bg-blue-100 text-blue-700 border-blue-200' },
   in_progress: { label: 'Em atendimento', color: 'bg-purple-100 text-purple-700 border-purple-200' },
 };
 
@@ -149,14 +149,14 @@ export default function MeusAgendamentos() {
       <div className="space-y-4">
         <div>
           <h1 className="text-xl font-semibold">Meus agendamentos</h1>
-          <p className="text-sm text-muted-foreground">Acompanhe e gerencie seus hor\u00e1rios</p>
+          <p className="text-sm text-muted-foreground">Acompanhe e gerencie seus horários</p>
         </div>
 
       {appointments.length === 0 && (
         <Card>
           <CardContent className="py-12 text-center text-muted-foreground">
             <CalendarDays className="mx-auto h-10 w-10 mb-3 opacity-40" />
-            <p>Voc\u00ea ainda n\u00e3o tem agendamentos.</p>
+            <p>Você ainda não tem agendamentos.</p>
             <Button className="mt-4" onClick={() => navigate('/minha-agenda')}>
               Fazer agendamento
             </Button>
@@ -253,7 +253,7 @@ export default function MeusAgendamentos() {
           <AlertDialogHeader>
             <AlertDialogTitle>Cancelar agendamento?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta a\u00e7\u00e3o n\u00e3o pode ser desfeita. Seu hor\u00e1rio ser\u00e1 liberado.
+              Esta ação não pode ser desfeita. Seu horário será liberado.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

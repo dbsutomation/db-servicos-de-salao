@@ -276,11 +276,11 @@ export default function ClientBooking() {
               <span className="font-medium">{selectedProf.name}</span>
               <span className="text-muted-foreground">Data</span>
               <span className="font-medium">{format(confirmed.starts, "EEEE, dd 'de' MMMM", { locale: ptBR })}</span>
-              <span className="text-muted-foreground">Hor\u00e1rio</span>
+              <span className="text-muted-foreground">Horário</span>
               <span className="font-medium">
                 {format(confirmed.starts, 'HH:mm')} \u2013 {format(confirmed.ends, 'HH:mm')}
               </span>
-              <span className="text-muted-foreground">Servi\u00e7os</span>
+              <span className="text-muted-foreground">Serviços</span>
               <span className="font-medium">{confirmed.services.map(s => s.name).join(', ')}</span>
             </div>
             <Button className="w-full" onClick={() => navigate('/meus-agendamentos')}>
@@ -307,7 +307,7 @@ export default function ClientBooking() {
       <div className="space-y-6">
       {reagendarState?.reagendar && (
         <div className="bg-orange-50 border border-orange-200 rounded-md px-4 py-3 text-sm text-orange-700">
-          Escolha um novo hor\u00e1rio. O agendamento anterior ser\u00e1 cancelado automaticamente ao confirmar.
+          Escolha um novo horário. O agendamento anterior será cancelado automaticamente ao confirmar.
         </div>
       )}
 

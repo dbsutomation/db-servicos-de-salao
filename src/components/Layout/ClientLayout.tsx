@@ -25,7 +25,7 @@ function SidebarContent({ onLogout, onNavigate }: { onLogout: () => void; onNavi
   return (
     <div className="flex flex-col h-full">
       <div className="px-4 py-6 border-b-2 border-gray-100">
-        <h1 className="font-bold text-salon-purple text-xl">Meu Sal\u00e3o</h1>
+        <h1 className="font-bold text-salon-purple text-xl">Meu Salão</h1>
         <p className="text-xs text-muted-foreground mt-1">Portal do cliente</p>
       </div>
 
@@ -72,7 +72,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate('/login-cliente');
-    toast({ title: 'Voc\u00ea saiu da sua conta.' });
+    toast({ title: 'Você saiu da sua conta.' });
   };
 
   return (
@@ -84,7 +84,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
       {/* Header mobile */}
       <header className="fixed top-0 left-0 right-0 z-40 h-16 bg-white border-b-2 border-gray-200 shadow-sm flex items-center px-4 justify-between md:hidden">
-        <h1 className="font-bold text-salon-purple text-lg">Meu Sal\u00e3o</h1>
+        <h1 className="font-bold text-salon-purple text-lg">Meu Salão</h1>
         <Button variant="ghost" size="icon" onClick={() => setMobileOpen(true)}>
           <Menu size={22} />
         </Button>
