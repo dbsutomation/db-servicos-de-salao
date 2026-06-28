@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 import { format, addDays, startOfDay, addMinutes } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from '@/hooks/use-toast';
-import { CheckCircle2, Plus, Minus } from 'lucide-react';
+import { CheckCircle2, Plus, Minus, Check } from 'lucide-react';
 
 type Professional = {
   id: string;
@@ -94,7 +94,6 @@ export default function ClientBooking() {
           .in('id', profIds);
 
         setProfessionals(((profs as any[]) ?? [])
-          .filter(p => !p.is_manager)
           .map(p => ({ id: p.id, name: p.name, phone: p.phone, categories: p.categories })));
       } finally {
         setLoading(false);
@@ -326,10 +325,15 @@ export default function ClientBooking() {
                   key={p.id}
                   onClick={() => setSelectedProf(p)}
                   className={cn(
-                    'w-full flex items-center gap-3 p-3 rounded-md border text-left transition-colors',
-                    sel ? 'border-primary bg-primary/5' : 'hover:bg-muted/50'
+                    'relative w-full flex items-center gap-3 p-3 rounded-md border text-left transition-colors',
+                    sel ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'hover:bg-muted/50'
                   )}
                 >
+                  {sel && (
+                    <div className="absolute top-2 right-2 bg-primary text-primary-foreground rounded-full p-0.5">
+                      <Check className="h-3.5 w-3.5" />
+                    </div>
+                  )}
                   <Avatar>
                     <AvatarFallback>{initials(p.name)}</AvatarFallback>
                   </Avatar>
