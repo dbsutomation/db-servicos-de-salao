@@ -183,6 +183,16 @@ export default function Agenda() {
         )}
         style={{ top, height }}
       >
+        {(appt.status === 'pending' || appt.status === 'confirmed') && (
+          <div className="mb-1">
+            <span className={cn(
+              'inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold',
+              appt.status === 'pending' ? 'bg-[#F97316] text-white' : 'bg-[#22C55E] text-white'
+            )}>
+              {statusLabel[appt.status]}
+            </span>
+          </div>
+        )}
         <div className="font-medium truncate">{appt.client_name}</div>
         <div className="opacity-90 truncate">{svcLabel}</div>
         {appt.status === 'completed' && (
