@@ -7,6 +7,7 @@ import UserProfile from './UserProfile';
 import { NavItem } from './types';
 import { useCart } from '@/contexts/CartContext';
 import { Badge } from '@/components/ui/badge';
+import { usePendingAppointmentsCount } from '@/hooks/usePendingAppointments';
 
 interface SidebarProps {
   filteredNavItems: NavItem[];
@@ -24,6 +25,7 @@ const Sidebar = ({
   toggleMobileMenu = () => {}
 }: SidebarProps) => {
   const { cartItems } = useCart();
+  const pendingCount = usePendingAppointmentsCount();
   // Calcular o total de itens no carrinho
   const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
   
@@ -45,6 +47,15 @@ const Sidebar = ({
             className="absolute -top-1 -right-1 h-5 w-5 text-xs flex items-center justify-center p-0 rounded-full"
           >
             {totalItems}
+          </Badge>
+        )}
+
+        {/* Badge para agendamentos pendentes */}
+        {item.path === '/agenda' && pendingCount > 0 && (
+          <Badge
+            className="absolute -top-1 -right-1 h-5 min-w-5 px-1 text-xs flex items-center justify-center rounded-full bg-orange-500 text-white border-transparent hover:bg-orange-500"
+          >
+            {pendingCount}
           </Badge>
         )}
       </div>

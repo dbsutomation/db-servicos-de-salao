@@ -22,11 +22,12 @@ import { getCurrentSalonId } from '@/lib/salon';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
+type ApptStatus = 'pending' | 'scheduled' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled';
 type Appt = {
   id: string;
   starts_at: string;
   ends_at: string;
-  status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+  status: ApptStatus;
   client_id: string;
   professional_id: string;
   started_at: string | null;
@@ -43,13 +44,17 @@ const PX_PER_MIN = 1; // 60px per hour
 const DAY_COLS = 7;
 
 const statusStyles: Record<string, string> = {
+  pending: 'bg-[#FFF7ED] text-orange-900 border-l-4 border-l-[#F97316] border border-orange-200',
   scheduled: 'bg-primary text-primary-foreground border-primary',
+  confirmed: 'bg-[#F0FDF4] text-green-900 border-l-4 border-l-[#22C55E] border border-green-200',
   in_progress: 'bg-amber-500 text-white border-amber-600',
   completed: 'bg-emerald-500/60 text-white border-emerald-600',
 };
 
-const statusLabel: Record<Appt['status'], string> = {
+const statusLabel: Record<ApptStatus, string> = {
+  pending: 'Pendente',
   scheduled: 'Agendado',
+  confirmed: 'Confirmado',
   in_progress: 'Em atendimento',
   completed: 'Concluído',
   cancelled: 'Cancelado',
@@ -155,6 +160,27 @@ export default function Agenda() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [weekStart, profFilter, isManager, currentUser?.id]);
 
+  // Realtime: novas/atualizações de agendamentos atualizam a agenda em tempo real
+  useEffect(() => {
+    if (!currentUser?.id) return;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    (async () => {
+      try {
+        const salonId = await getCurrentSalonId();
+        channel = supabase
+          .channel(`agenda-${currentUser.id}`)
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'appointments', filter: `salon_id=eq.${salonId}` },
+            () => { fetchAppointments(); }
+          )
+          .subscribe();
+      } catch { /* ignore */ }
+    })();
+    return () => { if (channel) supabase.removeChannel(channel); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser?.id, weekStart, profFilter, isManager]);
+
   const goPrevWeek = () => setWeekStart(d => addDays(d, -7));
   const goNextWeek = () => setWeekStart(d => addDays(d, 7));
   const goToday = () => setWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }));
@@ -178,6 +204,16 @@ export default function Agenda() {
         )}
         style={{ top, height }}
       >
+        {(appt.status === 'pending' || appt.status === 'confirmed') && (
+          <div className="mb-1">
+            <span className={cn(
+              'inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold',
+              appt.status === 'pending' ? 'bg-[#F97316] text-white' : 'bg-[#22C55E] text-white'
+            )}>
+              {statusLabel[appt.status]}
+            </span>
+          </div>
+        )}
         <div className="font-medium truncate">{appt.client_name}</div>
         <div className="opacity-90 truncate">{svcLabel}</div>
         {appt.status === 'completed' && (
