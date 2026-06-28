@@ -341,7 +341,7 @@ export default function Agenda() {
                     </>
                   )}
                   <span className="text-muted-foreground">Status</span>
-                  <span className="font-medium capitalize">{selected.status.replace('_', ' ')}</span>
+                  <span className="font-medium">{statusLabel[selected.status]}</span>
                 </div>
                 <div>
                   <div className="text-muted-foreground mb-1">Serviços</div>
