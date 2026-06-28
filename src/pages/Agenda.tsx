@@ -46,7 +46,7 @@ const DAY_COLS = 7;
 
 const statusStyles: Record<string, string> = {
   pending: 'bg-[#FFF7ED] text-orange-900 border-l-4 border-l-[#F97316] border border-orange-200',
-  scheduled: 'bg-primary text-primary-foreground border-primary',
+  scheduled: 'bg-[#FFF7ED] text-orange-900 border-l-4 border-l-[#F97316] border border-orange-200',
   confirmed: 'bg-[#F0FDF4] text-green-900 border-l-4 border-l-[#22C55E] border border-green-200',
   in_progress: 'bg-amber-500 text-white border-amber-600',
   completed: 'bg-emerald-500/60 text-white border-emerald-600',
@@ -212,13 +212,13 @@ export default function Agenda() {
         )}
         style={{ top, height }}
       >
-        {(appt.status === 'pending' || appt.status === 'confirmed') && (
+        {(appt.status === 'pending' || appt.status === 'scheduled' || appt.status === 'confirmed') && (
           <div className="mb-1">
             <span className={cn(
               'inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold',
-              appt.status === 'pending' ? 'bg-[#F97316] text-white' : 'bg-[#22C55E] text-white'
+              appt.status === 'confirmed' ? 'bg-[#22C55E] text-white' : 'bg-[#F97316] text-white'
             )}>
-              {statusLabel[appt.status]}
+              {appt.status === 'confirmed' ? 'Confirmado' : 'Pendente'}
             </span>
           </div>
         )}
@@ -256,6 +256,41 @@ export default function Agenda() {
       if (error) throw error;
       setAppointments(prev => prev.map(a => a.id === appt.id ? { ...a, status: 'confirmed' } : a));
       setWhatsAppAppt({ ...appt, status: 'confirmed' });
+    } catch (e: any) {
+      toast({ title: 'Erro ao confirmar', description: e.message, variant: 'destructive' });
+    } finally {
+      setActing(false);
+    }
+  };
+
+  const handleConfirmAndNotify = async (appt: Appt) => {
+    setActing(true);
+    try {
+      const salonId = await getCurrentSalonId();
+      const { error } = await supabase
+        .from('appointments')
+        .update({ status: 'confirmed' })
+        .eq('id', appt.id)
+        .eq('salon_id', salonId);
+      if (error) throw error;
+
+      setAppointments(prev => prev.map(a => a.id === appt.id ? { ...a, status: 'confirmed' } : a));
+
+      const svcList = (appt.services ?? [])
+        .map(s => `${s.service_name} (${s.duration_minutes}min)`)
+        .join(', ');
+      const dateFmt = format(new Date(appt.starts_at), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+      const hourFmt = format(new Date(appt.starts_at), "HH'h'mm");
+      const profName = appt.professional_name || currentUser?.name || '';
+      const msg = `Olá ${appt.client_name}! 😊\n\nSeu agendamento foi confirmado! ✅\n\n✂️ Serviço: ${svcList}\n📆 Data: ${dateFmt}\n🕐 Horário: ${hourFmt}\n👩 Profissional: ${profName}\n\nTe esperamos! 🙏`;
+      const digits = (appt.client_phone ?? '').replace(/\D/g, '');
+      const phone = digits.startsWith('55') ? digits : `55${digits}`;
+      const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+
+      if (digits) window.open(url, '_blank');
+      else toast({ title: 'Cliente sem telefone cadastrado', variant: 'destructive' });
+
+      setSelected(null);
     } catch (e: any) {
       toast({ title: 'Erro ao confirmar', description: e.message, variant: 'destructive' });
     } finally {
@@ -433,6 +468,15 @@ export default function Agenda() {
                 </div>
               </div>
               <DialogFooter className="flex-col sm:flex-row gap-2">
+                {(selected.status === 'scheduled' || selected.status === 'pending') && (
+                  <Button
+                    className="bg-[#22C55E] hover:bg-[#16A34A] text-white"
+                    onClick={() => handleConfirmAndNotify(selected)}
+                    disabled={acting}
+                  >
+                    ✅ Confirmar e notificar cliente
+                  </Button>
+                )}
                 {(selected.status === 'scheduled' || selected.status === 'in_progress') && (
                   <Button variant="outline" className="text-destructive border-destructive" onClick={() => setCancelConfirmOpen(true)} disabled={acting}>
                     Cancelar agendamento

@@ -17,7 +17,7 @@ export function usePendingAppointmentsCount() {
         .from('appointments')
         .select('id', { count: 'exact', head: true })
         .eq('salon_id', salonId)
-        .eq('status', 'pending');
+        .in('status', ['pending', 'scheduled']);
       if (!currentUser.isManager) {
         q = q.eq('professional_id', currentUser.id);
       }
