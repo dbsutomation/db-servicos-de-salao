@@ -467,7 +467,7 @@ export default function Agenda() {
                   <span>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalSelected)}</span>
                 </div>
               </div>
-              <DialogFooter className="flex-col sm:flex-row gap-2">
+              <DialogFooter className="flex-col gap-2">
                 {(selected.status === 'scheduled' || selected.status === 'pending') && (
                   <Button
                     className="bg-[#22C55E] hover:bg-[#16A34A] text-white"
