@@ -3,12 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { format, isFuture } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from '@/hooks/use-toast';
-import { CalendarDays, Clock, User, Scissors, ChevronLeft, RefreshCw, X } from 'lucide-react';
+import { CalendarDays, Clock, User, Scissors, RefreshCw, X } from 'lucide-react';
+import ClientLayout from '@/components/Layout/ClientLayout';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -139,21 +139,18 @@ export default function MeusAgendamentos() {
   };
 
   if (loading) return (
-    <div className="p-8 text-center text-muted-foreground">Carregando seus agendamentos...</div>
+    <ClientLayout>
+      <div className="p-8 text-center text-muted-foreground">Carregando seus agendamentos...</div>
+    </ClientLayout>
   );
 
   return (
-    <div className="max-w-2xl mx-auto p-4 sm:p-8 space-y-4">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/minha-agenda')}>
-          <ChevronLeft className="h-5 w-5" />
-        </Button>
+    <ClientLayout>
+      <div className="space-y-4">
         <div>
           <h1 className="text-xl font-semibold">Meus agendamentos</h1>
           <p className="text-sm text-muted-foreground">Acompanhe e gerencie seus hor\u00e1rios</p>
         </div>
-      </div>
 
       {appointments.length === 0 && (
         <Card>
@@ -271,6 +268,7 @@ export default function MeusAgendamentos() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+      </div>
+    </ClientLayout>
   );
 }

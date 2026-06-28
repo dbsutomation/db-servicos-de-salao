@@ -12,6 +12,7 @@ import { format, addDays, startOfDay, addMinutes } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from '@/hooks/use-toast';
 import { CheckCircle2, Plus, Minus, Check } from 'lucide-react';
+import ClientLayout from '@/components/Layout/ClientLayout';
 
 type Professional = {
   id: string;
@@ -254,12 +255,16 @@ export default function ClientBooking() {
     }
   };
 
-  if (loading) return <div className="p-8 text-center text-muted-foreground">Carregando…</div>;
+  if (loading) return (
+    <ClientLayout>
+      <div className="p-8 text-center text-muted-foreground">Carregando\u2026</div>
+    </ClientLayout>
+  );
 
   if (confirmed && selectedProf) {
     return (
-      <div className="max-w-2xl mx-auto p-4 sm:p-8">
-        <Card>
+      <ClientLayout>
+        <Card className="border-0 shadow-none">
           <CardHeader className="text-center">
             <CheckCircle2 className="mx-auto h-12 w-12 text-primary" />
             <CardTitle>Agendamento confirmado!</CardTitle>
@@ -271,11 +276,11 @@ export default function ClientBooking() {
               <span className="font-medium">{selectedProf.name}</span>
               <span className="text-muted-foreground">Data</span>
               <span className="font-medium">{format(confirmed.starts, "EEEE, dd 'de' MMMM", { locale: ptBR })}</span>
-              <span className="text-muted-foreground">Horário</span>
+              <span className="text-muted-foreground">Hor\u00e1rio</span>
               <span className="font-medium">
-                {format(confirmed.starts, 'HH:mm')} – {format(confirmed.ends, 'HH:mm')}
+                {format(confirmed.starts, 'HH:mm')} \u2013 {format(confirmed.ends, 'HH:mm')}
               </span>
-              <span className="text-muted-foreground">Serviços</span>
+              <span className="text-muted-foreground">Servi\u00e7os</span>
               <span className="font-medium">{confirmed.services.map(s => s.name).join(', ')}</span>
             </div>
             <Button className="w-full" onClick={() => navigate('/meus-agendamentos')}>
@@ -293,22 +298,13 @@ export default function ClientBooking() {
             </Button>
           </CardContent>
         </Card>
-      </div>
+      </ClientLayout>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-4 sm:p-8 space-y-6">
-      {/* Header com link para meus agendamentos */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-lg font-semibold">
-          {reagendarState?.reagendar ? 'Reagendar hor\u00e1rio' : 'Novo agendamento'}
-        </h1>
-        <Button variant="ghost" size="sm" onClick={() => navigate('/meus-agendamentos')}>
-          Meus agendamentos
-        </Button>
-      </div>
-
+    <ClientLayout>
+      <div className="space-y-6">
       {reagendarState?.reagendar && (
         <div className="bg-orange-50 border border-orange-200 rounded-md px-4 py-3 text-sm text-orange-700">
           Escolha um novo hor\u00e1rio. O agendamento anterior ser\u00e1 cancelado automaticamente ao confirmar.
@@ -542,6 +538,7 @@ export default function ClientBooking() {
           </div>
         </Card>
       )}
-    </div>
+      </div>
+    </ClientLayout>
   );
 }
