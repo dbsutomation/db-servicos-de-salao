@@ -64,12 +64,14 @@ export type Database = {
           cancelled_at: string | null
           cancelled_by: string | null
           client_id: string
+          completed_at: string | null
           created_at: string
           ends_at: string
           id: string
           notes: string | null
           professional_id: string
           salon_id: string
+          started_at: string | null
           starts_at: string
           status: string
           updated_at: string
@@ -78,12 +80,14 @@ export type Database = {
           cancelled_at?: string | null
           cancelled_by?: string | null
           client_id: string
+          completed_at?: string | null
           created_at?: string
           ends_at: string
           id?: string
           notes?: string | null
           professional_id: string
           salon_id: string
+          started_at?: string | null
           starts_at: string
           status?: string
           updated_at?: string
@@ -92,12 +96,14 @@ export type Database = {
           cancelled_at?: string | null
           cancelled_by?: string | null
           client_id?: string
+          completed_at?: string | null
           created_at?: string
           ends_at?: string
           id?: string
           notes?: string | null
           professional_id?: string
           salon_id?: string
+          started_at?: string | null
           starts_at?: string
           status?: string
           updated_at?: string
@@ -350,6 +356,7 @@ export type Database = {
       }
       service_records: {
         Row: {
+          appointment_id: string | null
           client_id: string
           commission_amount: number
           created_at: string
@@ -364,6 +371,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          appointment_id?: string | null
           client_id: string
           commission_amount: number
           created_at?: string
@@ -378,6 +386,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          appointment_id?: string | null
           client_id?: string
           commission_amount?: number
           created_at?: string
@@ -392,6 +401,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "service_records_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "service_records_client_id_fkey"
             columns: ["client_id"]
