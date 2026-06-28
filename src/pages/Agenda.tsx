@@ -281,16 +281,25 @@ export default function Agenda() {
       const dateFmt = format(new Date(appt.starts_at), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR });
       const hourFmt = format(new Date(appt.starts_at), "HH'h'mm");
       const profName = appt.professional_name || currentUser?.name || '';
+      const e = {
+        smile:      String.fromCodePoint(0x1F60A),
+        check:      String.fromCodePoint(0x2705),
+        scissors:   String.fromCodePoint(0x2702) + String.fromCodePoint(0xFE0F),
+        calendar:   String.fromCodePoint(0x1F4C6),
+        clock:      String.fromCodePoint(0x1F550),
+        woman:      String.fromCodePoint(0x1F469),
+        pray:       String.fromCodePoint(0x1F64F),
+      };
       const msgTexto = [
-        `Olá ${appt.client_name}! 😊`,
-        `Seu agendamento foi confirmado! ✅`,
+        `Ol\u00e1 ${appt.client_name}! ${e.smile}`,
+        `Seu agendamento foi confirmado! ${e.check}`,
         ``,
-        `✂️ Serviço: ${svcList} (${duracao}min)`,
-        `📆 Data: ${dateFmt}`,
-        `🕐 Horário: ${hourFmt}`,
-        `👩 Profissional: ${profName}`,
+        `${e.scissors} Servi\u00e7o: ${svcList} (${duracao}min)`,
+        `${e.calendar} Data: ${dateFmt}`,
+        `${e.clock} Hor\u00e1rio: ${hourFmt}`,
+        `${e.woman} Profissional: ${profName}`,
         ``,
-        `Te esperamos! 🙏`,
+        `Te esperamos! ${e.pray}`,
       ].join('\n');
       const digits = (appt.client_phone ?? '').replace(/\D/g, '');
       const phone = digits.startsWith('55') ? digits : `55${digits}`;
@@ -539,16 +548,25 @@ export default function Agenda() {
             const dateFmt = format(new Date(whatsAppAppt.starts_at), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR });
             const hourFmt = format(new Date(whatsAppAppt.starts_at), "HH'h'mm");
             const profName = whatsAppAppt.professional_name || currentUser?.name || '';
+            const e = {
+              smile:    String.fromCodePoint(0x1F60A),
+              check:    String.fromCodePoint(0x2705),
+              scissors: String.fromCodePoint(0x2702) + String.fromCodePoint(0xFE0F),
+              calendar: String.fromCodePoint(0x1F4C6),
+              clock:    String.fromCodePoint(0x1F550),
+              woman:    String.fromCodePoint(0x1F469),
+              pray:     String.fromCodePoint(0x1F64F),
+            };
             const msgTexto = [
-              `Olá ${whatsAppAppt.client_name}! 😊`,
-              `Seu agendamento foi confirmado! ✅`,
+              `Ol\u00e1 ${whatsAppAppt.client_name}! ${e.smile}`,
+              `Seu agendamento foi confirmado! ${e.check}`,
               ``,
-              `✂️ Serviço: ${svcList} (${duracao}min)`,
-              `📆 Data: ${dateFmt}`,
-              `🕐 Horário: ${hourFmt}`,
-              `👩 Profissional: ${profName}`,
+              `${e.scissors} Servi\u00e7o: ${svcList} (${duracao}min)`,
+              `${e.calendar} Data: ${dateFmt}`,
+              `${e.clock} Hor\u00e1rio: ${hourFmt}`,
+              `${e.woman} Profissional: ${profName}`,
               ``,
-              `Te esperamos! 🙏`,
+              `Te esperamos! ${e.pray}`,
             ].join('\n');
             const digits = (whatsAppAppt.client_phone ?? '').replace(/\D/g, '');
             const phone = digits.startsWith('55') ? digits : `55${digits}`;
