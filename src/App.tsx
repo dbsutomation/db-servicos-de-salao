@@ -17,6 +17,7 @@ import ProfessionalSchedules from "./pages/ProfessionalSchedules";
 import Login from "./pages/Login";
 import CustomerSignup from "./pages/CustomerSignup";
 import CustomerLogin from "./pages/CustomerLogin";
+import ClientBooking from "./pages/ClientBooking";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -49,6 +50,7 @@ const AppRoutes = () => {
       {/* Rotas públicas de cliente (não passam pela auth interna) */}
       <Route path="/cadastro-cliente/:salonId" element={<CustomerSignup />} />
       <Route path="/login-cliente" element={<CustomerLogin />} />
+      <Route path="/minha-agenda" element={<ClientBooking />} />
       
       <Route path="/" element={
         <CartProvider>
