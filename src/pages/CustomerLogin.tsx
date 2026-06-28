@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,10 +9,10 @@ import { toast } from '@/hooks/use-toast';
 
 type Stage =
   | { kind: 'form' }
-  | { kind: 'welcome'; name: string }
   | { kind: 'error'; message: string };
 
 export default function CustomerLogin() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -36,7 +37,7 @@ export default function CustomerLogin() {
         .maybeSingle();
 
       if (customer && (customer as any).name) {
-        setStage({ kind: 'welcome', name: (customer as any).name });
+        navigate('/minha-agenda');
         return;
       }
 
@@ -65,19 +66,6 @@ export default function CustomerLogin() {
       setSubmitting(false);
     }
   };
-
-  if (stage.kind === 'welcome') {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-muted p-4">
-        <Card className="max-w-md w-full text-center">
-          <CardHeader>
-            <CardTitle>Bem-vindo(a), {stage.name}!</CardTitle>
-            <CardDescription>Sua agenda estará disponível em breve.</CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted p-4">
