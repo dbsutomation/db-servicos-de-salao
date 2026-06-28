@@ -14,6 +14,118 @@ export type Database = {
   }
   public: {
     Tables: {
+      appointment_services: {
+        Row: {
+          appointment_id: string
+          created_at: string
+          duration_minutes: number
+          id: string
+          price: number
+          service_id: string
+          service_name: string
+        }
+        Insert: {
+          appointment_id: string
+          created_at?: string
+          duration_minutes: number
+          id?: string
+          price: number
+          service_id: string
+          service_name: string
+        }
+        Update: {
+          appointment_id?: string
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          price?: number
+          service_id?: string
+          service_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_services_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_services_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      appointments: {
+        Row: {
+          cancelled_at: string | null
+          cancelled_by: string | null
+          client_id: string
+          created_at: string
+          ends_at: string
+          id: string
+          notes: string | null
+          professional_id: string
+          salon_id: string
+          starts_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          client_id: string
+          created_at?: string
+          ends_at: string
+          id?: string
+          notes?: string | null
+          professional_id: string
+          salon_id: string
+          starts_at: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          client_id?: string
+          created_at?: string
+          ends_at?: string
+          id?: string
+          notes?: string | null
+          professional_id?: string
+          salon_id?: string
+          starts_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           created_at: string
@@ -137,6 +249,57 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "expenses_salon_id_fkey"
+            columns: ["salon_id"]
+            isOneToOne: false
+            referencedRelation: "salons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      professional_schedules: {
+        Row: {
+          created_at: string
+          day_of_week: number
+          end_time: string
+          id: string
+          is_active: boolean
+          professional_id: string
+          salon_id: string
+          start_time: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: number
+          end_time: string
+          id?: string
+          is_active?: boolean
+          professional_id: string
+          salon_id: string
+          start_time: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          is_active?: boolean
+          professional_id?: string
+          salon_id?: string
+          start_time?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "professional_schedules_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "professional_schedules_salon_id_fkey"
             columns: ["salon_id"]
             isOneToOne: false
             referencedRelation: "salons"
