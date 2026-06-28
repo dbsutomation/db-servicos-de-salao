@@ -218,39 +218,9 @@ const Login = () => {
           </Form>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
-          {isSignUp ? (
-            <>
-              <Button 
-                className="w-full bg-salon-purple hover:bg-salon-dark-purple" 
-                onClick={handleSignUp}
-                disabled={isLoading}
-              >
-                {isLoading ? 'Cadastrando...' : 'Cadastrar'}
-              </Button>
-              <Button
-                variant="link"
-                className="w-full"
-                onClick={() => setIsSignUp(false)}
-                disabled={isLoading}
-              >
-                Já tem acesso, faça login
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button 
-                variant="link" 
-                className="w-full" 
-                onClick={() => setIsSignUp(true)}
-                disabled={isLoading}
-              >
-                Não tem acesso, cadastre-se
-              </Button>
-              <p className="text-center text-sm text-gray-500">
-                Caso não possua acesso, entre em contato com o gerente.
-              </p>
-            </>
-          )}
+          <p className="text-center text-sm text-gray-500">
+            Caso não possua acesso, entre em contato com o gerente do salão.
+          </p>
         </CardFooter>
       </Card>
     </div>
