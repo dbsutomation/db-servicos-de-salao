@@ -325,10 +325,15 @@ export default function ClientBooking() {
                   key={p.id}
                   onClick={() => setSelectedProf(p)}
                   className={cn(
-                    'w-full flex items-center gap-3 p-3 rounded-md border text-left transition-colors',
-                    sel ? 'border-primary bg-primary/5' : 'hover:bg-muted/50'
+                    'relative w-full flex items-center gap-3 p-3 rounded-md border text-left transition-colors',
+                    sel ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'hover:bg-muted/50'
                   )}
                 >
+                  {sel && (
+                    <div className="absolute top-2 right-2 bg-primary text-primary-foreground rounded-full p-0.5">
+                      <Check className="h-3.5 w-3.5" />
+                    </div>
+                  )}
                   <Avatar>
                     <AvatarFallback>{initials(p.name)}</AvatarFallback>
                   </Avatar>
