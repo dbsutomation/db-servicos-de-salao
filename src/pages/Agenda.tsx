@@ -32,6 +32,7 @@ type Appt = {
   professional_id: string;
   started_at: string | null;
   client_name?: string;
+  client_phone?: string;
   professional_name?: string;
   services?: { id: string; service_id: string; service_name: string; duration_minutes: number; price: number }[];
 };
