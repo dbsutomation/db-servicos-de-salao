@@ -526,13 +526,21 @@ export default function Agenda() {
         <DialogContent className="max-w-md">
           {whatsAppAppt && (() => {
             const svcList = (whatsAppAppt.services ?? []).map(s => s.service_name).join(', ');
+            const duracao = (whatsAppAppt.services ?? []).reduce((sum, s) => sum + (s.duration_minutes || 0), 0);
             const dateFmt = format(new Date(whatsAppAppt.starts_at), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR });
             const hourFmt = format(new Date(whatsAppAppt.starts_at), "HH'h'mm");
             const profName = whatsAppAppt.professional_name || currentUser?.name || '';
-            const msg = `Olá ${whatsAppAppt.client_name}! 😊\n\nSeu agendamento foi confirmado! ✅\n\n✂️ Serviço: ${svcList}\n\n📆 Data: ${dateFmt}\n\n🕐 Horário: ${hourFmt}\n\n👩 Profissional: ${profName}\n\nTe esperamos! 🙏`;
+            const msg =
+              "Ol%C3%A1%20" + whatsAppAppt.client_name + "%21%20%F0%9F%98%8A%0A" +
+              "Seu%20agendamento%20foi%20confirmado%21%20%E2%9C%85%0A%0A" +
+              "%E2%9C%82%EF%B8%8F%20Servi%C3%A7o%3A%20" + encodeURIComponent(svcList) + "%20(" + duracao + "min)%0A" +
+              "%F0%9F%93%86%20Data%3A%20" + encodeURIComponent(dateFmt) + "%0A" +
+              "%F0%9F%95%90%20Hor%C3%A1rio%3A%20" + hourFmt + "%0A" +
+              "%F0%9F%91%A9%20Profissional%3A%20" + encodeURIComponent(profName) + "%0A%0A" +
+              "Te%20esperamos%21%20%F0%9F%99%8F";
             const digits = (whatsAppAppt.client_phone ?? '').replace(/\D/g, '');
             const phone = digits.startsWith('55') ? digits : `55${digits}`;
-            const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+            const url = "https://wa.me/" + phone + "?text=" + msg;
             return (
               <>
                 <DialogHeader>
