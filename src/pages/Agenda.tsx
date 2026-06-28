@@ -129,7 +129,7 @@ export default function Agenda() {
       const apptIds = list.map(a => a.id);
 
       const [clientsRes, profsRes, svcsRes] = await Promise.all([
-        clientIds.length ? supabase.from('clients').select('id, name').in('id', clientIds) : Promise.resolve({ data: [] as any[] } as any),
+        clientIds.length ? supabase.from('clients').select('id, name, phone').in('id', clientIds) : Promise.resolve({ data: [] as any[] } as any),
         profIds.length ? supabase.from('users').select('id, name').in('id', profIds) : Promise.resolve({ data: [] as any[] } as any),
         apptIds.length ? supabase.from('appointment_services').select('id, appointment_id, service_id, service_name, duration_minutes, price').in('appointment_id', apptIds) : Promise.resolve({ data: [] as any[] } as any),
       ]);
