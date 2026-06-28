@@ -10,7 +10,8 @@ import {
   ShoppingBag,
   Calendar,
   Receipt,
-  Clock
+  Clock,
+  CalendarDays
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMediaQuery } from '@/hooks/use-mobile';
@@ -67,6 +68,12 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       label: 'Horários de trabalho',
       icon: <Clock size={20} />,
       requiredRoles: ['/configurar-horarios']
+    },
+    {
+      path: '/minha-agenda',
+      label: 'Agenda (cliente)',
+      icon: <CalendarDays size={20} />,
+      requiredRoles: ['/minha-agenda']
     }
   ];
 
