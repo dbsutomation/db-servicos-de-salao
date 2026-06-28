@@ -464,6 +464,41 @@ export default function Agenda() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* WhatsApp confirmação */}
+      <Dialog open={!!whatsAppAppt} onOpenChange={(o) => !o && setWhatsAppAppt(null)}>
+        <DialogContent className="max-w-md">
+          {whatsAppAppt && (() => {
+            const svcList = (whatsAppAppt.services ?? []).map(s => s.service_name).join(', ');
+            const dateFmt = format(new Date(whatsAppAppt.starts_at), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+            const hourFmt = format(new Date(whatsAppAppt.starts_at), "HH'h'mm");
+            const profName = whatsAppAppt.professional_name || currentUser?.name || '';
+            const msg = `Olá ${whatsAppAppt.client_name}! 😊\n\nSeu agendamento foi confirmado! ✅\n\n✂️ Serviço: ${svcList}\n📆 Data: ${dateFmt}\n🕐 Horário: ${hourFmt}\n👩 Profissional: ${profName}\n\nTe esperamos! Qualquer dúvida é só chamar aqui. 🙏`;
+            const digits = (whatsAppAppt.client_phone ?? '').replace(/\D/g, '');
+            const phone = digits.startsWith('55') ? digits : `55${digits}`;
+            const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+            return (
+              <>
+                <DialogHeader>
+                  <DialogTitle>Agendamento confirmado! ✅</DialogTitle>
+                  <DialogDescription>Envie a confirmação para o cliente pelo WhatsApp:</DialogDescription>
+                </DialogHeader>
+                <pre className="bg-muted text-foreground rounded-md p-3 text-xs whitespace-pre-wrap font-sans max-h-72 overflow-auto">{msg}</pre>
+                <DialogFooter className="flex-col sm:flex-row gap-2">
+                  <Button variant="outline" onClick={() => setWhatsAppAppt(null)}>Fechar</Button>
+                  <Button
+                    className="bg-[#22C55E] hover:bg-[#16A34A] text-white"
+                    onClick={() => { window.open(url, '_blank'); }}
+                    disabled={!digits}
+                  >
+                    Enviar pelo WhatsApp
+                  </Button>
+                </DialogFooter>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 }
