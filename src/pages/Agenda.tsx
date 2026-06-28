@@ -433,6 +433,15 @@ export default function Agenda() {
                 </div>
               </div>
               <DialogFooter className="flex-col sm:flex-row gap-2">
+                {(selected.status === 'scheduled' || selected.status === 'pending') && (
+                  <Button
+                    className="bg-[#22C55E] hover:bg-[#16A34A] text-white"
+                    onClick={() => handleConfirmAndNotify(selected)}
+                    disabled={acting}
+                  >
+                    ✅ Confirmar e notificar cliente
+                  </Button>
+                )}
                 {(selected.status === 'scheduled' || selected.status === 'in_progress') && (
                   <Button variant="outline" className="text-destructive border-destructive" onClick={() => setCancelConfirmOpen(true)} disabled={acting}>
                     Cancelar agendamento
