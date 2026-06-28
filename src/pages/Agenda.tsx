@@ -282,13 +282,7 @@ export default function Agenda() {
       const dateFmt = format(new Date(appt.starts_at), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR });
       const hourFmt = format(new Date(appt.starts_at), "HH'h'mm");
       const profName = appt.professional_name || currentUser?.name || '';
-      const msg = "Olá " + appt.client_name + "!\n" +
-        "Seu agendamento foi confirmado! \u2705\n\n" +
-        "\u2702\uFE0F Serviço: " + svcList + "\n" +
-        "\uD83D\uDCC6 Data: " + dateFmt + "\n" +
-        "\uD83D\uDD50 Horário: " + hourFmt + "\n" +
-        "\uD83D\uDC69 Profissional: " + profName + "\n\n" +
-        "Te esperamos! \uD83D\uDE4F";
+      const msg = `Olá ${appt.client_name}! 😊\n\nSeu agendamento foi confirmado! ✅\n\n✂️ Serviço: ${svcList}\n\n📆 Data: ${dateFmt}\n\n🕐 Horário: ${hourFmt}\n\n👩 Profissional: ${profName}\n\nTe esperamos! 🙏`;
       const digits = (appt.client_phone ?? '').replace(/\D/g, '');
       const phone = digits.startsWith('55') ? digits : `55${digits}`;
       const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
@@ -473,28 +467,37 @@ export default function Agenda() {
                   <span>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalSelected)}</span>
                 </div>
               </div>
-              <DialogFooter style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div className="flex flex-col gap-2 mt-4">
                 {(selected.status === 'scheduled' || selected.status === 'pending') && (
-                  <Button
-                    className="bg-[#22C55E] hover:bg-[#16A34A] text-white"
-                    style={{ width: '100%' }}
+                  <button
                     onClick={() => handleConfirmAndNotify(selected)}
                     disabled={acting}
+                    className="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center gap-2"
                   >
                     ✅ Confirmar e notificar cliente
-                  </Button>
+                  </button>
                 )}
-                <div style={{ display: 'flex', gap: 8, width: '100%' }}>
+                <div className="flex gap-2">
                   {(selected.status === 'scheduled' || selected.status === 'in_progress') && (
-                    <Button variant="outline" className="text-destructive border-destructive" style={{ flex: 1 }} onClick={() => setCancelConfirmOpen(true)} disabled={acting}>
+                    <button
+                      onClick={() => setCancelConfirmOpen(true)}
+                      disabled={acting}
+                      className="flex-1 border border-red-500 text-red-500 hover:bg-red-50 font-medium py-2 px-4 rounded-lg"
+                    >
                       Cancelar agendamento
-                    </Button>
+                    </button>
                   )}
                   {selected.status === 'scheduled' && (
-                    <Button onClick={handleStart} disabled={acting} style={{ flex: 1 }}>Iniciar atendimento</Button>
+                    <button
+                      onClick={handleStart}
+                      disabled={acting}
+                      className="flex-1 bg-purple-500 hover:bg-purple-600 text-white font-medium py-2 px-4 rounded-lg"
+                    >
+                      Iniciar atendimento
+                    </button>
                   )}
                 </div>
-              </DialogFooter>
+              </div>
             </>
           )}
         </DialogContent>
@@ -526,13 +529,7 @@ export default function Agenda() {
             const dateFmt = format(new Date(whatsAppAppt.starts_at), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR });
             const hourFmt = format(new Date(whatsAppAppt.starts_at), "HH'h'mm");
             const profName = whatsAppAppt.professional_name || currentUser?.name || '';
-            const msg = "Olá " + whatsAppAppt.client_name + "!\n" +
-              "Seu agendamento foi confirmado! \u2705\n\n" +
-              "\u2702\uFE0F Serviço: " + svcList + "\n" +
-              "\uD83D\uDCC6 Data: " + dateFmt + "\n" +
-              "\uD83D\uDD50 Horário: " + hourFmt + "\n" +
-              "\uD83D\uDC69 Profissional: " + profName + "\n\n" +
-              "Te esperamos! Qualquer dúvida é só chamar aqui. \uD83D\uDE4F";
+            const msg = `Olá ${whatsAppAppt.client_name}! 😊\n\nSeu agendamento foi confirmado! ✅\n\n✂️ Serviço: ${svcList}\n\n📆 Data: ${dateFmt}\n\n🕐 Horário: ${hourFmt}\n\n👩 Profissional: ${profName}\n\nTe esperamos! 🙏`;
             const digits = (whatsAppAppt.client_phone ?? '').replace(/\D/g, '');
             const phone = digits.startsWith('55') ? digits : `55${digits}`;
             const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
