@@ -212,13 +212,13 @@ export default function Agenda() {
         )}
         style={{ top, height }}
       >
-        {(appt.status === 'pending' || appt.status === 'confirmed') && (
+        {(appt.status === 'pending' || appt.status === 'scheduled' || appt.status === 'confirmed') && (
           <div className="mb-1">
             <span className={cn(
               'inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold',
-              appt.status === 'pending' ? 'bg-[#F97316] text-white' : 'bg-[#22C55E] text-white'
+              appt.status === 'confirmed' ? 'bg-[#22C55E] text-white' : 'bg-[#F97316] text-white'
             )}>
-              {statusLabel[appt.status]}
+              {appt.status === 'confirmed' ? 'Confirmado' : 'Pendente'}
             </span>
           </div>
         )}
