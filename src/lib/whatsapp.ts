@@ -66,3 +66,4 @@ export function buildConfirmacaoTexto(params: WhatsAppConfirmParams): string {
     'Te esperamos! ' + E.pray,
   ].join('\n');
 }
+
