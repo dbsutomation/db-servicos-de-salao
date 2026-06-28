@@ -160,13 +160,25 @@ const ProfessionalSchedules = () => {
 
       for (const d of schedules) {
         const existingId = existingMap.get(d.day_of_week);
+
+        if (!d.is_active) {
+          if (existingId) {
+            const { error } = await supabase
+              .from('professional_schedules')
+              .delete()
+              .eq('id', existingId);
+            if (error) throw error;
+          }
+          continue;
+        }
+
         const payload: any = {
           professional_id: selectedProfessionalId,
           salon_id: salonId,
           day_of_week: d.day_of_week,
-          is_active: d.is_active,
-          start_time: d.is_active ? d.start_time : (d.start_time || '00:00'),
-          end_time: d.is_active ? d.end_time : (d.end_time || '00:00'),
+          is_active: true,
+          start_time: d.start_time,
+          end_time: d.end_time,
         };
         if (existingId) {
           const { error } = await supabase
