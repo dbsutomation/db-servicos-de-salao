@@ -32,6 +32,7 @@ type Appt = {
   professional_id: string;
   started_at: string | null;
   client_name?: string;
+  client_phone?: string;
   professional_name?: string;
   services?: { id: string; service_id: string; service_name: string; duration_minutes: number; price: number }[];
 };
@@ -74,6 +75,7 @@ export default function Agenda() {
   const [selected, setSelected] = useState<Appt | null>(null);
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
   const [acting, setActing] = useState(false);
+  const [whatsAppAppt, setWhatsAppAppt] = useState<Appt | null>(null);
 
   const weekDays = useMemo(
     () => Array.from({ length: DAY_COLS }, (_, i) => addDays(weekStart, i)),
@@ -128,12 +130,12 @@ export default function Agenda() {
       const apptIds = list.map(a => a.id);
 
       const [clientsRes, profsRes, svcsRes] = await Promise.all([
-        clientIds.length ? supabase.from('clients').select('id, name').in('id', clientIds) : Promise.resolve({ data: [] as any[] } as any),
+        clientIds.length ? supabase.from('clients').select('id, name, phone').in('id', clientIds) : Promise.resolve({ data: [] as any[] } as any),
         profIds.length ? supabase.from('users').select('id, name').in('id', profIds) : Promise.resolve({ data: [] as any[] } as any),
         apptIds.length ? supabase.from('appointment_services').select('id, appointment_id, service_id, service_name, duration_minutes, price').in('appointment_id', apptIds) : Promise.resolve({ data: [] as any[] } as any),
       ]);
 
-      const clientMap = new Map(((clientsRes.data as any[]) ?? []).map(c => [c.id, c.name]));
+      const clientMap = new Map(((clientsRes.data as any[]) ?? []).map(c => [c.id, c]));
       const profMap = new Map(((profsRes.data as any[]) ?? []).map(p => [p.id, p.name]));
       const svcByAppt = new Map<string, any[]>();
       ((svcsRes.data as any[]) ?? []).forEach(s => {
@@ -142,12 +144,16 @@ export default function Agenda() {
         svcByAppt.set(s.appointment_id, arr);
       });
 
-      setAppointments(list.map(a => ({
-        ...a,
-        client_name: clientMap.get(a.client_id) ?? 'Cliente',
-        professional_name: profMap.get(a.professional_id) ?? '',
-        services: svcByAppt.get(a.id) ?? [],
-      })));
+      setAppointments(list.map(a => {
+        const c = clientMap.get(a.client_id) as any;
+        return {
+          ...a,
+          client_name: c?.name ?? 'Cliente',
+          client_phone: c?.phone ?? '',
+          professional_name: profMap.get(a.professional_id) ?? '',
+          services: svcByAppt.get(a.id) ?? [],
+        };
+      }));
     } catch (e: any) {
       toast({ title: 'Erro ao carregar agenda', description: e.message, variant: 'destructive' });
     } finally {
@@ -195,11 +201,13 @@ export default function Agenda() {
     const height = Math.max(24, (endMin - startMin) * PX_PER_MIN);
     const svcLabel = (appt.services ?? []).map(s => s.service_name).join(', ');
     return (
-      <button
+      <div
         key={appt.id}
         onClick={() => setSelected(appt)}
+        role="button"
+        tabIndex={0}
         className={cn(
-          'absolute left-1 right-1 rounded-md border px-2 py-1 text-xs text-left shadow-sm hover:opacity-90 transition',
+          'absolute left-1 right-1 rounded-md border px-2 py-1 text-xs text-left shadow-sm hover:opacity-90 transition cursor-pointer overflow-hidden',
           statusStyles[appt.status] ?? statusStyles.scheduled
         )}
         style={{ top, height }}
@@ -222,8 +230,37 @@ export default function Agenda() {
         {appt.status === 'in_progress' && (
           <Badge variant="secondary" className="mt-1 h-4 text-[10px]">Em atendimento</Badge>
         )}
-      </button>
+        {appt.status === 'pending' && (
+          <Button
+            size="sm"
+            className="mt-1 h-6 w-full bg-[#22C55E] hover:bg-[#16A34A] text-white text-[10px] px-2"
+            onClick={(e) => { e.stopPropagation(); handleConfirm(appt); }}
+            disabled={acting}
+          >
+            Confirmar agendamento
+          </Button>
+        )}
+      </div>
     );
+  };
+
+  const handleConfirm = async (appt: Appt) => {
+    setActing(true);
+    try {
+      const salonId = await getCurrentSalonId();
+      const { error } = await supabase
+        .from('appointments')
+        .update({ status: 'confirmed' })
+        .eq('id', appt.id)
+        .eq('salon_id', salonId);
+      if (error) throw error;
+      setAppointments(prev => prev.map(a => a.id === appt.id ? { ...a, status: 'confirmed' } : a));
+      setWhatsAppAppt({ ...appt, status: 'confirmed' });
+    } catch (e: any) {
+      toast({ title: 'Erro ao confirmar', description: e.message, variant: 'destructive' });
+    } finally {
+      setActing(false);
+    }
   };
 
   const handleStart = async () => {
@@ -427,6 +464,41 @@ export default function Agenda() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* WhatsApp confirmação */}
+      <Dialog open={!!whatsAppAppt} onOpenChange={(o) => !o && setWhatsAppAppt(null)}>
+        <DialogContent className="max-w-md">
+          {whatsAppAppt && (() => {
+            const svcList = (whatsAppAppt.services ?? []).map(s => s.service_name).join(', ');
+            const dateFmt = format(new Date(whatsAppAppt.starts_at), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+            const hourFmt = format(new Date(whatsAppAppt.starts_at), "HH'h'mm");
+            const profName = whatsAppAppt.professional_name || currentUser?.name || '';
+            const msg = `Olá ${whatsAppAppt.client_name}! 😊\n\nSeu agendamento foi confirmado! ✅\n\n✂️ Serviço: ${svcList}\n📆 Data: ${dateFmt}\n🕐 Horário: ${hourFmt}\n👩 Profissional: ${profName}\n\nTe esperamos! Qualquer dúvida é só chamar aqui. 🙏`;
+            const digits = (whatsAppAppt.client_phone ?? '').replace(/\D/g, '');
+            const phone = digits.startsWith('55') ? digits : `55${digits}`;
+            const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+            return (
+              <>
+                <DialogHeader>
+                  <DialogTitle>Agendamento confirmado! ✅</DialogTitle>
+                  <DialogDescription>Envie a confirmação para o cliente pelo WhatsApp:</DialogDescription>
+                </DialogHeader>
+                <pre className="bg-muted text-foreground rounded-md p-3 text-xs whitespace-pre-wrap font-sans max-h-72 overflow-auto">{msg}</pre>
+                <DialogFooter className="flex-col sm:flex-row gap-2">
+                  <Button variant="outline" onClick={() => setWhatsAppAppt(null)}>Fechar</Button>
+                  <Button
+                    className="bg-[#22C55E] hover:bg-[#16A34A] text-white"
+                    onClick={() => { window.open(url, '_blank'); }}
+                    disabled={!digits}
+                  >
+                    Enviar pelo WhatsApp
+                  </Button>
+                </DialogFooter>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 }
