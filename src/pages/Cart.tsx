@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import MainLayout from '@/components/Layout/MainLayout';
 import { Button } from '@/components/ui/button';
@@ -7,14 +7,39 @@ import { useCart } from '@/contexts/CartContext';
 import CartItem from '@/components/Cart/CartItem';
 import { Separator } from '@/components/ui/separator';
 import CheckoutForm from '@/components/Forms/CheckoutForm';
+import { supabase } from '@/integrations/supabase/client';
+import { Service } from '@/types';
 
 const Cart = () => {
-  const { cartItems, getCartTotal, getCartTipsTotal, clearCart } = useCart();
+  const { cartItems, getCartTotal, getCartTipsTotal, clearCart, addToCart } = useCart();
   const navigate = useNavigate();
-  
+  const prefilledRef = useRef(false);
+
+  // Prefill do carrinho quando vier de um agendamento iniciado na /agenda
+  useEffect(() => {
+    if (prefilledRef.current) return;
+    const raw = sessionStorage.getItem('activeAppointment');
+    if (!raw) return;
+    try {
+      const active = JSON.parse(raw) as { serviceIds: string[] };
+      if (!active?.serviceIds?.length) return;
+      if (cartItems.length > 0) { prefilledRef.current = true; return; }
+      prefilledRef.current = true;
+      (async () => {
+        const { data } = await supabase
+          .from('services')
+          .select('id, name, description, price, duration, category, type, image, commission')
+          .in('id', active.serviceIds);
+        ((data as any[]) ?? []).forEach((s) => addToCart(s as Service));
+      })();
+    } catch { /* ignore */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleCheckoutSuccess = () => {
     navigate('/records');
   };
+
 
   return (
     <MainLayout>

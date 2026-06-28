@@ -86,11 +86,18 @@ export function useCheckoutForm() {
         })) as TeamMember[];
         
         setTeamMembers(mappedTeamData);
-        
-        // Set current user as default team member if available
-        if (currentUser?.id) {
+
+        // Pré-seleciona com base em agendamento ativo (vindo da /agenda),
+        // senão usa o usuário logado como profissional.
+        const activeRaw = sessionStorage.getItem('activeAppointment');
+        const active = activeRaw ? JSON.parse(activeRaw) : null;
+        if (active?.clientId) form.setValue('client', active.clientId);
+        if (active?.professionalId) {
+          form.setValue('teamMember', active.professionalId);
+        } else if (currentUser?.id) {
           form.setValue('teamMember', currentUser.id);
         }
+
       } catch (error: any) {
         console.error('Error fetching data:', error.message);
         toast({
@@ -465,11 +472,16 @@ export function useCheckoutForm() {
         paymentMethodString += ` - ${values.creditPaymentType === 'full' ? 'À Vista' : 'Parcelado'}`;
       }
 
+      // Verifica se há agendamento ativo associado
+      const activeRaw = sessionStorage.getItem('activeAppointment');
+      const active = activeRaw ? JSON.parse(activeRaw) : null;
+      const appointmentId: string | null = active?.appointmentId ?? null;
+
       // Process each cart item
       console.log('Processando itens do carrinho...');
       const salonId = await getCurrentSalonId();
       for (const item of cartItems) {
-        const recordData = {
+        const recordData: any = {
           client_id: client.id,
           professional_id: teamMember.id,
           service_id: item.service.id,
@@ -479,9 +491,10 @@ export function useCheckoutForm() {
           tip_amount: item.tipAmount || 0,
           salon_id: salonId,
         };
-        
+        if (appointmentId) recordData.appointment_id = appointmentId;
+
         console.log('Inserindo registro:', recordData);
-        
+
         const { data, error } = await supabase
           .from('service_records')
           .insert(recordData as any)
@@ -492,17 +505,28 @@ export function useCheckoutForm() {
           console.error('Erro ao inserir registro:', error);
           throw error;
         }
-        
+
         console.log('Registro inserido com sucesso:', data);
       }
-      
+
       console.log('Todos os registros inseridos com sucesso!');
-      
+
+      // Se veio de um agendamento, marca como concluído
+      if (appointmentId) {
+        const { error: apptErr } = await supabase
+          .from('appointments')
+          .update({ status: 'completed', completed_at: new Date().toISOString() })
+          .eq('id', appointmentId);
+        if (apptErr) console.error('Erro ao concluir agendamento:', apptErr);
+        sessionStorage.removeItem('activeAppointment');
+      }
+
       // Show success message
       toast({
-        title: "Serviços registrados",
+        title: appointmentId ? "Venda finalizada e agendamento concluído!" : "Serviços registrados",
         description: `${cartItems.reduce((total, item) => total + item.quantity, 0)} serviços registrados com sucesso`,
       });
+
       
       // Clear the cart
       clearCart();
