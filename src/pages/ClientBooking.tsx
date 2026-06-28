@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Calendar } from '@/components/ui/calendar';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { format, addDays, startOfDay, addMinutes } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -185,6 +187,7 @@ export default function ClientBooking() {
     [services, selectedServiceIds]
   );
   const totalDuration = selectedServices.reduce((acc, s) => acc + (s.duration ?? 0), 0);
+  const totalPrice = selectedServices.reduce((acc, s) => acc + (s.price ?? 0), 0);
 
   const startMinutes = selectedSlot ? timeToMinutes(selectedSlot) : null;
   const endMinutes = startMinutes !== null ? startMinutes + totalDuration : null;
@@ -422,59 +425,83 @@ export default function ClientBooking() {
       )}
 
       {step === 4 && (
-        <Card>
-          <CardHeader>
+        <Card className="flex flex-col max-h-[calc(100vh-10rem)]">
+          <CardHeader className="shrink-0">
             <CardTitle>Escolha os serviços</CardTitle>
             <CardDescription>
               Início às <strong>{selectedSlot}</strong> com {selectedProf?.name}.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {services.length === 0 && (
-              <p className="text-sm text-muted-foreground">
-                Nenhum serviço compatível com as especialidades deste profissional.
-              </p>
-            )}
-            <div className="space-y-2">
-              {services.map(s => {
-                const sel = selectedServiceIds.includes(s.id);
-                return (
-                  <button
-                    key={s.id}
-                    onClick={() => toggleService(s.id)}
-                    className={cn(
-                      'w-full flex items-center justify-between p-3 rounded-md border text-left transition-colors',
-                      sel ? 'border-primary bg-primary/5' : 'hover:bg-muted/50'
-                    )}
-                  >
-                    <div className="min-w-0">
-                      <div className="font-medium">{s.name}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {s.duration ?? 0} min · R$ {Number(s.price).toFixed(2)}
-                      </div>
-                    </div>
-                    {sel ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-                  </button>
-                );
-              })}
-            </div>
 
-            <div className="rounded-md border p-3 text-sm space-y-1 bg-muted/30">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Duração total</span>
-                <span className="font-medium">{totalDuration} min</span>
+          <div className="flex-1 min-h-0 overflow-hidden">
+            <ScrollArea className="h-full max-h-[60vh] px-6 py-2">
+              {services.length === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  Nenhum serviço compatível com as especialidades deste profissional.
+                </p>
+              )}
+              <div className="space-y-2 pb-4">
+                {services.map(s => {
+                  const sel = selectedServiceIds.includes(s.id);
+                  return (
+                    <button
+                      key={s.id}
+                      onClick={() => toggleService(s.id)}
+                      className={cn(
+                        'w-full flex items-center justify-between p-3 rounded-md border text-left transition-colors',
+                        sel ? 'border-primary bg-primary/5' : 'hover:bg-muted/50'
+                      )}
+                    >
+                      <div className="min-w-0">
+                        <div className="font-medium">{s.name}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {s.duration ?? 0} min · R$ {Number(s.price).toFixed(2)}
+                        </div>
+                      </div>
+                      {sel ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                    </button>
+                  );
+                })}
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Início</span>
-                <span className="font-medium">{selectedSlot ?? '—'}</span>
+            </ScrollArea>
+          </div>
+
+          <div className="shrink-0 border-t bg-background px-6 py-4 space-y-3 sticky bottom-0">
+            <h3 className="text-sm font-semibold">Resumo do agendamento</h3>
+
+            {selectedServices.length > 0 ? (
+              <div className="space-y-2">
+                {selectedServices.map(s => (
+                  <div key={s.id} className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">
+                      {s.name} <span className="text-xs">({s.duration ?? 0} min)</span>
+                    </span>
+                    <span className="font-medium">R$ {Number(s.price).toFixed(2)}</span>
+                  </div>
+                ))}
+                <Separator />
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Duração total</span>
+                  <span className="font-medium">{totalDuration} min</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Início</span>
+                  <span className="font-medium">{selectedSlot ?? '—'}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Término previsto</span>
+                  <span className="font-medium">
+                    {endMinutes !== null ? minutesToTime(endMinutes) : '—'}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Valor total</span>
+                  <span className="font-medium">R$ {Number(totalPrice).toFixed(2)}</span>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Término previsto</span>
-                <span className="font-medium">
-                  {endMinutes !== null ? minutesToTime(endMinutes) : '—'}
-                </span>
-              </div>
-            </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">Nenhum serviço selecionado.</p>
+            )}
 
             {exceedsWindow && (
               <p className="text-sm text-destructive">
@@ -482,7 +509,7 @@ export default function ClientBooking() {
               </p>
             )}
 
-            <div className="flex justify-between">
+            <div className="flex justify-between pt-1">
               <Button variant="ghost" onClick={() => setStep(3)}>Voltar</Button>
               <Button
                 disabled={selectedServices.length === 0 || exceedsWindow || confirming}
@@ -491,7 +518,7 @@ export default function ClientBooking() {
                 {confirming ? 'Confirmando…' : 'Confirmar agendamento'}
               </Button>
             </div>
-          </CardContent>
+          </div>
         </Card>
       )}
     </div>
