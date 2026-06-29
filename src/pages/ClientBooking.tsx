@@ -105,20 +105,13 @@ export default function ClientBooking() {
     })();
   }, [navigate]);
 
-  // 2) Quando profissional muda, carrega seus horários e serviços compatíveis
+  // 2) Quando profissional muda, carrega serviços compatíveis
   useEffect(() => {
     if (!selectedProf || !salonId) return;
     setSelectedDate(undefined);
     setSelectedSlot(null);
     setSelectedServiceIds([]);
     (async () => {
-      const { data: scheds } = await supabase
-        .from('professional_schedules')
-        .select('day_of_week, start_time, end_time')
-        .eq('professional_id', selectedProf.id)
-        .eq('is_active', true);
-      setSchedules(((scheds as any[]) ?? []) as Schedule[]);
-
       const cats = selectedProf.categories ?? [];
       let q = supabase.from('services').select('id, name, duration, price, category').eq('salon_id', salonId);
       const { data: svcs } = await q;
@@ -129,6 +122,20 @@ export default function ClientBooking() {
       setServices(filtered);
     })();
   }, [selectedProf, salonId]);
+
+  // 2b) Recarrega horários do profissional sempre que o cliente chega na etapa de data
+  // Garante que mudanças na escala do profissional sejam refletidas em tempo real
+  useEffect(() => {
+    if (!selectedProf || step !== 2) return;
+    (async () => {
+      const { data: scheds } = await supabase
+        .from('professional_schedules')
+        .select('day_of_week, start_time, end_time')
+        .eq('professional_id', selectedProf.id)
+        .eq('is_active', true);
+      setSchedules(((scheds as any[]) ?? []) as Schedule[]);
+    })();
+  }, [selectedProf, step]);
 
   // 3) Quando data muda, busca agendamentos existentes do profissional naquele dia
   useEffect(() => {
@@ -154,7 +161,7 @@ export default function ClientBooking() {
       setBusySlots(busy);
       setSelectedSlot(null);
     })();
-  }, [selectedProf, selectedDate]);
+  }, [selectedProf, selectedDate, step]);
 
   const today = useMemo(() => startOfDay(new Date()), []);
   const limitDate = useMemo(() => addDays(today, 30), [today]);
