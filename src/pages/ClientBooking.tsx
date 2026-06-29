@@ -414,8 +414,6 @@ export default function ClientBooking() {
                   selected={selectedDate}
                   onSelect={setSelectedDate}
                   disabled={isDayDisabled}
-                  fromDate={today}
-                  toDate={maxDate}
                   locale={ptBR}
                   initialFocus
                   className={cn('p-3 pointer-events-auto border rounded-md')}
