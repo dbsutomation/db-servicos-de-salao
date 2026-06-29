@@ -3,15 +3,14 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Calendar } from '@/components/ui/calendar';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
-import { format, addDays, startOfDay, addMinutes } from 'date-fns';
+import { format, addDays, startOfDay, addMinutes, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameMonth, isSameDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from '@/hooks/use-toast';
-import { CheckCircle2, Plus, Minus, Check } from 'lucide-react';
+import { CheckCircle2, Plus, Minus, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import ClientLayout from '@/components/Layout/ClientLayout';
 
 type Professional = {
@@ -60,6 +59,7 @@ export default function ClientBooking() {
   const [confirmed, setConfirmed] = useState<{
     starts: Date; ends: Date; services: Service[];
   } | null>(null);
+  const [calendarMonth, setCalendarMonth] = useState<Date>(startOfDay(new Date()));
 
   // 1) Carregar cliente + profissionais que têm horário ativo
   useEffect(() => {
@@ -409,15 +409,76 @@ export default function ClientBooking() {
               </p>
             ) : (
               <div className="flex justify-center">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={setSelectedDate}
-                  disabled={isDayDisabled}
-                  locale={ptBR}
-                  initialFocus
-                  className={cn('p-3 pointer-events-auto border rounded-md')}
-                />
+                {/* Calendário customizado — ignora restrições visuais do shadcn */}
+                {(() => {
+                  const monthStart = startOfMonth(calendarMonth);
+                  const monthEnd = endOfMonth(calendarMonth);
+                  const gridStart = startOfWeek(monthStart, { weekStartsOn: 0 });
+                  const gridEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
+                  const days: Date[] = [];
+                  for (let d = gridStart; d <= gridEnd; d = addDays(d, 1)) {
+                    days.push(new Date(d));
+                  }
+                  const weekDays = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+                  const canGoPrev = startOfMonth(addDays(monthStart, -1)) >= startOfMonth(today);
+                  const canGoNext = startOfMonth(addDays(monthEnd, 1)) <= startOfMonth(limitDate);
+                  return (
+                    <div className="border rounded-md p-3 w-full max-w-xs">
+                      {/* Header mês */}
+                      <div className="flex items-center justify-between mb-3">
+                        <button
+                          onClick={() => setCalendarMonth(startOfMonth(addDays(monthStart, -1)))}
+                          disabled={!canGoPrev}
+                          className="p-1 rounded hover:bg-gray-100 disabled:opacity-30"
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </button>
+                        <span className="text-sm font-medium capitalize">
+                          {format(calendarMonth, 'MMMM yyyy', { locale: ptBR })}
+                        </span>
+                        <button
+                          onClick={() => setCalendarMonth(startOfMonth(addDays(monthEnd, 1)))}
+                          disabled={!canGoNext}
+                          className="p-1 rounded hover:bg-gray-100 disabled:opacity-30"
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </button>
+                      </div>
+                      {/* Dias da semana */}
+                      <div className="grid grid-cols-7 mb-1">
+                        {weekDays.map(w => (
+                          <div key={w} className="text-center text-xs text-muted-foreground py-1">{w}</div>
+                        ))}
+                      </div>
+                      {/* Dias */}
+                      <div className="grid grid-cols-7 gap-y-1">
+                        {days.map((day, i) => {
+                          const disabled = isDayDisabled(day);
+                          const isSelected = selectedDate && isSameDay(day, selectedDate);
+                          const isToday = isSameDay(day, today);
+                          const otherMonth = !isSameMonth(day, calendarMonth);
+                          return (
+                            <button
+                              key={i}
+                              onClick={() => !disabled && setSelectedDate(day)}
+                              disabled={disabled}
+                              className={cn(
+                                'h-8 w-8 mx-auto rounded-full text-sm flex items-center justify-center transition-colors',
+                                isSelected && 'bg-primary text-primary-foreground font-semibold',
+                                !isSelected && !disabled && !otherMonth && 'hover:bg-accent',
+                                !isSelected && isToday && 'font-bold text-primary',
+                                disabled && 'text-muted-foreground opacity-30 cursor-not-allowed',
+                                otherMonth && !disabled && 'text-muted-foreground',
+                              )}
+                            >
+                              {format(day, 'd')}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             )}
             <div className="flex justify-between">
