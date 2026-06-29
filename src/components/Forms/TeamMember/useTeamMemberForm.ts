@@ -34,7 +34,6 @@ const useTeamMemberForm = ({ teamMemberId, onSuccess }: UseTeamMemberFormProps) 
   useEffect(() => {
     if (teamMemberId) {
       setIsLoading(true);
-      console.log("Carregando dados do profissional:", teamMemberId);
       
       const fetchTeamMember = async () => {
         try {
@@ -55,7 +54,6 @@ const useTeamMemberForm = ({ teamMemberId, onSuccess }: UseTeamMemberFormProps) 
           }
           
           if (data) {
-            console.log("Dados do profissional carregados:", data);
             
             form.reset({
               name: data.name || '',
@@ -80,7 +78,6 @@ const useTeamMemberForm = ({ teamMemberId, onSuccess }: UseTeamMemberFormProps) 
   }, [teamMemberId, form]);
 
   const handleSubmit = (data: TeamMemberFormValues) => {
-    console.log("Dados do formulário:", data);
     onSuccess(data);
   };
 

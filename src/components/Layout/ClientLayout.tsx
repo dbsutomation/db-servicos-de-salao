@@ -19,7 +19,7 @@ const NAV_ITEMS = [
   },
 ];
 
-function SidebarContent({ onLogout, onNavigate }: { onLogout: () => void; onNavigate?: () => void }) {
+function SidebarContent({ onLogout, onNavigate, onNavigateTo }: { onLogout: () => void; onNavigate?: () => void; onNavigateTo: (path: string) => void }) {
   const location = useLocation();
 
   return (
@@ -37,7 +37,7 @@ function SidebarContent({ onLogout, onNavigate }: { onLogout: () => void; onNavi
               key={item.path}
               onClick={() => {
                 onNavigate?.();
-                window.location.href = item.path;
+                onNavigateTo(item.path);
               }}
               className={cn(
                 'flex w-full items-center gap-3 px-4 py-3 text-sm rounded-md transition-colors border-2',
@@ -79,7 +79,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     <div className="flex min-h-screen bg-gray-50">
       {/* Sidebar desktop */}
       <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r-2 border-gray-200 shadow-md hidden md:block">
-        <SidebarContent onLogout={handleLogout} />
+        <SidebarContent onLogout={handleLogout} onNavigateTo={navigate} />
       </aside>
 
       {/* Header mobile */}
@@ -100,7 +100,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                 <X size={22} />
               </Button>
             </div>
-            <SidebarContent onLogout={handleLogout} onNavigate={() => setMobileOpen(false)} />
+            <SidebarContent onLogout={handleLogout} onNavigate={() => setMobileOpen(false)} onNavigateTo={navigate} />
           </aside>
         </div>
       )}

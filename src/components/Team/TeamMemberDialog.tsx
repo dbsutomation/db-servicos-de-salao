@@ -18,7 +18,6 @@ const TeamMemberDialog = ({
   onSuccess,
   title
 }: TeamMemberDialogProps) => {
-  console.log("TeamMemberDialog - editingMember:", editingMember);
   const isEditing = !!editingMember;
   
   return (

@@ -33,9 +33,6 @@ export const useDashboardData = () => {
   const [serviceRecords, setServiceRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
-  console.log('[DASHBOARD DEBUG] Data atual local:', format(localNow, 'yyyy-MM-dd HH:mm:ss'));
-  console.log('[DASHBOARD DEBUG] Semana atual - Início:', format(startOfCurrentWeek, 'yyyy-MM-dd'));
-  console.log('[DASHBOARD DEBUG] Semana atual - Fim:', format(endOfCurrentWeek, 'yyyy-MM-dd'));
   
   // Fetch expenses and service records from Supabase
   useEffect(() => {
@@ -110,9 +107,6 @@ export const useDashboardData = () => {
           };
         }) || [];
 
-        console.log('[DASHBOARD DEBUG] Total de registros carregados:', formattedRecords.length);
-        console.log('[DASHBOARD DEBUG] Primeiros 3 registros:', formattedRecords.slice(0, 3).map(r => ({ date: r.date, service: r.service?.name, client: r.client?.name })));
-        console.log('[DASHBOARD DEBUG] Últimos 3 registros:', formattedRecords.slice(-3).map(r => ({ date: r.date, service: r.service?.name, client: r.client?.name })));
         setServiceRecords(formattedRecords);
       } catch (error: any) {
         console.error('Error fetching dashboard data:', error.message);
@@ -133,58 +127,44 @@ export const useDashboardData = () => {
 
   // Apply filters to records
   const filteredRecords = useMemo(() => {
-    console.log('[FILTER DEBUG] Aplicando filtros - dateFilter:', dateFilter, 'startDate:', startDate, 'endDate:', endDate);
-    console.log('[FILTER DEBUG] Total de registros antes dos filtros:', serviceRecords.length);
     
     let records = [...serviceRecords];
     
     // Filter by professional if selected
     if (selectedProfessional && selectedProfessional !== 'all') {
       records = records.filter(record => record.teamMember.id === selectedProfessional);
-      console.log('[FILTER DEBUG] Após filtro de profissional:', records.length);
     } else if (currentUser && !currentUser.isManager) {
       // Non-managers can only see their own records
       records = records.filter(record => record.teamMember.id === currentUser.id);
-      console.log('[FILTER DEBUG] Após filtro de usuário não-gerente:', records.length);
     }
     
     // Filter by product/service type
     if (selectedType !== 'all') {
       records = records.filter(record => record.service.type === selectedType);
-      console.log('[FILTER DEBUG] Após filtro de tipo:', records.length);
     }
     
     // Apply date filter
     if (dateFilter === 'today') {
       const todayStr = format(toZonedTime(new Date(), timeZone), 'yyyy-MM-dd');
-      console.log('[FILTER DEBUG] Filtro "hoje" - comparando com:', todayStr);
       records = records.filter(record => record.date === todayStr);
-      console.log('[FILTER DEBUG] Registros após filtro "hoje":', records.length);
     } else if (dateFilter === 'week') {
       // Semana atual (segunda a domingo) em horário de Brasília
       const startStr = format(startOfCurrentWeek, 'yyyy-MM-dd');
       const endStr = format(endOfCurrentWeek, 'yyyy-MM-dd');
-      console.log('[FILTER DEBUG] Filtro "semana atual" - de', startStr, 'até', endStr);
       records = records.filter(record => record.date >= startStr && record.date <= endStr);
-      console.log('[FILTER DEBUG] Registros após filtro "semana atual":', records.length);
     } else if (dateFilter === 'month') {
       // Últimos 30 dias (inclusivo)
       const endStr = format(localNow, 'yyyy-MM-dd');
       const oneMonthAgo = new Date(localNow);
       oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
       const startStr = format(oneMonthAgo, 'yyyy-MM-dd');
-      console.log('[FILTER DEBUG] Filtro "mês" - de', startStr, 'até', endStr);
       records = records.filter(record => record.date >= startStr && record.date <= endStr);
-      console.log('[FILTER DEBUG] Registros após filtro "mês":', records.length);
     } else if (dateFilter === 'custom' && startDate && endDate) {
       // Comparação inclusiva por data (YYYY-MM-DD)
       const startStr = format(startDate, 'yyyy-MM-dd');
       const endStr = format(endDate, 'yyyy-MM-dd');
-      console.log('[FILTER DEBUG] Filtro "custom" - de', startStr, 'até', endStr);
       records = records.filter(record => record.date >= startStr && record.date <= endStr);
-      console.log('[FILTER DEBUG] Registros após filtro "custom":', records.length);
     } else {
-      console.log('[FILTER DEBUG] Sem filtro de data (all) - mostrando todos os registros');
     }
     
     // Sort records by date (newest first)
@@ -194,10 +174,7 @@ export const useDashboardData = () => {
       return dateB.getTime() - dateA.getTime(); // Descending order (newest first)
     });
     
-    console.log('[FILTER DEBUG] Total de registros APÓS todos os filtros:', records.length);
     if (records.length > 0) {
-      console.log('[FILTER DEBUG] Data mais antiga:', records[records.length - 1]?.date);
-      console.log('[FILTER DEBUG] Data mais recente:', records[0]?.date);
     }
     
     return records;

@@ -391,7 +391,6 @@ export function useCheckoutForm() {
       };
       
       const handleBeforePrint = () => {
-        console.log('Iniciando impressão...');
       };
       
       // Set up event listeners
@@ -430,9 +429,6 @@ export function useCheckoutForm() {
 
   // Handle form submission
   const onSubmit = async (values: CheckoutFormValues) => {
-    console.log('=== INÍCIO DO CHECKOUT ===');
-    console.log('Valores do formulário:', values);
-    console.log('Itens no carrinho:', cartItems);
     
     const clientId = values.client;
     const teamMemberId = values.teamMember;
@@ -440,8 +436,6 @@ export function useCheckoutForm() {
     const client = clients.find(c => c.id === clientId);
     const teamMember = teamMembers.find(t => t.id === teamMemberId);
     
-    console.log('Cliente selecionado:', client);
-    console.log('Profissional selecionado:', teamMember);
     
     if (!client || !teamMember) {
       console.error('Cliente ou profissional não encontrado');
@@ -478,7 +472,6 @@ export function useCheckoutForm() {
       const appointmentId: string | null = active?.appointmentId ?? null;
 
       // Process each cart item
-      console.log('Processando itens do carrinho...');
       const salonId = await getCurrentSalonId();
       for (const item of cartItems) {
         const recordData: any = {
@@ -493,7 +486,6 @@ export function useCheckoutForm() {
         };
         if (appointmentId) recordData.appointment_id = appointmentId;
 
-        console.log('Inserindo registro:', recordData);
 
         const { data, error } = await supabase
           .from('service_records')
@@ -506,10 +498,8 @@ export function useCheckoutForm() {
           throw error;
         }
 
-        console.log('Registro inserido com sucesso:', data);
       }
 
-      console.log('Todos os registros inseridos com sucesso!');
 
       // Se veio de um agendamento, marca como concluído
       if (appointmentId) {
@@ -534,7 +524,6 @@ export function useCheckoutForm() {
       // Navigate to the home page
       navigate('/');
       
-      console.log('=== FIM DO CHECKOUT ===');
     } catch (error: any) {
       console.error('Erro ao registrar serviços:', error);
       toast({

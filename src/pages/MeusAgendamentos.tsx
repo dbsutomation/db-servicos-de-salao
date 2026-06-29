@@ -42,7 +42,6 @@ export default function MeusAgendamentos() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [clientId, setClientId] = useState<string | null>(null);
   const [cancelTarget, setCancelTarget] = useState<string | null>(null);
   const [acting, setActing] = useState(false);
 
@@ -60,7 +59,6 @@ export default function MeusAgendamentos() {
       const cId = (customer as any)?.client_id;
       const sId = (customer as any)?.salon_id;
       if (!cId || !sId) { setLoading(false); return; }
-      setClientId(cId);
 
       const { data: appts } = await supabase
         .from('appointments')

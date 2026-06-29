@@ -15,14 +15,12 @@ import { toast } from '@/hooks/use-toast';
 const formSchema = z.object({
   email: z.string().email({ message: 'Email inválido' }),
   password: z.string().min(1, { message: 'A senha é obrigatória' }),
-  name: z.string().optional(),
 });
 
 type LoginFormValues = z.infer<typeof formSchema>;
 
 const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
   const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
@@ -30,7 +28,6 @@ const Login = () => {
     // Verificar a conexão com o Supabase
     const checkConnection = async () => {
       try {
-        console.log('Verificando conexão com Supabase...');
         const { data, error } = await supabase.from('users').select('count').limit(1);
         
         if (error) {
@@ -41,7 +38,6 @@ const Login = () => {
             variant: "destructive",
           });
         } else {
-          console.log('Conexão com Supabase estabelecida com sucesso.');
         }
       } catch (err) {
         console.error('Erro ao verificar conexão:', err);
@@ -61,16 +57,13 @@ const Login = () => {
     defaultValues: {
       email: '',
       password: '',
-      name: '',
     },
   });
 
   const onSubmit = async (values: LoginFormValues) => {
     setIsLoading(true);
-    console.log('Tentando fazer login com:', values.email);
     try {
       const success = await login(values.email, values.password);
-      console.log('Resultado do login:', success);
       if (success) {
         navigate('/');
       }
@@ -86,75 +79,6 @@ const Login = () => {
     }
   };
 
-  const handleSignUp = async () => {
-    const email = form.getValues('email');
-    const password = form.getValues('password');
-    const name = form.getValues('name');
-    
-    if (!email || !password) {
-      toast({
-        title: "Campos incompletos",
-        description: "Preencha email e senha para se registrar",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (isSignUp && !name) {
-      toast({
-        title: "Nome obrigatório",
-        description: "Por favor, preencha seu nome para se cadastrar",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setIsLoading(true);
-    try {
-      console.log('Tentando cadastrar usuário:', email);
-      // Primeiro, crie o usuário na autenticação do Supabase
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            name: name || email.split('@')[0],
-          }
-        }
-      });
-      
-      if (authError) {
-        console.error('Erro na autenticação:', authError);
-        toast({
-          title: "Erro no cadastro",
-          description: authError.message,
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      // No multi-tenant: o trigger handle_new_user é responsável por criar
-      // o registro em public.users com base no metadata do signUp. Sem metadata
-      // de salão, nada é criado aqui — o usuário precisa ser convidado ou
-      // se cadastrar via /cadastro-cliente/:salonId.
-      
-      toast({
-        title: "Cadastro realizado",
-        description: "Sua conta foi criada com sucesso. Entre em contato com o gerente para obter acesso ao sistema.",
-      });
-      
-      setIsSignUp(false);
-    } catch (error: any) {
-      console.error('Erro completo durante cadastro:', error);
-      toast({
-        title: "Erro no cadastro",
-        description: error.message || "Ocorreu um erro inesperado",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
@@ -162,27 +86,13 @@ const Login = () => {
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl text-center font-bold">Acesso ao sistema</CardTitle>
           <CardDescription className="text-center">
-            {isSignUp ? 'Crie sua conta para acessar o sistema' : 'Entre com suas credenciais para acessar o sistema'}
+            Entre com suas credenciais para acessar o sistema
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              {isSignUp && (
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nome</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Seu nome completo" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
+
               <FormField
                 control={form.control}
                 name="email"
@@ -209,11 +119,9 @@ const Login = () => {
                   </FormItem>
                 )}
               />
-              {!isSignUp && (
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? 'Entrando...' : 'Entrar'}
-                </Button>
-              )}
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? 'Entrando...' : 'Entrar'}
+              </Button>
             </form>
           </Form>
         </CardContent>

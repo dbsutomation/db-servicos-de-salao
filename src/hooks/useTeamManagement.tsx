@@ -35,10 +35,8 @@ export const useTeamManagement = () => {
     
     try {
       if (editingMember) {
-        console.log("Atualizando membro existente:", editingMember);
         success = await updateTeamMember(editingMember, data);
       } else {
-        console.log("Criando novo membro");
         success = await createTeamMember(data);
       }
       
@@ -71,7 +69,6 @@ export const useTeamManagement = () => {
         return;
       }
       
-      console.log("Excluindo membro:", memberToDelete, member?.name);
       const success = await deleteTeamMember(memberToDelete, member?.name);
       
       if (success) {

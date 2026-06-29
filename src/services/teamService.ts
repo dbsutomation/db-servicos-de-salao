@@ -45,8 +45,6 @@ export const updateTeamMember = async (memberId: string, data: any): Promise<boo
       throw new Error("ID do profissional não fornecido para atualização");
     }
     
-    console.log("Atualizando profissional com ID:", memberId);
-    console.log("Dados para atualização:", data);
     
     const updateData = {
       name: toTitleCase(data.name),
@@ -83,7 +81,6 @@ export const updateTeamMember = async (memberId: string, data: any): Promise<boo
       throw error;
     }
     
-    console.log("Profissional atualizado com sucesso:", memberId);
     
     toast({
       title: "Profissional atualizado",
@@ -101,7 +98,6 @@ export const updateTeamMember = async (memberId: string, data: any): Promise<boo
 
 export const createTeamMember = async (data: any): Promise<boolean> => {
   try {
-    console.log("Criando novo profissional com dados:", data);
     
     const id = crypto.randomUUID();
     
@@ -129,7 +125,6 @@ export const createTeamMember = async (data: any): Promise<boolean> => {
       throw error;
     }
     
-    console.log("Novo profissional criado:", newMember);
     
     toast({
       title: "Profissional adicionado",
@@ -150,7 +145,6 @@ export const deleteTeamMember = async (memberId: string, memberName?: string): P
       throw new Error("ID do profissional não fornecido para exclusão");
     }
     
-    console.log("Excluindo profissional com ID:", memberId);
     
     const { data: existingMember, error: checkError } = await supabase
       .from('users')
@@ -177,7 +171,6 @@ export const deleteTeamMember = async (memberId: string, memberName?: string): P
       throw error;
     }
     
-    console.log("Profissional excluído com sucesso:", memberId);
     
     if (memberName) {
       toast({

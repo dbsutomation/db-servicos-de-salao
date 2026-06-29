@@ -45,7 +45,6 @@ export default function ClientBooking() {
 
   const [salonId, setSalonId] = useState<string | null>(null);
   const [clientId, setClientId] = useState<string | null>(null);
-  const [customerName, setCustomerName] = useState<string | null>(null);
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [services, setServices] = useState<Service[]>([]);
@@ -82,7 +81,6 @@ export default function ClientBooking() {
         }
         setSalonId(sId);
         setClientId(cId);
-        setCustomerName((customer as any)?.name ?? null);
 
         const { data: scheds } = await supabase
           .from('professional_schedules')
