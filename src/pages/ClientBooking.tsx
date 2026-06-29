@@ -142,7 +142,7 @@ export default function ClientBooking() {
         .from('appointments')
         .select('starts_at, ends_at, status')
         .eq('professional_id', selectedProf.id)
-        .eq('status', 'scheduled')
+        .in('status', ['scheduled', 'confirmed', 'in_progress'])
         .gte('starts_at', dayStart.toISOString())
         .lt('starts_at', dayEnd.toISOString());
       const busy = ((data as any[]) ?? []).map(a => {
