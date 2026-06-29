@@ -161,7 +161,7 @@ export default function ClientBooking() {
   const today = useMemo(() => startOfDay(new Date()), []);
   const maxDate = useMemo(() => addDays(today, 30), [today]);
   const activeWeekdays = useMemo(() => 
-    new Set(schedules.map(s => s.day_of_week - 1))
+    new Set(schedules.map(s => s.day_of_week))
   , [schedules]);
 
   const isDayDisabled = (date: Date) => {
