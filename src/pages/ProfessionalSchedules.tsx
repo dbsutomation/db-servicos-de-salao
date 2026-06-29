@@ -116,7 +116,34 @@ const ProfessionalSchedules = () => {
     })();
   }, [selectedProfessionalId]);
 
-  const updateDay = (day_of_week: number, patch: Partial<DaySchedule>) => {
+  const updateDay = async (day_of_week: number, patch: Partial<DaySchedule>) => {
+    // Se está desativando um dia, verifica se há agendamentos futuros
+    if (patch.is_active === false && selectedProfessionalId) {
+      const today = new Date().toISOString();
+      const { data: appts } = await supabase
+        .from('appointments')
+        .select('id, starts_at')
+        .eq('professional_id', selectedProfessionalId)
+        .in('status', ['scheduled', 'confirmed'])
+        .gte('starts_at', today);
+
+      // Filtrar apenas os que caem no dia da semana desativado
+      const affected = (appts ?? []).filter((a: any) => {
+        const d = new Date(a.starts_at);
+        // Converter day_of_week do banco (1=Seg) para JS (1=Seg)
+        return d.getDay() === day_of_week;
+      });
+
+      if (affected.length > 0) {
+        const dayLabel = schedules.find(d => d.day_of_week === day_of_week)?.label ?? 'este dia';
+        toast({
+          title: `Aten\u00e7\u00e3o: ${affected.length} agendamento(s) existente(s)`,
+          description: `J\u00e1 existem agendamentos futuros em ${dayLabel}. Eles n\u00e3o ser\u00e3o cancelados automaticamente — verifique a agenda e trate manualmente.`,
+          variant: 'destructive',
+        });
+      }
+    }
+
     setSchedules((prev) =>
       prev.map((d) => (d.day_of_week === day_of_week ? { ...d, ...patch, error: undefined } : d))
     );
