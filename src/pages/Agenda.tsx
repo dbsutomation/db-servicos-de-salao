@@ -306,8 +306,15 @@ export default function Agenda() {
       ];
       const url = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(msgParts.join('\n'));
 
-      if (digits) window.open(url, '_blank');
-      else toast({ title: 'Cliente sem telefone cadastrado', variant: 'destructive' });
+      if (digits) {
+        const a = document.createElement('a');
+        a.href = url;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      } else toast({ title: 'Cliente sem telefone cadastrado', variant: 'destructive' });
 
       setSelected(null);
     } catch (e: any) {
@@ -585,7 +592,15 @@ export default function Agenda() {
                   <Button variant="outline" onClick={() => setWhatsAppAppt(null)}>Fechar</Button>
                   <Button
                     className="bg-[#22C55E] hover:bg-[#16A34A] text-white"
-                    onClick={() => { window.open(url, '_blank'); }}
+                    onClick={() => {
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.target = '_blank';
+                      a.rel = 'noopener noreferrer';
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                    }}
                     disabled={!digits}
                   >
                     Enviar pelo WhatsApp
