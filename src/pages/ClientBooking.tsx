@@ -159,16 +159,19 @@ export default function ClientBooking() {
   }, [selectedProf, selectedDate]);
 
   const today = useMemo(() => startOfDay(new Date()), []);
-  const maxDate = useMemo(() => addDays(today, 30), [today]);
+  const limitDate = useMemo(() => addDays(today, 30), [today]);
+  // toDate precisa ir até o fim da semana do último dia permitido
+  // para não cortar dias visíveis na grade do calendário
+  const maxDate = useMemo(() => addDays(limitDate, 6), [limitDate]);
   const activeWeekdays = useMemo(() => 
     new Set(schedules.map(s => s.day_of_week))
   , [schedules]);
 
   const isDayDisabled = (date: Date) => {
     const d = startOfDay(date);
-    if (d < today) return true;       // bloqueia apenas dias passados
-    if (d > maxDate) return true;     // bloqueia além de 30 dias
-    return !activeWeekdays.has(d.getDay()); // bloqueia dias sem horário de trabalho
+    if (d < today) return true;
+    if (d > limitDate) return true;     // usa limitDate, não maxDate
+    return !activeWeekdays.has(d.getDay());
   };
 
   const dailySchedule = useMemo(() => {
