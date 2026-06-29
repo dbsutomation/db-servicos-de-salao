@@ -153,7 +153,8 @@ const ProfessionalSchedules = () => {
       const { data: existing, error: fetchErr } = await supabase
         .from('professional_schedules')
         .select('id, day_of_week')
-        .eq('professional_id', selectedProfessionalId);
+        .eq('professional_id', selectedProfessionalId)
+        .eq('salon_id', salonId);
       if (fetchErr) throw fetchErr;
       const existingMap = new Map<number, string>();
       (existing || []).forEach((r: any) => existingMap.set(r.day_of_week, r.id));
