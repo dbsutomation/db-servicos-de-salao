@@ -18,7 +18,6 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { buildConfirmacaoUrl, buildConfirmacaoTexto } from '@/lib/whatsapp';
 import { getCurrentSalonId } from '@/lib/salon';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -283,15 +282,29 @@ export default function Agenda() {
       const hourFmt = format(new Date(appt.starts_at), "HH'h'mm");
       const profName = appt.professional_name || currentUser?.name || '';
       const digits = (appt.client_phone ?? '').replace(/\D/g, '');
-      const url = buildConfirmacaoUrl({
-        telefoneCliente: appt.client_phone ?? '',
-        nomeCliente: appt.client_name ?? '',
-        servicos: svcList,
-        duracao,
-        data: dateFmt,
-        hora: hourFmt,
-        profissional: profName,
-      });
+      const phone = digits.startsWith('55') ? digits : '55' + digits;
+
+      // Emojis via codepoint para evitar corrupção de encoding pelo bundler
+      const smile    = String.fromCodePoint(0x1F60A);
+      const check    = String.fromCodePoint(0x2705);
+      const scissors = String.fromCodePoint(0x2702) + String.fromCodePoint(0xFE0F);
+      const cal      = String.fromCodePoint(0x1F4C6);
+      const clock    = String.fromCodePoint(0x1F550);
+      const woman    = String.fromCodePoint(0x1F469);
+      const pray     = String.fromCodePoint(0x1F64F);
+
+      const msgParts = [
+        'Ol\u00e1 ' + (appt.client_name ?? '') + '! ' + smile,
+        'Seu agendamento foi confirmado! ' + check,
+        '',
+        scissors + ' Servi\u00e7o: ' + svcList + ' (' + String(duracao) + 'min)',
+        cal + ' Data: ' + dateFmt,
+        clock + ' Hor\u00e1rio: ' + hourFmt,
+        woman + ' Profissional: ' + profName,
+        '',
+        'Te esperamos! ' + pray,
+      ];
+      const url = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(msgParts.join('\n'));
 
       if (digits) window.open(url, '_blank');
       else toast({ title: 'Cliente sem telefone cadastrado', variant: 'destructive' });
@@ -536,22 +549,35 @@ export default function Agenda() {
             const dateFmt = format(new Date(whatsAppAppt.starts_at), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR });
             const hourFmt = format(new Date(whatsAppAppt.starts_at), "HH'h'mm");
             const profName = whatsAppAppt.professional_name || currentUser?.name || '';
-            const params = {
-              telefoneCliente: whatsAppAppt.client_phone ?? '',
-              nomeCliente: whatsAppAppt.client_name ?? '',
-              servicos: svcList,
-              duracao,
-              data: dateFmt,
-              hora: hourFmt,
-              profissional: profName,
-            };
-            const msgTexto = buildConfirmacaoTexto(params);
-            const url = buildConfirmacaoUrl(params);
             const digits = (whatsAppAppt.client_phone ?? '').replace(/\D/g, '');
+            const phone = digits.startsWith('55') ? digits : '55' + digits;
+
+            const smile    = String.fromCodePoint(0x1F60A);
+            const check    = String.fromCodePoint(0x2705);
+            const scissors = String.fromCodePoint(0x2702) + String.fromCodePoint(0xFE0F);
+            const cal      = String.fromCodePoint(0x1F4C6);
+            const clock    = String.fromCodePoint(0x1F550);
+            const woman    = String.fromCodePoint(0x1F469);
+            const pray     = String.fromCodePoint(0x1F64F);
+
+            const msgParts = [
+              'Ol\u00e1 ' + (whatsAppAppt.client_name ?? '') + '! ' + smile,
+              'Seu agendamento foi confirmado! ' + check,
+              '',
+              scissors + ' Servi\u00e7o: ' + svcList + ' (' + String(duracao) + 'min)',
+              cal + ' Data: ' + dateFmt,
+              clock + ' Hor\u00e1rio: ' + hourFmt,
+              woman + ' Profissional: ' + profName,
+              '',
+              'Te esperamos! ' + pray,
+            ];
+            const msgTexto = msgParts.join('\n');
+            const url = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(msgTexto);
+
             return (
               <>
                 <DialogHeader>
-                  <DialogTitle>Agendamento confirmado! ✅</DialogTitle>
+                  <DialogTitle>Agendamento confirmado!</DialogTitle>
                   <DialogDescription>Envie a confirmação para o cliente pelo WhatsApp:</DialogDescription>
                 </DialogHeader>
                 <pre className="bg-muted text-foreground rounded-md p-3 text-xs whitespace-pre-wrap font-sans max-h-72 overflow-auto">{msgTexto}</pre>
