@@ -284,25 +284,17 @@ export default function Agenda() {
       const digits = (appt.client_phone ?? '').replace(/\D/g, '');
       const phone = digits.startsWith('55') ? digits : '55' + digits;
 
-      // Emojis via codepoint para evitar corrupção de encoding pelo bundler
-      const smile    = String.fromCodePoint(0x1F60A);
-      const check    = String.fromCodePoint(0x2705);
-      const scissors = String.fromCodePoint(0x2702) + String.fromCodePoint(0xFE0F);
-      const cal      = String.fromCodePoint(0x1F4C6);
-      const clock    = String.fromCodePoint(0x1F550);
-      const woman    = String.fromCodePoint(0x1F469);
-      const pray     = String.fromCodePoint(0x1F64F);
-
       const msgParts = [
-        'Ol\u00e1 ' + (appt.client_name ?? '') + '! ' + smile,
-        'Seu agendamento foi confirmado! ' + check,
+        'Ol\u00e1, ' + (appt.client_name ?? '') + '!',
         '',
-        scissors + ' Servi\u00e7o: ' + svcList + ' (' + String(duracao) + 'min)',
-        cal + ' Data: ' + dateFmt,
-        clock + ' Hor\u00e1rio: ' + hourFmt,
-        woman + ' Profissional: ' + profName,
+        'Seu agendamento foi confirmado.',
         '',
-        'Te esperamos! ' + pray,
+        'Servi\u00e7o: ' + svcList + ' (' + String(duracao) + 'min)',
+        'Data: ' + dateFmt,
+        'Hor\u00e1rio: ' + hourFmt,
+        'Profissional: ' + profName,
+        '',
+        'Te esperamos!',
       ];
       const url = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(msgParts.join('\n'));
 
@@ -559,24 +551,17 @@ export default function Agenda() {
             const digits = (whatsAppAppt.client_phone ?? '').replace(/\D/g, '');
             const phone = digits.startsWith('55') ? digits : '55' + digits;
 
-            const smile    = String.fromCodePoint(0x1F60A);
-            const check    = String.fromCodePoint(0x2705);
-            const scissors = String.fromCodePoint(0x2702) + String.fromCodePoint(0xFE0F);
-            const cal      = String.fromCodePoint(0x1F4C6);
-            const clock    = String.fromCodePoint(0x1F550);
-            const woman    = String.fromCodePoint(0x1F469);
-            const pray     = String.fromCodePoint(0x1F64F);
-
             const msgParts = [
-              'Ol\u00e1 ' + (whatsAppAppt.client_name ?? '') + '! ' + smile,
-              'Seu agendamento foi confirmado! ' + check,
+              'Ol\u00e1, ' + (whatsAppAppt.client_name ?? '') + '!',
               '',
-              scissors + ' Servi\u00e7o: ' + svcList + ' (' + String(duracao) + 'min)',
-              cal + ' Data: ' + dateFmt,
-              clock + ' Hor\u00e1rio: ' + hourFmt,
-              woman + ' Profissional: ' + profName,
+              'Seu agendamento foi confirmado.',
               '',
-              'Te esperamos! ' + pray,
+              'Servi\u00e7o: ' + svcList + ' (' + String(duracao) + 'min)',
+              'Data: ' + dateFmt,
+              'Hor\u00e1rio: ' + hourFmt,
+              'Profissional: ' + profName,
+              '',
+              'Te esperamos!',
             ];
             const msgTexto = msgParts.join('\n');
             const url = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(msgTexto);
