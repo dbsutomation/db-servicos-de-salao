@@ -164,9 +164,9 @@ export default function ClientBooking() {
 
   const isDayDisabled = (date: Date) => {
     const d = startOfDay(date);
-    if (d <= today) return true;
-    if (d > maxDate) return true;
-    return !activeWeekdays.has(d.getDay());
+    if (d < today) return true;       // bloqueia apenas dias passados
+    if (d > maxDate) return true;     // bloqueia além de 30 dias
+    return !activeWeekdays.has(d.getDay()); // bloqueia dias sem horário de trabalho
   };
 
   const dailySchedule = useMemo(() => {
@@ -409,7 +409,7 @@ export default function ClientBooking() {
                   selected={selectedDate}
                   onSelect={setSelectedDate}
                   disabled={isDayDisabled}
-                  fromDate={addDays(today, 1)}
+                  fromDate={today}
                   toDate={maxDate}
                   locale={ptBR}
                   initialFocus
