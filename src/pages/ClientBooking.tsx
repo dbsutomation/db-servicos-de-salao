@@ -180,11 +180,15 @@ export default function ClientBooking() {
     const endM = timeToMinutes(dailySchedule.end_time);
     const slots: string[] = [];
     for (let m = startM; m + 30 <= endM; m += 30) {
-      const overlap = busySlots.some(b => m < b.e && m + 30 > b.s);
-      if (!overlap) slots.push(minutesToTime(m));
+      slots.push(minutesToTime(m));
     }
     return slots;
-  }, [dailySchedule, busySlots]);
+  }, [dailySchedule]);
+
+  const isSlotBusy = (slot: string) => {
+    const m = timeToMinutes(slot);
+    return busySlots.some(b => m < b.e && m + 30 > b.s);
+  };
 
   const selectedServices = useMemo(
     () => services.filter(s => selectedServiceIds.includes(s.id)),
@@ -199,6 +203,12 @@ export default function ClientBooking() {
     dailySchedule && endMinutes !== null
       ? endMinutes > timeToMinutes(dailySchedule.end_time)
       : false;
+
+  // Verifica se o horário selecionado + duração real conflita com agendamento existente
+  const hasConflict = useMemo(() => {
+    if (startMinutes === null || endMinutes === null || totalDuration === 0) return false;
+    return busySlots.some(b => startMinutes < b.e && endMinutes > b.s);
+  }, [startMinutes, endMinutes, totalDuration, busySlots]);
 
   const toggleService = (id: string) => {
     setSelectedServiceIds(prev =>
@@ -427,17 +437,27 @@ export default function ClientBooking() {
             {availableSlots.length === 0 ? (
               <p className="text-sm text-muted-foreground">Nenhum horário disponível para esta data.</p>
             ) : (
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                {availableSlots.map(slot => (
-                  <Button
-                    key={slot}
-                    variant={selectedSlot === slot ? 'default' : 'outline'}
-                    onClick={() => setSelectedSlot(slot)}
-                  >
-                    {slot}
-                  </Button>
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                  {availableSlots.map(slot => {
+                    const busy = isSlotBusy(slot);
+                    return (
+                      <Button
+                        key={slot}
+                        variant={selectedSlot === slot ? 'default' : 'outline'}
+                        disabled={busy}
+                        onClick={() => !busy && setSelectedSlot(slot)}
+                        className={busy ? 'opacity-40 cursor-not-allowed line-through' : ''}
+                      >
+                        {slot}
+                      </Button>
+                    );
+                  })}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Horários riscados já estão ocupados.
+                </p>
+              </>
             )}
             <div className="flex justify-between">
               <Button variant="ghost" onClick={() => setStep(2)}>Voltar</Button>
@@ -522,14 +542,20 @@ export default function ClientBooking() {
 
             {exceedsWindow && (
               <p className="text-sm text-destructive">
-                Tempo total excede o horário disponível. Remova um serviço ou escolha outro horário.
+                Tempo total excede o horário de trabalho. Remova um serviço ou escolha outro horário.
+              </p>
+            )}
+
+            {hasConflict && !exceedsWindow && (
+              <p className="text-sm text-destructive">
+                O tempo deste serviço conflita com outro agendamento existente. Escolha um horário anterior ou posterior.
               </p>
             )}
 
             <div className="flex justify-between pt-1">
               <Button variant="ghost" onClick={() => setStep(3)}>Voltar</Button>
               <Button
-                disabled={selectedServices.length === 0 || exceedsWindow || confirming}
+                disabled={selectedServices.length === 0 || exceedsWindow || hasConflict || confirming}
                 onClick={handleConfirm}
               >
                 {confirming ? 'Confirmando…' : 'Confirmar agendamento'}
