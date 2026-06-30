@@ -19,7 +19,7 @@ const NAV_ITEMS = [
   },
 ];
 
-function SidebarContent({ onLogout, onNavigate, onNavigateTo, salonName }: { onLogout: () => void; onNavigate?: () => void; onNavigateTo: (path: string) => void; salonName: string }) {
+function SidebarContent({ onLogout, onNavigate, onNavigateTo, salonName, clientName }: { onLogout: () => void; onNavigate?: () => void; onNavigateTo: (path: string) => void; salonName: string; clientName: string }) {
   const location = useLocation();
 
   return (
@@ -61,6 +61,22 @@ function SidebarContent({ onLogout, onNavigate, onNavigateTo, salonName }: { onL
           <span className="font-medium">Sair</span>
         </Button>
       </nav>
+
+      {clientName && (
+        <div className="border-t-2 border-gray-200 p-4 bg-gray-50">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-full bg-salon-purple/20 flex items-center justify-center shrink-0">
+              <span className="text-salon-purple font-semibold text-sm">
+                {clientName.charAt(0).toUpperCase()}
+              </span>
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="text-sm font-medium truncate">{clientName}</span>
+              <span className="text-xs text-gray-500">Cliente</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -69,6 +85,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [salonName, setSalonName] = useState('');
+  const [clientName, setClientName] = useState('');
 
   useEffect(() => {
     (async () => {
@@ -76,10 +93,11 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       if (!user) return;
       const { data: customer } = await supabase
         .from('customers')
-        .select('salon_id')
+        .select('salon_id, name')
         .eq('id', user.id)
         .maybeSingle();
       const sId = (customer as any)?.salon_id;
+      setClientName((customer as any)?.name || '');
       if (!sId) return;
       const { data: salon } = await supabase
         .from('salons' as any)
@@ -100,7 +118,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     <div className="flex min-h-screen bg-gray-50">
       {/* Sidebar desktop */}
       <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r-2 border-gray-200 shadow-md hidden md:block">
-        <SidebarContent onLogout={handleLogout} onNavigateTo={navigate} salonName={salonName} />
+        <SidebarContent onLogout={handleLogout} onNavigateTo={navigate} salonName={salonName} clientName={clientName} />
       </aside>
 
       {/* Header mobile */}
@@ -121,7 +139,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                 <X size={22} />
               </Button>
             </div>
-            <SidebarContent onLogout={handleLogout} onNavigate={() => setMobileOpen(false)} onNavigateTo={navigate} salonName={salonName} />
+            <SidebarContent onLogout={handleLogout} onNavigate={() => setMobileOpen(false)} onNavigateTo={navigate} salonName={salonName} clientName={clientName} />
           </aside>
         </div>
       )}
