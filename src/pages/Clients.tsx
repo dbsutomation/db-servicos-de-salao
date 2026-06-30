@@ -180,15 +180,15 @@ const Clients = () => {
   
   return (
     <MainLayout>
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h1 className="text-3xl font-bold">Clientes</h1>
-          
-          <div className="flex items-center gap-2">
+      <div className="space-y-4">
+        <div className="flex flex-col gap-3">
+          <h1 className="text-2xl sm:text-3xl font-bold">Clientes</h1>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             {currentUser?.salonId && (
               <Button
                 variant="outline"
                 size="sm"
+                className="w-full sm:w-auto"
                 onClick={() => {
                   const link = `${window.location.origin}/cadastro-cliente/${currentUser.salonId}`;
                   navigator.clipboard.writeText(link);
@@ -202,7 +202,7 @@ const Clients = () => {
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button 
-                  className="bg-salon-purple hover:bg-salon-dark-purple shadow-md"
+                  className="w-full sm:w-auto bg-salon-purple hover:bg-salon-dark-purple shadow-md"
                   onClick={() => setEditingClient(null)}
                 >
                   <Plus className="mr-2" size={18} />

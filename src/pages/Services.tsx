@@ -337,15 +337,15 @@ const Services = () => {
   return (
     <MainLayout>
       <div className="container mx-auto px-4 space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">Serviços e Produtos</h1>
+        <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center">
+          <h1 className="text-2xl sm:text-3xl font-bold">Serviços e Produtos</h1>
           {currentUser?.isManager && (
             <Button 
               onClick={() => { 
                 resetForm();
                 setOpen(true); 
               }} 
-              className="bg-salon-purple hover:bg-salon-dark-purple"
+              className="w-full sm:w-auto bg-salon-purple hover:bg-salon-dark-purple"
             >
               <Plus className="mr-2" size={18} />
               Novo Item

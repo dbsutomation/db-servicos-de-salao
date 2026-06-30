@@ -265,8 +265,8 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
           />
         </div>
       </div>
-      <Card className="shadow-md border-2 border-gray-100">
-        <Table>
+      <Card className="shadow-md border-2 border-gray-100 overflow-x-auto">
+        <Table className="min-w-[600px]">
           <TableHeader>
             <TableRow className="bg-muted/50">
               <TableHead>Data</TableHead>
