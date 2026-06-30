@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -19,13 +19,13 @@ const NAV_ITEMS = [
   },
 ];
 
-function SidebarContent({ onLogout, onNavigate, onNavigateTo }: { onLogout: () => void; onNavigate?: () => void; onNavigateTo: (path: string) => void }) {
+function SidebarContent({ onLogout, onNavigate, onNavigateTo, salonName }: { onLogout: () => void; onNavigate?: () => void; onNavigateTo: (path: string) => void; salonName: string }) {
   const location = useLocation();
 
   return (
     <div className="flex flex-col h-full">
       <div className="px-4 py-6 border-b-2 border-gray-100">
-        <h1 className="font-bold text-salon-purple text-xl">Meu Salão</h1>
+        <h1 className="font-bold text-salon-purple text-xl">{salonName || 'Meu Salão'}</h1>
         <p className="text-xs text-muted-foreground mt-1">Portal do cliente</p>
       </div>
 
@@ -68,6 +68,27 @@ function SidebarContent({ onLogout, onNavigate, onNavigateTo }: { onLogout: () =
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [salonName, setSalonName] = useState('');
+
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: customer } = await supabase
+        .from('customers')
+        .select('salon_id')
+        .eq('id', user.id)
+        .maybeSingle();
+      const sId = (customer as any)?.salon_id;
+      if (!sId) return;
+      const { data: salon } = await supabase
+        .from('salons' as any)
+        .select('name')
+        .eq('id', sId)
+        .maybeSingle();
+      setSalonName((salon as any)?.name || '');
+    })();
+  }, []);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -79,12 +100,12 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     <div className="flex min-h-screen bg-gray-50">
       {/* Sidebar desktop */}
       <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r-2 border-gray-200 shadow-md hidden md:block">
-        <SidebarContent onLogout={handleLogout} onNavigateTo={navigate} />
+        <SidebarContent onLogout={handleLogout} onNavigateTo={navigate} salonName={salonName} />
       </aside>
 
       {/* Header mobile */}
       <header className="fixed top-0 left-0 right-0 z-40 h-16 bg-white border-b-2 border-gray-200 shadow-sm flex items-center px-4 justify-between md:hidden">
-        <h1 className="font-bold text-salon-purple text-lg">Meu Salão</h1>
+        <h1 className="font-bold text-salon-purple text-base truncate max-w-[220px]">{salonName || 'Meu Salão'}</h1>
         <Button variant="ghost" size="icon" onClick={() => setMobileOpen(true)}>
           <Menu size={22} />
         </Button>
@@ -100,7 +121,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                 <X size={22} />
               </Button>
             </div>
-            <SidebarContent onLogout={handleLogout} onNavigate={() => setMobileOpen(false)} onNavigateTo={navigate} />
+            <SidebarContent onLogout={handleLogout} onNavigate={() => setMobileOpen(false)} onNavigateTo={navigate} salonName={salonName} />
           </aside>
         </div>
       )}

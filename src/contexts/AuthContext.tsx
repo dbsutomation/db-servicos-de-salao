@@ -64,6 +64,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 }
                 
                 // Converter para o formato TeamMember
+                const salonId = (data as any).salon_id || '';
+                
+                // Buscar nome do salão
+                let salonName = '';
+                if (salonId) {
+                  const { data: salonData } = await supabase
+                    .from('salons' as any)
+                    .select('name')
+                    .eq('id', salonId)
+                    .single();
+                  salonName = (salonData as any)?.name || '';
+                }
+
                 const teamMember: TeamMember = {
                   id: data.id,
                   name: data.name,
@@ -75,7 +88,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   isManager: data.is_manager,
                   avatar: data.avatar || '',
                   categories: (data as any).categories || [],
-                  salonId: (data as any).salon_id || '',
+                  salonId,
+                  salonName,
                 };
                 
                 setAuthState({
