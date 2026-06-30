@@ -62,18 +62,19 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       icon: <Receipt size={20} />,
       requiredRoles: ['/expenses']
     },
-    {
-      path: '/configurar-horarios',
-      label: 'Horários de trabalho',
-      icon: <Clock size={20} />,
-      requiredRoles: ['/configurar-horarios']
-    },
-    {
-      path: '/agenda',
-      label: 'Agenda',
-      icon: <Calendar size={20} />,
-      requiredRoles: ['/agenda']
-    }
+    // TEMPORÁRIO: oculto até próxima fase
+    // {
+    //   path: '/configurar-horarios',
+    //   label: 'Horários de trabalho',
+    //   icon: <Clock size={20} />,
+    //   requiredRoles: ['/configurar-horarios']
+    // },
+    // {
+    //   path: '/agenda',
+    //   label: 'Agenda',
+    //   icon: <Calendar size={20} />,
+    //   requiredRoles: ['/agenda']
+    // }
   ];
 
   const handleLogout = () => {
