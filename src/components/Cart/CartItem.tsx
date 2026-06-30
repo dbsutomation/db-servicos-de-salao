@@ -32,12 +32,17 @@ const CartItem = ({ item }: CartItemProps) => {
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b py-4">
       <div className="flex items-center space-x-4">
-        <div className="w-16 h-16 bg-muted rounded overflow-hidden shrink-0">
-          <img
-            src={service.image}
-            alt={service.name}
-            className="w-full h-full object-cover"
-          />
+        <div className="w-16 h-16 bg-muted rounded overflow-hidden shrink-0 flex items-center justify-center">
+          {service.image ? (
+            <img
+              src={service.image}
+              alt={service.name}
+              className="w-full h-full object-cover"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            />
+          ) : (
+            <span className="text-2xl text-muted-foreground">✂</span>
+          )}
         </div>
         <div>
           <h3 className="font-medium">{service.name}</h3>

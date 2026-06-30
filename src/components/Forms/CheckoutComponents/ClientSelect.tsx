@@ -65,7 +65,7 @@ const ClientSelect = ({ form, clients, loading }: ClientSelectProps) => {
                     className="flex h-10 w-full border-0 bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
                   />
                 </div>
-                <ScrollArea className="max-h-60">
+                <ScrollArea className="h-64">
                   {filteredClients.length === 0 ? (
                     <div className="py-6 text-center text-sm text-muted-foreground">
                       Nenhum cliente encontrado.

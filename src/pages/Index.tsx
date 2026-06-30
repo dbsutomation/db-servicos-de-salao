@@ -46,10 +46,20 @@ const Index = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-6">
-        <div className="flex flex-wrap justify-between items-center gap-4">
-          <h1 className="text-3xl font-bold">Dashboard</h1>
-          <div className="flex flex-wrap items-center gap-4">
+      <div className="space-y-4 w-full min-w-0">
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={toggleFinancialData}
+              title={showFinancialData ? "Esconder dados financeiros" : "Mostrar dados financeiros"}
+            >
+              {showFinancialData ? <EyeOff size={18} /> : <Eye size={18} />}
+            </Button>
+          </div>
+          <div className="w-full overflow-x-auto">
             <DashboardFilters 
               dateFilter={dateFilter}
               setDateFilter={setDateFilter}
@@ -62,16 +72,6 @@ const Index = () => {
               selectedType={selectedType}
               setSelectedType={setSelectedType}
             />
-            {/* Botão para mostrar/esconder dados financeiros */}
-            <Button 
-              variant="outline" 
-              size="icon" 
-              onClick={toggleFinancialData}
-              className="ml-2" 
-              title={showFinancialData ? "Esconder dados financeiros" : "Mostrar dados financeiros"}
-            >
-              {showFinancialData ? <EyeOff size={18} /> : <Eye size={18} />}
-            </Button>
           </div>
         </div>
 

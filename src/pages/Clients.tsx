@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import ClientForm from '@/components/Forms/ClientForm';
-import { Search, Edit, Trash2, Plus } from 'lucide-react';
+import { Search, Edit, Trash2, Plus, Share2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -184,23 +184,39 @@ const Clients = () => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <h1 className="text-3xl font-bold">Clientes</h1>
           
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button 
-                className="bg-salon-purple hover:bg-salon-dark-purple shadow-md"
-                onClick={() => setEditingClient(null)}
+          <div className="flex items-center gap-2">
+            {currentUser?.salonId && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const link = `${window.location.origin}/cadastro-cliente/${currentUser.salonId}`;
+                  navigator.clipboard.writeText(link);
+                  toast({ title: 'Link copiado!', description: 'Compartilhe com seus clientes para que se cadastrem.' });
+                }}
               >
-                <Plus className="mr-2" size={18} />
-                Novo Cliente
+                <Share2 className="mr-2" size={16} />
+                Copiar link de cadastro
               </Button>
-            </DialogTrigger>
-            <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
-              <DialogHeader>
-                <DialogTitle>{editingClient ? 'Editar Cliente' : 'Adicionar Novo Cliente'}</DialogTitle>
-              </DialogHeader>
-              <ClientForm onSuccess={handleSuccess} clientId={editingClient} />
-            </DialogContent>
-          </Dialog>
+            )}
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button 
+                  className="bg-salon-purple hover:bg-salon-dark-purple shadow-md"
+                  onClick={() => setEditingClient(null)}
+                >
+                  <Plus className="mr-2" size={18} />
+                  Novo Cliente
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+                <DialogHeader>
+                  <DialogTitle>{editingClient ? 'Editar Cliente' : 'Adicionar Novo Cliente'}</DialogTitle>
+                </DialogHeader>
+                <ClientForm onSuccess={handleSuccess} clientId={editingClient} />
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
 
         <div className="relative mb-6">

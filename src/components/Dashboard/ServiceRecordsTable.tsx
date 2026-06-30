@@ -272,8 +272,6 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
               <TableHead>Data</TableHead>
               <TableHead>Profissional</TableHead>
               <TableHead>Item</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead>Categoria</TableHead>
               <TableHead>Cliente</TableHead>
               <TableHead>Pagamento</TableHead>
               <TableHead className="text-right">Comissão</TableHead>
@@ -291,8 +289,6 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
                 <TableCell>{dateFormat(parseISO(record.date), 'dd/MM/yyyy')}</TableCell>
                 <TableCell>{record.professional}</TableCell>
                 <TableCell>{record.service}</TableCell>
-                <TableCell>{record.serviceType === 'produto' ? 'Produto' : 'Serviço'}</TableCell>
-                <TableCell>{record.category}</TableCell>
                 <TableCell>{record.client}</TableCell>
                 <TableCell>{record.paymentMethod}</TableCell>
                 <TableCell className="text-right">
