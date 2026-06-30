@@ -42,7 +42,7 @@ const ServiceListItem = ({ service, canEdit, onEdit }: ServiceListItemProps) => 
     <div className="flex items-center justify-between gap-3 p-3 bg-white border rounded-lg hover:shadow-sm transition-shadow">
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <h3 className="font-medium truncate">{service.name}</h3>
+          <h3 className="font-medium text-sm leading-snug">{service.name}</h3>
           {categoryLabel && (
             <Badge variant="secondary" className={categoryClass}>
               {categoryLabel}
@@ -66,10 +66,11 @@ const ServiceListItem = ({ service, canEdit, onEdit }: ServiceListItemProps) => 
         )}
         <Button
           onClick={() => addToCart(service)}
-          size="sm"
-          className="bg-salon-purple hover:bg-salon-dark-purple"
+          size="icon"
+          className="h-9 w-9 bg-salon-purple hover:bg-salon-dark-purple shrink-0"
+          title="Adicionar ao carrinho"
         >
-          <Plus size={16} className="mr-1" /> Adicionar
+          <Plus size={18} />
         </Button>
       </div>
     </div>
