@@ -139,7 +139,7 @@ export default function ClientBooking() {
 
   // 3) Quando data muda, busca agendamentos existentes do profissional naquele dia
   useEffect(() => {
-    if (!selectedProf || !selectedDate) { setBusySlots([]); return; }
+    if (!selectedProf || !selectedDate || !salonId) { setBusySlots([]); return; }
     (async () => {
       // Usar horário de Brasília (UTC-3) para calcular início e fim do dia
       const dateStr = format(selectedDate, 'yyyy-MM-dd');
@@ -156,20 +156,19 @@ export default function ClientBooking() {
         .lte('starts_at', dayEnd.toISOString());
 
       const busy = ((data as any[]) ?? []).map(a => {
-        // Converter para horário de Brasília
         const s = new Date(a.starts_at);
         const e = new Date(a.ends_at);
-        const toBrasilia = (d: Date) => {
-          const offsetMs = -3 * 60 * 60 * 1000; // UTC-3
-          const local = new Date(d.getTime() + offsetMs);
-          return local.getUTCHours() * 60 + local.getUTCMinutes();
+        // Converter UTC para minutos em Brasília (UTC-3)
+        const toMin = (d: Date) => {
+          const br = new Date(d.getTime() - 3 * 60 * 60 * 1000);
+          return br.getUTCHours() * 60 + br.getUTCMinutes();
         };
-        return { s: toBrasilia(s), e: toBrasilia(e) };
+        return { s: toMin(s), e: toMin(e) };
       });
       setBusySlots(busy);
       setSelectedSlot(null);
     })();
-  }, [selectedProf, selectedDate, step]);
+  }, [selectedProf, selectedDate, step, salonId]);
 
   const today = useMemo(() => startOfDay(new Date()), []);
   const limitDate = useMemo(() => addDays(today, 30), [today]);

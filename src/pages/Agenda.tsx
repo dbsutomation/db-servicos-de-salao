@@ -215,12 +215,21 @@ export default function Agenda() {
   const goNextWeek = () => setWeekStart(d => addDays(d, 7));
   const goToday = () => setWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }));
 
+  // Horário de Brasília (UTC-3)
+  const toBR = (d: Date) => new Date(d.getTime() - 3 * 60 * 60 * 1000);
+  const formatBR = (d: Date | string, fmt: string, opts?: object) =>
+    format(toBR(new Date(d as string)), fmt, opts);
+  const toMinBrasilia = (d: Date) => {
+    const br = toBR(d);
+    return br.getUTCHours() * 60 + br.getUTCMinutes();
+  };
+
   // Render bloco
   const renderApptBlock = (appt: Appt) => {
     const start = new Date(appt.starts_at);
     const end = new Date(appt.ends_at);
-    const startMin = start.getHours() * 60 + start.getMinutes();
-    const endMin = end.getHours() * 60 + end.getMinutes();
+    const startMin = toMinBrasilia(start);
+    const endMin = toMinBrasilia(end);
     const top = (startMin - HOUR_START * 60) * PX_PER_MIN;
     const height = Math.max(24, (endMin - startMin) * PX_PER_MIN);
     const svcLabel = (appt.services ?? []).map(s => s.service_name).join(', ');
@@ -326,7 +335,7 @@ export default function Agenda() {
       const svcList = (appt.services ?? []).map(s => s.service_name).join(', ');
       const duracao = (appt.services ?? []).reduce((sum, s) => sum + (s.duration_minutes || 0), 0);
       const dateFmt = format(new Date(appt.starts_at), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR });
-      const hourFmt = format(new Date(appt.starts_at), "HH'h'mm");
+      const hourFmt = formatBR(appt.starts_at, "HH'h'mm");
       const profName = appt.professional_name || currentUser?.name || '';
       const digits = (appt.client_phone ?? '').replace(/\D/g, '');
       const phone = digits.startsWith('55') ? digits : '55' + digits;
@@ -666,7 +675,7 @@ export default function Agenda() {
             {/* Colunas de dias */}
             {weekDays.map((d, idx) => {
               const isToday = isSameDay(d, new Date());
-              const dayAppts = appointments.filter(a => isSameDay(new Date(a.starts_at), d));
+              const dayAppts = appointments.filter(a => isSameDay(toBR(new Date(a.starts_at)), d));
               return (
                 <div
                   key={idx}
@@ -714,12 +723,12 @@ export default function Agenda() {
                   <span className="font-medium">{format(new Date(selected.starts_at), "dd/MM/yyyy", { locale: ptBR })}</span>
                   <span className="text-muted-foreground">Horário</span>
                   <span className="font-medium">
-                    {format(new Date(selected.starts_at), 'HH:mm')} – {format(new Date(selected.ends_at), 'HH:mm')}
+                    {formatBR(selected.starts_at, 'HH:mm')} – {formatBR(selected.ends_at, 'HH:mm')}
                   </span>
                   {selected.started_at && (
                     <>
                       <span className="text-muted-foreground">Iniciado</span>
-                      <span className="font-medium">{format(new Date(selected.started_at), 'HH:mm')}</span>
+                      <span className="font-medium">{formatBR(selected.started_at, 'HH:mm')}</span>
                     </>
                   )}
                   <span className="text-muted-foreground">Status</span>
@@ -791,12 +800,12 @@ export default function Agenda() {
             <AlertDialogDescription>
               {cancelTarget?.notes?.startsWith('BLOQUEADO') ? (
                 <>
-                  O horário das <strong>{format(new Date(cancelTarget.starts_at), 'HH:mm', { locale: ptBR })}</strong> ficará disponível novamente.
+                  O horário das <strong>{formatBR(cancelTarget.starts_at, 'HH:mm', { locale: ptBR })}</strong> ficará disponível novamente.
                 </>
               ) : (
                 <>
                   {cancelTarget && (
-                    <><strong>{cancelTarget.client_name}</strong>{' — '}{format(new Date(cancelTarget.starts_at), "dd/MM 'às' HH:mm", { locale: ptBR })}<br /></>
+                    <><strong>{cancelTarget.client_name}</strong>{' — '}{formatBR(cancelTarget.starts_at, "dd/MM 'às' HH:mm", { locale: ptBR })}<br /></>
                   )}
                   Esta ação não pode ser desfeita.
                 </>
@@ -823,7 +832,7 @@ export default function Agenda() {
             const svcList = (whatsAppAppt.services ?? []).map(s => s.service_name).join(', ');
             const duracao = (whatsAppAppt.services ?? []).reduce((sum, s) => sum + (s.duration_minutes || 0), 0);
             const dateFmt = format(new Date(whatsAppAppt.starts_at), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR });
-            const hourFmt = format(new Date(whatsAppAppt.starts_at), "HH'h'mm");
+            const hourFmt = formatBR(whatsAppAppt.starts_at, "HH'h'mm");
             const profName = whatsAppAppt.professional_name || currentUser?.name || '';
             const digits = (whatsAppAppt.client_phone ?? '').replace(/\D/g, '');
             const phone = digits.startsWith('55') ? digits : '55' + digits;
