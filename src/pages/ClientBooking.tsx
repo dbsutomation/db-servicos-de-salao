@@ -167,12 +167,6 @@ export default function ClientBooking() {
       setSelectedSlot(null);
     })();
   }, [selectedProf, selectedDate, step]);
-      });
-      console.log('[busySlots] final busy:', busy);
-      setBusySlots(busy);
-      setSelectedSlot(null);
-    })();
-  }, [selectedProf, selectedDate, step, salonId]);
 
   const today = useMemo(() => startOfDay(new Date()), []);
   const limitDate = useMemo(() => addDays(today, 30), [today]);
