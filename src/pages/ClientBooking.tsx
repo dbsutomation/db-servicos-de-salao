@@ -646,3 +646,4 @@ export default function ClientBooking() {
   );
 }
 // day_of_week: banco usa 1=Dom..7=Sab, JS usa 0=Dom..6=Sab, conversão: db-1
+// timezone fix Thu Jul  2 02:13:38 UTC 2026
