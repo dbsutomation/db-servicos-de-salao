@@ -139,29 +139,20 @@ export default function ClientBooking() {
 
   // 3) Quando data muda, busca agendamentos existentes do profissional naquele dia
   useEffect(() => {
-    if (!selectedProf || !selectedDate || !salonId) { setBusySlots([]); return; }
+    if (!selectedProf || !selectedDate) { setBusySlots([]); return; }
     (async () => {
-      // Usar horário de Brasília (UTC-3) para calcular início e fim do dia
       const dateStr = format(selectedDate, 'yyyy-MM-dd');
       const dayStart = new Date(`${dateStr}T00:00:00-03:00`);
       const dayEnd   = new Date(`${dateStr}T23:59:59-03:00`);
 
-      console.log('[busySlots] profId:', selectedProf.id);
-      console.log('[busySlots] salonId:', salonId);
-      console.log('[busySlots] dayStart:', dayStart.toISOString());
-      console.log('[busySlots] dayEnd:', dayEnd.toISOString());
-
-      const { data, error } = await supabase
+      // Busca sem filtro de salon_id para garantir que funciona mesmo com RLS
+      const { data } = await supabase
         .from('appointments')
-        .select('starts_at, ends_at, status, notes')
+        .select('starts_at, ends_at')
         .eq('professional_id', selectedProf.id)
-        .eq('salon_id', salonId)
         .in('status', ['scheduled', 'confirmed', 'in_progress'])
         .gte('starts_at', dayStart.toISOString())
         .lte('starts_at', dayEnd.toISOString());
-
-      console.log('[busySlots] error:', error);
-      console.log('[busySlots] data:', data);
 
       const busy = ((data as any[]) ?? []).map(a => {
         const s = new Date(a.starts_at);
@@ -170,9 +161,12 @@ export default function ClientBooking() {
           const br = new Date(d.getTime() - 3 * 60 * 60 * 1000);
           return br.getUTCHours() * 60 + br.getUTCMinutes();
         };
-        const result = { s: toMin(s), e: toMin(e) };
-        console.log('[busySlots] slot:', a.starts_at, '->', result);
-        return result;
+        return { s: toMin(s), e: toMin(e) };
+      });
+      setBusySlots(busy);
+      setSelectedSlot(null);
+    })();
+  }, [selectedProf, selectedDate, step]);
       });
       console.log('[busySlots] final busy:', busy);
       setBusySlots(busy);
@@ -422,7 +416,10 @@ export default function ClientBooking() {
         <Card>
           <CardHeader>
             <CardTitle>Escolha a data</CardTitle>
-            <CardDescription>Próximos 30 dias disponíveis para {selectedProf?.name}.</CardDescription>
+            <CardDescription>
+              <span className="font-medium text-salon-purple">{selectedProf?.name}</span>
+              {' · '}Próximos 30 dias disponíveis.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {activeWeekdays.size === 0 ? (
@@ -516,7 +513,10 @@ export default function ClientBooking() {
           <CardHeader>
             <CardTitle>Escolha o horário</CardTitle>
             <CardDescription>
-              {selectedDate && format(selectedDate, "EEEE, dd 'de' MMMM", { locale: ptBR })}
+              <span className="font-medium text-salon-purple">{selectedProf?.name}</span>
+              {selectedDate && (
+                <>{' · '}{format(selectedDate, "EEEE, dd 'de' MMMM", { locale: ptBR })}</>
+              )}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
