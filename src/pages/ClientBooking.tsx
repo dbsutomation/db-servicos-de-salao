@@ -137,22 +137,21 @@ export default function ClientBooking() {
     })();
   }, [selectedProf, step]);
 
-  // 3) Quando data muda, busca agendamentos existentes do profissional naquele dia
+  // 3) Quando data muda, busca slots ocupados via RPC (SECURITY DEFINER)
+  // A policy de RLS não permite clientes verem appointments de outros,
+  // por isso usamos uma função RPC que roda com permissões elevadas
   useEffect(() => {
     if (!selectedProf || !selectedDate) { setBusySlots([]); return; }
     (async () => {
       const dateStr = format(selectedDate, 'yyyy-MM-dd');
-      const dayStart = new Date(`${dateStr}T00:00:00-03:00`);
-      const dayEnd   = new Date(`${dateStr}T23:59:59-03:00`);
+      const dayStart = new Date(`${dateStr}T00:00:00-03:00`).toISOString();
+      const dayEnd   = new Date(`${dateStr}T23:59:59-03:00`).toISOString();
 
-      // Busca sem filtro de salon_id para garantir que funciona mesmo com RLS
-      const { data } = await supabase
-        .from('appointments')
-        .select('starts_at, ends_at')
-        .eq('professional_id', selectedProf.id)
-        .in('status', ['scheduled', 'confirmed', 'in_progress'])
-        .gte('starts_at', dayStart.toISOString())
-        .lte('starts_at', dayEnd.toISOString());
+      const { data } = await supabase.rpc('get_busy_slots', {
+        p_professional_id: selectedProf.id,
+        p_date_start: dayStart,
+        p_date_end: dayEnd,
+      });
 
       const busy = ((data as any[]) ?? []).map(a => {
         const s = new Date(a.starts_at);
