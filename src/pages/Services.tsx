@@ -178,8 +178,9 @@ const Services = () => {
     setUploadingImage(true);
 
     try {
+      const salonId = await getCurrentSalonId();
       const ext = file.name.split('.').pop() || 'jpg';
-      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const fileName = `${salonId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
       const { error: uploadError } = await supabase.storage
         .from('service-images')
         .upload(fileName, file, {
