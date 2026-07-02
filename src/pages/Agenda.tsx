@@ -388,21 +388,25 @@ export default function Agenda() {
     if (!selected) return;
     setActing(true);
     try {
-      const { error } = await supabase
+      const salonId = await getCurrentSalonId();
+      const { error, count } = await supabase
         .from('appointments')
         .update({
           status: 'cancelled',
           cancelled_at: new Date().toISOString(),
           cancelled_by: 'professional',
         })
-        .eq('id', selected.id);
+        .eq('id', selected.id)
+        .eq('salon_id', salonId)
+        .select();
       if (error) throw error;
       toast({ title: 'Agendamento cancelado' });
       setCancelConfirmOpen(false);
       setSelected(null);
-      fetchAppointments();
+      await fetchAppointments();
     } catch (e: any) {
       toast({ title: 'Erro ao cancelar', description: e.message, variant: 'destructive' });
+      setCancelConfirmOpen(false);
     } finally {
       setActing(false);
     }
@@ -413,10 +417,16 @@ export default function Agenda() {
 
   // Clique em slot vazio da agenda
   const handleSlotClick = (date: Date, hour: number) => {
+    // Gerente precisa selecionar um profissional específico
+    if (isManager && profFilter === 'all') {
+      toast({ title: 'Selecione um profissional', description: 'Escolha um profissional no filtro antes de agendar ou bloquear horários.', variant: 'destructive' });
+      return;
+    }
+
     // Verificar se o slot é no passado (horário de Brasília = UTC-3)
     const now = new Date();
-    const brasiliaOffset = -3 * 60; // UTC-3 em minutos
-    const localOffset = now.getTimezoneOffset(); // offset local em minutos
+    const brasiliaOffset = -3 * 60;
+    const localOffset = now.getTimezoneOffset();
     const diffMs = (localOffset - brasiliaOffset) * 60000;
     const nowBrasilia = new Date(now.getTime() - diffMs);
 
@@ -589,6 +599,22 @@ export default function Agenda() {
         </div>
         <div className="text-sm text-muted-foreground capitalize">{headerLabel}</div>
 
+        {/* Indicador do profissional sendo visualizado */}
+        {isManager && (
+          <div className={cn(
+            'flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium',
+            profFilter === 'all'
+              ? 'bg-amber-50 border border-amber-200 text-amber-700'
+              : 'bg-salon-purple/10 border border-salon-purple/20 text-salon-purple'
+          )}>
+            <span className="text-base">{profFilter === 'all' ? '⚠️' : '👤'}</span>
+            {profFilter === 'all'
+              ? 'Visualizando todos os profissionais — selecione um para agendar ou bloquear horários'
+              : `Modificando agenda de: ${professionals.find(p => p.id === profFilter)?.name ?? ''}`
+            }
+          </div>
+        )}
+
         <div className="border rounded-lg overflow-auto bg-white">
           {/* Header dias */}
           <div className="grid sticky top-0 z-10 bg-white border-b" style={{ gridTemplateColumns: '60px repeat(7, minmax(120px, 1fr))' }}>
@@ -596,9 +622,22 @@ export default function Agenda() {
             {weekDays.map((d, i) => {
               const isToday = isSameDay(d, new Date());
               return (
-                <div key={i} className={cn('px-2 py-2 text-center border-l', isToday && 'bg-primary/5')}>
-                  <div className="text-xs uppercase text-muted-foreground">{format(d, 'EEE', { locale: ptBR })}</div>
-                  <div className={cn('text-sm font-semibold', isToday && 'text-primary')}>{format(d, 'dd/MM')}</div>
+                <div key={i} className={cn(
+                  'px-2 py-2 text-center border-l',
+                  isToday && 'bg-salon-purple/10'
+                )}>
+                  <div className={cn('text-xs uppercase font-medium', isToday ? 'text-salon-purple' : 'text-muted-foreground')}>
+                    {format(d, 'EEE', { locale: ptBR })}
+                  </div>
+                  <div className={cn(
+                    'text-sm font-bold mt-0.5 inline-flex items-center justify-center w-7 h-7 rounded-full mx-auto',
+                    isToday ? 'bg-salon-purple text-white' : 'text-foreground'
+                  )}>
+                    {format(d, 'dd')}
+                  </div>
+                  <div className={cn('text-[10px] mt-0.5', isToday ? 'text-salon-purple font-medium' : 'text-muted-foreground')}>
+                    {format(d, 'MM/yyyy')}
+                  </div>
                 </div>
               );
             })}
@@ -616,14 +655,24 @@ export default function Agenda() {
             </div>
             {/* Colunas de dias */}
             {weekDays.map((d, idx) => {
+              const isToday = isSameDay(d, new Date());
               const dayAppts = appointments.filter(a => isSameDay(new Date(a.starts_at), d));
               return (
-                <div key={idx} className="relative border-l" style={{ height: HOURS.length * 60 }}>
+                <div
+                  key={idx}
+                  className={cn('relative border-l', isToday && 'bg-salon-purple/5')}
+                  style={{ height: HOURS.length * 60 }}
+                >
                   {/* linhas de hora clicáveis */}
                   {HOURS.map((h, i) => (
                     <div
                       key={h}
-                      className="absolute left-0 right-0 border-t border-dashed border-muted hover:bg-salon-purple/5 cursor-pointer transition-colors"
+                      className={cn(
+                        'absolute left-0 right-0 border-t border-dashed cursor-pointer transition-colors',
+                        isToday
+                          ? 'border-salon-purple/20 hover:bg-salon-purple/10'
+                          : 'border-muted hover:bg-salon-purple/5'
+                      )}
                       style={{ top: i * 60, height: 60 }}
                       onClick={() => handleSlotClick(d, h)}
                     />
