@@ -90,8 +90,7 @@ export default function Agenda() {
   const [manualClients, setManualClients] = useState<Client[]>([]);
   const [manualServices, setManualServices] = useState<Service[]>([]);
   const [manualClientId, setManualClientId] = useState('');
-  const [manualServiceId, setManualServiceId] = useState('');
-  const [manualDuration, setManualDuration] = useState(60);
+  const [manualServiceIds, setManualServiceIds] = useState<string[]>([]);
   const [manualSaving, setManualSaving] = useState(false);
 
   // Modal de bloqueio
@@ -414,6 +413,21 @@ export default function Agenda() {
 
   // Clique em slot vazio da agenda
   const handleSlotClick = (date: Date, hour: number) => {
+    // Verificar se o slot é no passado (horário de Brasília = UTC-3)
+    const now = new Date();
+    const brasiliaOffset = -3 * 60; // UTC-3 em minutos
+    const localOffset = now.getTimezoneOffset(); // offset local em minutos
+    const diffMs = (localOffset - brasiliaOffset) * 60000;
+    const nowBrasilia = new Date(now.getTime() - diffMs);
+
+    const slotTime = new Date(date);
+    slotTime.setHours(hour, 0, 0, 0);
+
+    if (slotTime <= nowBrasilia) {
+      toast({ title: 'Horário no passado', description: 'Não é possível agendar em horários já passados.', variant: 'destructive' });
+      return;
+    }
+
     const profId = profFilter !== 'all' ? profFilter : (currentUser?.id ?? '');
     const slot = { date, hour, profId };
     slotRef.current = slot;
@@ -425,8 +439,7 @@ export default function Agenda() {
     setSlotClick(null);
     setManualOpen(true);
     setManualClientId('');
-    setManualServiceId('');
-    setManualDuration(60);
+    setManualServiceIds([]);
     const salonId = await getCurrentSalonId();
     const [clientsRes, svcsRes] = await Promise.all([
       supabase.from('clients').select('id, name, phone').eq('salon_id', salonId).order('name'),
@@ -438,8 +451,8 @@ export default function Agenda() {
 
   // Salvar agendamento manual
   const handleManualSave = async () => {
-    if (!manualClientId || !manualServiceId) {
-      toast({ title: 'Selecione o cliente e o serviço', variant: 'destructive' });
+    if (!manualClientId || manualServiceIds.length === 0) {
+      toast({ title: 'Selecione o cliente e ao menos um serviço', variant: 'destructive' });
       return;
     }
     const slot = slotRef.current;
@@ -450,7 +463,10 @@ export default function Agenda() {
       const profId = slot.profId || (currentUser?.id ?? '');
       const starts = new Date(slot.date);
       starts.setHours(slot.hour, 0, 0, 0);
-      const ends = new Date(starts.getTime() + manualDuration * 60000);
+
+      const selectedSvcs = manualServices.filter(s => manualServiceIds.includes(s.id));
+      const totalDuration = selectedSvcs.reduce((sum, s) => sum + s.duration, 0);
+      const ends = new Date(starts.getTime() + totalDuration * 60000);
 
       const { data: appt, error } = await supabase
         .from('appointments')
@@ -466,16 +482,15 @@ export default function Agenda() {
         .single();
       if (error) throw error;
 
-      const svc = manualServices.find(s => s.id === manualServiceId);
-      if (svc) {
-        await supabase.from('appointment_services').insert({
+      await supabase.from('appointment_services').insert(
+        selectedSvcs.map(svc => ({
           appointment_id: appt.id,
           service_id: svc.id,
           service_name: svc.name,
           duration_minutes: svc.duration,
           price: svc.price,
-        });
-      }
+        }))
+      );
 
       toast({ title: 'Agendamento criado!' });
       setManualOpen(false);
@@ -507,10 +522,31 @@ export default function Agenda() {
       starts.setHours(slot.hour, 0, 0, 0);
       const ends = new Date(starts.getTime() + blockDuration * 60000);
 
+      // Buscar ou criar cliente placeholder "BLOQUEADO" para o salão
+      let blockClientId: string;
+      const { data: existing } = await supabase
+        .from('clients')
+        .select('id')
+        .eq('salon_id', salonId)
+        .eq('name', '__BLOQUEADO__')
+        .maybeSingle();
+
+      if (existing?.id) {
+        blockClientId = existing.id;
+      } else {
+        const { data: newClient, error: clientErr } = await supabase
+          .from('clients')
+          .insert({ salon_id: salonId, name: '__BLOQUEADO__', phone: '' })
+          .select('id')
+          .single();
+        if (clientErr) throw clientErr;
+        blockClientId = newClient.id;
+      }
+
       await supabase.from('appointments').insert({
         salon_id: salonId,
         professional_id: profId,
-        client_id: profId,
+        client_id: blockClientId,
         starts_at: starts.toISOString(),
         ends_at: ends.toISOString(),
         status: 'confirmed',
@@ -799,33 +835,37 @@ export default function Agenda() {
                 ))}
               </select>
             </div>
-            <div className="space-y-1">
-              <label className="text-sm font-medium">Serviço</label>
-              <select
-                className="w-full border rounded-md px-3 py-2 text-sm"
-                value={manualServiceId}
-                onChange={e => {
-                  const svc = manualServices.find(s => s.id === e.target.value);
-                  setManualServiceId(e.target.value);
-                  if (svc) setManualDuration(svc.duration);
-                }}
-              >
-                <option value="">Selecione o serviço...</option>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Serviços (selecione um ou mais)</label>
+              <div className="border rounded-md divide-y max-h-48 overflow-y-auto">
                 {manualServices.map(s => (
-                  <option key={s.id} value={s.id}>{s.name} — {s.duration}min</option>
+                  <label key={s.id} className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-muted/50">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 accent-salon-purple"
+                      checked={manualServiceIds.includes(s.id)}
+                      onChange={e => {
+                        if (e.target.checked) {
+                          setManualServiceIds(prev => [...prev, s.id]);
+                        } else {
+                          setManualServiceIds(prev => prev.filter(id => id !== s.id));
+                        }
+                      }}
+                    />
+                    <span className="flex-1 text-sm">{s.name}</span>
+                    <span className="text-xs text-muted-foreground">{s.duration}min</span>
+                    <span className="text-sm font-medium">
+                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(s.price)}
+                    </span>
+                  </label>
                 ))}
-              </select>
-            </div>
-            <div className="space-y-1">
-              <label className="text-sm font-medium">Duração (min)</label>
-              <input
-                type="number"
-                className="w-full border rounded-md px-3 py-2 text-sm"
-                value={manualDuration}
-                min={15}
-                step={15}
-                onChange={e => setManualDuration(Number(e.target.value))}
-              />
+              </div>
+              {manualServiceIds.length > 0 && (
+                <div className="text-xs text-muted-foreground px-1">
+                  {manualServiceIds.length} serviço(s) selecionado(s) —{' '}
+                  duração total: {manualServices.filter(s => manualServiceIds.includes(s.id)).reduce((sum, s) => sum + s.duration, 0)}min
+                </div>
+              )}
             </div>
           </div>
           <DialogFooter>
@@ -833,7 +873,7 @@ export default function Agenda() {
             <Button
               className="bg-salon-purple hover:bg-salon-dark-purple"
               onClick={handleManualSave}
-              disabled={manualSaving || !manualClientId || !manualServiceId}
+              disabled={manualSaving || !manualClientId || manualServiceIds.length === 0}
             >
               {manualSaving ? 'Salvando...' : 'Confirmar agendamento'}
             </Button>
