@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { addDays, startOfWeek, format, isSameDay, isWithinInterval } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -31,12 +31,16 @@ type Appt = {
   client_id: string;
   professional_id: string;
   started_at: string | null;
+  notes?: string | null;
   client_name?: string;
   client_phone?: string;
   professional_name?: string;
   services?: { id: string; service_id: string; service_name: string; duration_minutes: number; price: number }[];
 };
 type Prof = { id: string; name: string };
+type SlotClick = { date: Date; hour: number; profId: string };
+type Client = { id: string; name: string; phone: string };
+type Service = { id: string; name: string; duration: number; price: number };
 
 const HOUR_START = 7;
 const HOUR_END = 21;
@@ -77,6 +81,25 @@ export default function Agenda() {
   const [acting, setActing] = useState(false);
   const [whatsAppAppt, setWhatsAppAppt] = useState<Appt | null>(null);
 
+  // Slot vazio clicado
+  const [slotClick, setSlotClick] = useState<SlotClick | null>(null);
+  const slotRef = useRef<SlotClick | null>(null);
+
+  // Modal de agendamento manual
+  const [manualOpen, setManualOpen] = useState(false);
+  const [manualClients, setManualClients] = useState<Client[]>([]);
+  const [manualServices, setManualServices] = useState<Service[]>([]);
+  const [manualClientId, setManualClientId] = useState('');
+  const [manualServiceId, setManualServiceId] = useState('');
+  const [manualDuration, setManualDuration] = useState(60);
+  const [manualSaving, setManualSaving] = useState(false);
+
+  // Modal de bloqueio
+  const [blockOpen, setBlockOpen] = useState(false);
+  const [blockReason, setBlockReason] = useState('');
+  const [blockDuration, setBlockDuration] = useState(60);
+  const [blockSaving, setBlockSaving] = useState(false);
+
   const weekDays = useMemo(
     () => Array.from({ length: DAY_COLS }, (_, i) => addDays(weekStart, i)),
     [weekStart]
@@ -108,7 +131,7 @@ export default function Agenda() {
 
       let q = supabase
         .from('appointments')
-        .select('id, starts_at, ends_at, status, client_id, professional_id, started_at')
+        .select('id, starts_at, ends_at, status, client_id, professional_id, started_at, notes')
         .eq('salon_id', salonId)
         .neq('status', 'cancelled')
         .gte('starts_at', from)
@@ -148,6 +171,7 @@ export default function Agenda() {
         const c = clientMap.get(a.client_id) as any;
         return {
           ...a,
+          notes: a.notes ?? null,
           client_name: c?.name ?? 'Cliente',
           client_phone: c?.phone ?? '',
           professional_name: profMap.get(a.professional_id) ?? '',
@@ -200,6 +224,23 @@ export default function Agenda() {
     const top = (startMin - HOUR_START * 60) * PX_PER_MIN;
     const height = Math.max(24, (endMin - startMin) * PX_PER_MIN);
     const svcLabel = (appt.services ?? []).map(s => s.service_name).join(', ');
+    const isBlocked = appt.notes?.startsWith('BLOQUEADO');
+    const blockReason = isBlocked ? appt.notes?.replace('BLOQUEADO: ', '').replace('BLOQUEADO', '') : '';
+
+    if (isBlocked) {
+      return (
+        <div
+          key={appt.id}
+          className="absolute left-1 right-1 rounded-md border px-2 py-1 text-xs text-left shadow-sm overflow-hidden bg-gray-200 text-gray-600 border-gray-300 border-l-4 border-l-gray-500 cursor-default"
+          style={{ top, height }}
+          title={blockReason ? `Bloqueado: ${blockReason}` : 'Horário bloqueado'}
+        >
+          <div className="font-semibold truncate">Bloqueado</div>
+          {blockReason && <div className="opacity-75 truncate">{blockReason}</div>}
+        </div>
+      );
+    }
+
     return (
       <div
         key={appt.id}
@@ -371,6 +412,121 @@ export default function Agenda() {
   const totalSelected = (selected?.services ?? []).reduce((a, s) => a + Number(s.price ?? 0), 0);
   const headerLabel = `${format(weekStart, "dd MMM", { locale: ptBR })} – ${format(addDays(weekStart, 6), "dd MMM yyyy", { locale: ptBR })}`;
 
+  // Clique em slot vazio da agenda
+  const handleSlotClick = (date: Date, hour: number) => {
+    const profId = profFilter !== 'all' ? profFilter : (currentUser?.id ?? '');
+    const slot = { date, hour, profId };
+    slotRef.current = slot;
+    setSlotClick(slot);
+  };
+
+  // Abrir modal de agendamento manual
+  const openManual = async () => {
+    setSlotClick(null);
+    setManualOpen(true);
+    setManualClientId('');
+    setManualServiceId('');
+    setManualDuration(60);
+    const salonId = await getCurrentSalonId();
+    const [clientsRes, svcsRes] = await Promise.all([
+      supabase.from('clients').select('id, name, phone').eq('salon_id', salonId).order('name'),
+      supabase.from('services').select('id, name, duration, price').eq('salon_id', salonId).order('name'),
+    ]);
+    setManualClients((clientsRes.data as any[]) ?? []);
+    setManualServices((svcsRes.data as any[]) ?? []);
+  };
+
+  // Salvar agendamento manual
+  const handleManualSave = async () => {
+    if (!manualClientId || !manualServiceId) {
+      toast({ title: 'Selecione o cliente e o serviço', variant: 'destructive' });
+      return;
+    }
+    const slot = slotRef.current;
+    if (!slot) return;
+    setManualSaving(true);
+    try {
+      const salonId = await getCurrentSalonId();
+      const profId = slot.profId || (currentUser?.id ?? '');
+      const starts = new Date(slot.date);
+      starts.setHours(slot.hour, 0, 0, 0);
+      const ends = new Date(starts.getTime() + manualDuration * 60000);
+
+      const { data: appt, error } = await supabase
+        .from('appointments')
+        .insert({
+          salon_id: salonId,
+          professional_id: profId,
+          client_id: manualClientId,
+          starts_at: starts.toISOString(),
+          ends_at: ends.toISOString(),
+          status: 'confirmed',
+        })
+        .select('id')
+        .single();
+      if (error) throw error;
+
+      const svc = manualServices.find(s => s.id === manualServiceId);
+      if (svc) {
+        await supabase.from('appointment_services').insert({
+          appointment_id: appt.id,
+          service_id: svc.id,
+          service_name: svc.name,
+          duration_minutes: svc.duration,
+          price: svc.price,
+        });
+      }
+
+      toast({ title: 'Agendamento criado!' });
+      setManualOpen(false);
+      fetchAppointments();
+    } catch (e: any) {
+      toast({ title: 'Erro ao criar agendamento', description: e.message, variant: 'destructive' });
+    } finally {
+      setManualSaving(false);
+    }
+  };
+
+  // Abrir modal de bloqueio
+  const openBlock = () => {
+    setSlotClick(null);
+    setBlockOpen(true);
+    setBlockReason('');
+    setBlockDuration(60);
+  };
+
+  // Salvar bloqueio de horário
+  const handleBlockSave = async () => {
+    const slot = slotRef.current;
+    if (!slot) return;
+    setBlockSaving(true);
+    try {
+      const salonId = await getCurrentSalonId();
+      const profId = slot.profId || (currentUser?.id ?? '');
+      const starts = new Date(slot.date);
+      starts.setHours(slot.hour, 0, 0, 0);
+      const ends = new Date(starts.getTime() + blockDuration * 60000);
+
+      await supabase.from('appointments').insert({
+        salon_id: salonId,
+        professional_id: profId,
+        client_id: profId,
+        starts_at: starts.toISOString(),
+        ends_at: ends.toISOString(),
+        status: 'confirmed',
+        notes: blockReason ? `BLOQUEADO: ${blockReason}` : 'BLOQUEADO',
+      });
+
+      toast({ title: 'Horário bloqueado!' });
+      setBlockOpen(false);
+      fetchAppointments();
+    } catch (e: any) {
+      toast({ title: 'Erro ao bloquear horário', description: e.message, variant: 'destructive' });
+    } finally {
+      setBlockSaving(false);
+    }
+  };
+
   return (
     <MainLayout>
       <div className="space-y-4">
@@ -427,9 +583,14 @@ export default function Agenda() {
               const dayAppts = appointments.filter(a => isSameDay(new Date(a.starts_at), d));
               return (
                 <div key={idx} className="relative border-l" style={{ height: HOURS.length * 60 }}>
-                  {/* linhas de hora */}
+                  {/* linhas de hora clicáveis */}
                   {HOURS.map((h, i) => (
-                    <div key={h} className="absolute left-0 right-0 border-t border-dashed border-muted" style={{ top: i * 60 }} />
+                    <div
+                      key={h}
+                      className="absolute left-0 right-0 border-t border-dashed border-muted hover:bg-salon-purple/5 cursor-pointer transition-colors"
+                      style={{ top: i * 60, height: 60 }}
+                      onClick={() => handleSlotClick(d, h)}
+                    />
                   ))}
                   {dayAppts.map(renderApptBlock)}
                 </div>
@@ -596,6 +757,138 @@ export default function Agenda() {
           })()}
         </DialogContent>
       </Dialog>
+
+      {/* Modal: opções do slot vazio */}
+      <Dialog open={!!slotClick} onOpenChange={o => !o && setSlotClick(null)}>
+        <DialogContent className="max-w-xs">
+          <DialogHeader>
+            <DialogTitle>
+              {slotClick && format(new Date(slotClick.date.setHours(slotClick.hour, 0, 0, 0)), "EEEE, dd/MM 'às' HH:00", { locale: ptBR })}
+            </DialogTitle>
+            <DialogDescription>O que deseja fazer neste horário?</DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 pt-2">
+            <Button className="w-full bg-salon-purple hover:bg-salon-dark-purple" onClick={openManual}>
+              + Agendar cliente
+            </Button>
+            <Button variant="outline" className="w-full border-red-300 text-red-600 hover:bg-red-50" onClick={() => { openBlock(); }}>
+              Bloquear horário
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal: agendamento manual */}
+      <Dialog open={manualOpen} onOpenChange={o => !o && setManualOpen(false)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Agendar cliente</DialogTitle>
+            <DialogDescription>Crie um agendamento diretamente na agenda</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Cliente</label>
+              <select
+                className="w-full border rounded-md px-3 py-2 text-sm"
+                value={manualClientId}
+                onChange={e => setManualClientId(e.target.value)}
+              >
+                <option value="">Selecione o cliente...</option>
+                {manualClients.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}{c.phone ? ` — ${c.phone}` : ''}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Serviço</label>
+              <select
+                className="w-full border rounded-md px-3 py-2 text-sm"
+                value={manualServiceId}
+                onChange={e => {
+                  const svc = manualServices.find(s => s.id === e.target.value);
+                  setManualServiceId(e.target.value);
+                  if (svc) setManualDuration(svc.duration);
+                }}
+              >
+                <option value="">Selecione o serviço...</option>
+                {manualServices.map(s => (
+                  <option key={s.id} value={s.id}>{s.name} — {s.duration}min</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Duração (min)</label>
+              <input
+                type="number"
+                className="w-full border rounded-md px-3 py-2 text-sm"
+                value={manualDuration}
+                min={15}
+                step={15}
+                onChange={e => setManualDuration(Number(e.target.value))}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setManualOpen(false)}>Cancelar</Button>
+            <Button
+              className="bg-salon-purple hover:bg-salon-dark-purple"
+              onClick={handleManualSave}
+              disabled={manualSaving || !manualClientId || !manualServiceId}
+            >
+              {manualSaving ? 'Salvando...' : 'Confirmar agendamento'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal: bloqueio de horário */}
+      <Dialog open={blockOpen} onOpenChange={o => !o && setBlockOpen(false)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Bloquear horário</DialogTitle>
+            <DialogDescription>Este horário ficará indisponível para agendamento</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Motivo (opcional)</label>
+              <input
+                type="text"
+                className="w-full border rounded-md px-3 py-2 text-sm"
+                placeholder="Ex: consulta médica, almoço, folga..."
+                value={blockReason}
+                onChange={e => setBlockReason(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Duração</label>
+              <select
+                className="w-full border rounded-md px-3 py-2 text-sm"
+                value={blockDuration}
+                onChange={e => setBlockDuration(Number(e.target.value))}
+              >
+                <option value={30}>30 minutos</option>
+                <option value={60}>1 hora</option>
+                <option value={90}>1h30</option>
+                <option value={120}>2 horas</option>
+                <option value={180}>3 horas</option>
+                <option value={240}>4 horas</option>
+                <option value={480}>Dia inteiro (8h)</option>
+              </select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBlockOpen(false)}>Cancelar</Button>
+            <Button
+              className="bg-red-500 hover:bg-red-600 text-white"
+              onClick={handleBlockSave}
+              disabled={blockSaving}
+            >
+              {blockSaving ? 'Bloqueando...' : 'Bloquear horário'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </MainLayout>
   );
 }
