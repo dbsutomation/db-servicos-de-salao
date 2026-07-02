@@ -231,11 +231,17 @@ export default function Agenda() {
       return (
         <div
           key={appt.id}
-          className="absolute left-1 right-1 rounded-md border px-2 py-1 text-xs text-left shadow-sm overflow-hidden bg-gray-200 text-gray-600 border-gray-300 border-l-4 border-l-gray-500 cursor-default"
+          onClick={() => {
+            setCancelTarget(appt);
+            setTimeout(() => setCancelConfirmOpen(true), 100);
+          }}
+          role="button"
+          tabIndex={0}
+          className="absolute left-1 right-1 rounded-md border px-2 py-1 text-xs text-left shadow-sm overflow-hidden bg-gray-200 text-gray-600 border-gray-300 border-l-4 border-l-gray-500 cursor-pointer hover:bg-gray-300 transition-colors"
           style={{ top, height }}
-          title={blockReason ? `Bloqueado: ${blockReason}` : 'Horário bloqueado'}
+          title="Clique para remover o bloqueio"
         >
-          <div className="font-semibold truncate">Bloqueado</div>
+          <div className="font-semibold truncate">🔒 Bloqueado</div>
           {blockReason && <div className="opacity-75 truncate">{blockReason}</div>}
         </div>
       );
@@ -775,21 +781,26 @@ export default function Agenda() {
         </DialogContent>
       </Dialog>
 
-      {/* Confirmação cancelamento */}
+      {/* Confirmação cancelamento / remoção de bloqueio */}
       <AlertDialog open={cancelConfirmOpen} onOpenChange={o => { if (!acting) { setCancelConfirmOpen(o); if (!o) setCancelTarget(null); } }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Cancelar este agendamento?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {cancelTarget?.notes?.startsWith('BLOQUEADO') ? 'Remover bloqueio?' : 'Cancelar este agendamento?'}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              {cancelTarget && (
+              {cancelTarget?.notes?.startsWith('BLOQUEADO') ? (
                 <>
-                  <strong>{cancelTarget.client_name}</strong>
-                  {' — '}
-                  {format(new Date(cancelTarget.starts_at), "dd/MM 'às' HH:mm", { locale: ptBR })}
-                  <br />
+                  O horário das <strong>{format(new Date(cancelTarget.starts_at), 'HH:mm', { locale: ptBR })}</strong> ficará disponível novamente.
+                </>
+              ) : (
+                <>
+                  {cancelTarget && (
+                    <><strong>{cancelTarget.client_name}</strong>{' — '}{format(new Date(cancelTarget.starts_at), "dd/MM 'às' HH:mm", { locale: ptBR })}<br /></>
+                  )}
+                  Esta ação não pode ser desfeita.
                 </>
               )}
-              Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -799,7 +810,7 @@ export default function Agenda() {
               disabled={acting}
               onClick={handleCancel}
             >
-              {acting ? 'Cancelando...' : 'Sim, cancelar'}
+              {acting ? 'Aguarde...' : cancelTarget?.notes?.startsWith('BLOQUEADO') ? 'Remover bloqueio' : 'Sim, cancelar'}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
