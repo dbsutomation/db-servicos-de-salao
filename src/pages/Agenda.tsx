@@ -70,7 +70,15 @@ export default function Agenda() {
   const navigate = useNavigate();
   const isManager = !!currentUser?.isManager;
 
-  const [weekStart, setWeekStart] = useState<Date>(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
+  const [weekStart, setWeekStart] = useState<Date>(() => {
+    // Preserva a semana ao navegar entre páginas
+    const saved = sessionStorage.getItem('agenda_weekStart');
+    if (saved) {
+      const d = new Date(saved);
+      if (!isNaN(d.getTime())) return d;
+    }
+    return startOfWeek(new Date(), { weekStartsOn: 1 });
+  });
   const [appointments, setAppointments] = useState<Appt[]>([]);
   const [professionals, setProfessionals] = useState<Prof[]>([]);
   const [profFilter, setProfFilter] = useState<string>('all'); // 'all' | profId
@@ -211,9 +219,9 @@ export default function Agenda() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser?.id, weekStart, profFilter, isManager]);
 
-  const goPrevWeek = () => setWeekStart(d => addDays(d, -7));
-  const goNextWeek = () => setWeekStart(d => addDays(d, 7));
-  const goToday = () => setWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }));
+  const goPrevWeek = () => setWeekStart(d => { const n = addDays(d, -7); sessionStorage.setItem('agenda_weekStart', n.toISOString()); return n; });
+  const goNextWeek = () => setWeekStart(d => { const n = addDays(d, 7); sessionStorage.setItem('agenda_weekStart', n.toISOString()); return n; });
+  const goToday = () => { const n = startOfWeek(new Date(), { weekStartsOn: 1 }); sessionStorage.setItem('agenda_weekStart', n.toISOString()); setWeekStart(n); };
 
   // Horário de Brasília (UTC-3)
   const toBR = (d: Date) => new Date(d.getTime() - 3 * 60 * 60 * 1000);
