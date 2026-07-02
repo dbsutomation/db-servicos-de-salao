@@ -492,20 +492,20 @@ export default function Agenda() {
                     disabled={acting}
                     className="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center gap-2"
                   >
-                    ✅ Confirmar e notificar cliente
+                    Confirmar e notificar cliente
                   </button>
                 )}
                 <div className="flex gap-2">
-                  {(selected.status === 'scheduled' || selected.status === 'in_progress') && (
+                  {(selected.status === 'scheduled' || selected.status === 'pending' || selected.status === 'confirmed') && (
                     <button
                       onClick={() => setCancelConfirmOpen(true)}
                       disabled={acting}
                       className="flex-1 border border-red-500 text-red-500 hover:bg-red-50 font-medium py-2 px-4 rounded-lg"
                     >
-                      Cancelar agendamento
+                      Cancelar
                     </button>
                   )}
-                  {selected.status === 'scheduled' && (
+                  {(selected.status === 'scheduled' || selected.status === 'confirmed') && (
                     <button
                       onClick={handleStart}
                       disabled={acting}
