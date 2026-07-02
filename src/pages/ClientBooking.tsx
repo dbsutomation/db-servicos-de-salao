@@ -147,6 +147,7 @@ export default function ClientBooking() {
         .from('appointments')
         .select('starts_at, ends_at, status')
         .eq('professional_id', selectedProf.id)
+        .eq('salon_id', salonId)
         .in('status', ['scheduled', 'confirmed', 'in_progress'])
         .gte('starts_at', dayStart.toISOString())
         .lt('starts_at', dayEnd.toISOString());

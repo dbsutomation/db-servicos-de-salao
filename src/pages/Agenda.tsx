@@ -389,7 +389,7 @@ export default function Agenda() {
     setActing(true);
     try {
       const salonId = await getCurrentSalonId();
-      const { error, count } = await supabase
+      const { error } = await supabase
         .from('appointments')
         .update({
           status: 'cancelled',
@@ -397,16 +397,16 @@ export default function Agenda() {
           cancelled_by: 'professional',
         })
         .eq('id', selected.id)
-        .eq('salon_id', salonId)
-        .select();
+        .eq('salon_id', salonId);
       if (error) throw error;
+
+      // Atualiza estado local imediatamente
+      setAppointments(prev => prev.filter(a => a.id !== selected.id));
       toast({ title: 'Agendamento cancelado' });
       setCancelConfirmOpen(false);
       setSelected(null);
-      await fetchAppointments();
     } catch (e: any) {
       toast({ title: 'Erro ao cancelar', description: e.message, variant: 'destructive' });
-      setCancelConfirmOpen(false);
     } finally {
       setActing(false);
     }
@@ -534,12 +534,14 @@ export default function Agenda() {
 
       // Buscar ou criar cliente placeholder "BLOQUEADO" para o salão
       let blockClientId: string;
-      const { data: existing } = await supabase
+      const { data: existing, error: findErr } = await supabase
         .from('clients')
         .select('id')
         .eq('salon_id', salonId)
         .eq('name', '__BLOQUEADO__')
         .maybeSingle();
+
+      if (findErr) throw findErr;
 
       if (existing?.id) {
         blockClientId = existing.id;
@@ -553,7 +555,7 @@ export default function Agenda() {
         blockClientId = newClient.id;
       }
 
-      await supabase.from('appointments').insert({
+      const { error: apptErr } = await supabase.from('appointments').insert({
         salon_id: salonId,
         professional_id: profId,
         client_id: blockClientId,
@@ -562,10 +564,11 @@ export default function Agenda() {
         status: 'confirmed',
         notes: blockReason ? `BLOQUEADO: ${blockReason}` : 'BLOQUEADO',
       });
+      if (apptErr) throw apptErr;
 
       toast({ title: 'Horário bloqueado!' });
       setBlockOpen(false);
-      fetchAppointments();
+      await fetchAppointments();
     } catch (e: any) {
       toast({ title: 'Erro ao bloquear horário', description: e.message, variant: 'destructive' });
     } finally {
@@ -768,7 +771,7 @@ export default function Agenda() {
       </Dialog>
 
       {/* Confirmação cancelamento */}
-      <AlertDialog open={cancelConfirmOpen} onOpenChange={setCancelConfirmOpen}>
+      <AlertDialog open={cancelConfirmOpen} onOpenChange={o => { if (!acting) setCancelConfirmOpen(o); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Cancelar este agendamento?</AlertDialogTitle>
@@ -778,9 +781,13 @@ export default function Agenda() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={acting}>Voltar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleCancel} disabled={acting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Sim, cancelar
-            </AlertDialogAction>
+            <Button
+              variant="destructive"
+              disabled={acting}
+              onClick={handleCancel}
+            >
+              {acting ? 'Cancelando...' : 'Sim, cancelar'}
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
