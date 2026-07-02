@@ -141,8 +141,11 @@ export default function ClientBooking() {
   useEffect(() => {
     if (!selectedProf || !selectedDate) { setBusySlots([]); return; }
     (async () => {
-      const dayStart = startOfDay(selectedDate);
-      const dayEnd = addDays(dayStart, 1);
+      // Usar horário de Brasília (UTC-3) para calcular início e fim do dia
+      const dateStr = format(selectedDate, 'yyyy-MM-dd');
+      const dayStart = new Date(`${dateStr}T00:00:00-03:00`);
+      const dayEnd   = new Date(`${dateStr}T23:59:59-03:00`);
+
       const { data } = await supabase
         .from('appointments')
         .select('starts_at, ends_at, status')
@@ -150,14 +153,18 @@ export default function ClientBooking() {
         .eq('salon_id', salonId)
         .in('status', ['scheduled', 'confirmed', 'in_progress'])
         .gte('starts_at', dayStart.toISOString())
-        .lt('starts_at', dayEnd.toISOString());
+        .lte('starts_at', dayEnd.toISOString());
+
       const busy = ((data as any[]) ?? []).map(a => {
+        // Converter para horário de Brasília
         const s = new Date(a.starts_at);
         const e = new Date(a.ends_at);
-        return {
-          s: s.getHours() * 60 + s.getMinutes(),
-          e: e.getHours() * 60 + e.getMinutes(),
+        const toBrasilia = (d: Date) => {
+          const offsetMs = -3 * 60 * 60 * 1000; // UTC-3
+          const local = new Date(d.getTime() + offsetMs);
+          return local.getUTCHours() * 60 + local.getUTCMinutes();
         };
+        return { s: toBrasilia(s), e: toBrasilia(e) };
       });
       setBusySlots(busy);
       setSelectedSlot(null);

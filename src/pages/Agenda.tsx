@@ -77,6 +77,7 @@ export default function Agenda() {
   const [loading, setLoading] = useState(true);
 
   const [selected, setSelected] = useState<Appt | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<Appt | null>(null);
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
   const [acting, setActing] = useState(false);
   const [whatsAppAppt, setWhatsAppAppt] = useState<Appt | null>(null);
@@ -385,7 +386,8 @@ export default function Agenda() {
   };
 
   const handleCancel = async () => {
-    if (!selected) return;
+    if (!cancelTarget) return;
+    const apptId = cancelTarget.id;
     setActing(true);
     try {
       const salonId = await getCurrentSalonId();
@@ -396,15 +398,14 @@ export default function Agenda() {
           cancelled_at: new Date().toISOString(),
           cancelled_by: 'professional',
         })
-        .eq('id', selected.id)
+        .eq('id', apptId)
         .eq('salon_id', salonId);
       if (error) throw error;
 
-      // Atualiza estado local imediatamente
-      setAppointments(prev => prev.filter(a => a.id !== selected.id));
-      toast({ title: 'Agendamento cancelado' });
+      setAppointments(prev => prev.filter(a => a.id !== apptId));
       setCancelConfirmOpen(false);
-      setSelected(null);
+      setCancelTarget(null);
+      toast({ title: 'Agendamento cancelado' });
     } catch (e: any) {
       toast({ title: 'Erro ao cancelar', description: e.message, variant: 'destructive' });
     } finally {
@@ -747,7 +748,11 @@ export default function Agenda() {
                 <div className="flex gap-2">
                   {(selected.status === 'scheduled' || selected.status === 'pending' || selected.status === 'confirmed') && (
                     <button
-                      onClick={() => setCancelConfirmOpen(true)}
+                      onClick={() => {
+                        setCancelTarget(selected);
+                        setSelected(null);
+                        setTimeout(() => setCancelConfirmOpen(true), 100);
+                      }}
                       disabled={acting}
                       className="flex-1 border border-red-500 text-red-500 hover:bg-red-50 font-medium py-2 px-4 rounded-lg"
                     >
@@ -771,12 +776,20 @@ export default function Agenda() {
       </Dialog>
 
       {/* Confirmação cancelamento */}
-      <AlertDialog open={cancelConfirmOpen} onOpenChange={o => { if (!acting) setCancelConfirmOpen(o); }}>
+      <AlertDialog open={cancelConfirmOpen} onOpenChange={o => { if (!acting) { setCancelConfirmOpen(o); if (!o) setCancelTarget(null); } }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Cancelar este agendamento?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita. O cliente não receberá notificação automática.
+              {cancelTarget && (
+                <>
+                  <strong>{cancelTarget.client_name}</strong>
+                  {' — '}
+                  {format(new Date(cancelTarget.starts_at), "dd/MM 'às' HH:mm", { locale: ptBR })}
+                  <br />
+                </>
+              )}
+              Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
