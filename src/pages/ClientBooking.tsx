@@ -146,25 +146,35 @@ export default function ClientBooking() {
       const dayStart = new Date(`${dateStr}T00:00:00-03:00`);
       const dayEnd   = new Date(`${dateStr}T23:59:59-03:00`);
 
-      const { data } = await supabase
+      console.log('[busySlots] profId:', selectedProf.id);
+      console.log('[busySlots] salonId:', salonId);
+      console.log('[busySlots] dayStart:', dayStart.toISOString());
+      console.log('[busySlots] dayEnd:', dayEnd.toISOString());
+
+      const { data, error } = await supabase
         .from('appointments')
-        .select('starts_at, ends_at, status')
+        .select('starts_at, ends_at, status, notes')
         .eq('professional_id', selectedProf.id)
         .eq('salon_id', salonId)
         .in('status', ['scheduled', 'confirmed', 'in_progress'])
         .gte('starts_at', dayStart.toISOString())
         .lte('starts_at', dayEnd.toISOString());
 
+      console.log('[busySlots] error:', error);
+      console.log('[busySlots] data:', data);
+
       const busy = ((data as any[]) ?? []).map(a => {
         const s = new Date(a.starts_at);
         const e = new Date(a.ends_at);
-        // Converter UTC para minutos em Brasília (UTC-3)
         const toMin = (d: Date) => {
           const br = new Date(d.getTime() - 3 * 60 * 60 * 1000);
           return br.getUTCHours() * 60 + br.getUTCMinutes();
         };
-        return { s: toMin(s), e: toMin(e) };
+        const result = { s: toMin(s), e: toMin(e) };
+        console.log('[busySlots] slot:', a.starts_at, '->', result);
+        return result;
       });
+      console.log('[busySlots] final busy:', busy);
       setBusySlots(busy);
       setSelectedSlot(null);
     })();
