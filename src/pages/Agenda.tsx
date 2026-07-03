@@ -42,9 +42,6 @@ type SlotClick = { date: Date; hour: number; profId: string };
 type Client = { id: string; name: string; phone: string };
 type Service = { id: string; name: string; duration: number; price: number };
 
-const HOUR_START = 7;
-const HOUR_END = 21;
-const HOURS = Array.from({ length: HOUR_END - HOUR_START + 1 }, (_, i) => HOUR_START + i);
 const PX_PER_MIN = 1; // 60px per hour
 const DAY_COLS = 7;
 
@@ -71,7 +68,6 @@ export default function Agenda() {
   const isManager = !!currentUser?.isManager;
 
   const [weekStart, setWeekStart] = useState<Date>(() => {
-    // Preserva a semana ao navegar entre páginas
     const saved = sessionStorage.getItem('agenda_weekStart');
     if (saved) {
       const d = new Date(saved);
@@ -81,8 +77,16 @@ export default function Agenda() {
   });
   const [appointments, setAppointments] = useState<Appt[]>([]);
   const [professionals, setProfessionals] = useState<Prof[]>([]);
-  const [profFilter, setProfFilter] = useState<string>('all'); // 'all' | profId
+  const [profFilter, setProfFilter] = useState<string>('all');
   const [loading, setLoading] = useState(true);
+
+  // Horários de expediente dinâmicos
+  const [hourStart, setHourStart] = useState(7);
+  const [hourEnd, setHourEnd] = useState(21);
+  const hours = useMemo(
+    () => Array.from({ length: hourEnd - hourStart + 1 }, (_, i) => hourStart + i),
+    [hourStart, hourEnd]
+  );
 
   const [selected, setSelected] = useState<Appt | null>(null);
   const [cancelTarget, setCancelTarget] = useState<Appt | null>(null);
@@ -127,6 +131,37 @@ export default function Agenda() {
       } catch (e) { /* ignore */ }
     })();
   }, [isManager]);
+
+  // Atualizar horários de expediente quando profissional muda
+  useEffect(() => {
+    (async () => {
+      try {
+        const profId = profFilter !== 'all' ? profFilter : currentUser?.id;
+        if (!profId) return;
+
+        const { data } = await supabase
+          .from('professional_schedules')
+          .select('start_time, end_time')
+          .eq('professional_id', profId)
+          .eq('is_active', true);
+
+        if (!data || data.length === 0) {
+          // Sem horários cadastrados: usa padrão amplo
+          setHourStart(7);
+          setHourEnd(21);
+          return;
+        }
+
+        // Pega o menor start_time e maior end_time entre todos os dias
+        const toHour = (t: string) => parseInt(t.split(':')[0], 10);
+        const minStart = Math.min(...(data as any[]).map(s => toHour(s.start_time)));
+        const maxEnd = Math.max(...(data as any[]).map(s => toHour(s.end_time)));
+
+        setHourStart(Math.max(0, minStart));
+        setHourEnd(Math.min(23, maxEnd));
+      } catch { /* ignore */ }
+    })();
+  }, [profFilter, currentUser?.id]);
 
   // Carregar agendamentos da semana
   const fetchAppointments = async () => {
@@ -238,7 +273,7 @@ export default function Agenda() {
     const end = new Date(appt.ends_at);
     const startMin = toMinBrasilia(start);
     const endMin = toMinBrasilia(end);
-    const top = (startMin - HOUR_START * 60) * PX_PER_MIN;
+    const top = (startMin - hourStart * 60) * PX_PER_MIN;
     const height = Math.max(24, (endMin - startMin) * PX_PER_MIN);
     const svcLabel = (appt.services ?? []).map(s => s.service_name).join(', ');
     const isBlocked = appt.notes?.startsWith('BLOQUEADO');
@@ -673,8 +708,8 @@ export default function Agenda() {
           {/* Grade */}
           <div className="grid relative" style={{ gridTemplateColumns: '60px repeat(7, minmax(120px, 1fr))' }}>
             {/* Coluna de horas */}
-            <div className="relative" style={{ height: HOURS.length * 60 }}>
-              {HOURS.map((h, i) => (
+            <div className="relative" style={{ height: hours.length * 60 }}>
+              {hours.map((h, i) => (
                 <div key={h} className="absolute left-0 right-0 text-[11px] text-muted-foreground pr-1 text-right" style={{ top: i * 60 - 6 }}>
                   {String(h).padStart(2, '0')}:00
                 </div>
@@ -688,10 +723,10 @@ export default function Agenda() {
                 <div
                   key={idx}
                   className={cn('relative border-l', isToday && 'bg-salon-purple/5')}
-                  style={{ height: HOURS.length * 60 }}
+                  style={{ height: hours.length * 60 }}
                 >
                   {/* linhas de hora clicáveis */}
-                  {HOURS.map((h, i) => (
+                  {hours.map((h, i) => (
                     <div
                       key={h}
                       className={cn(
