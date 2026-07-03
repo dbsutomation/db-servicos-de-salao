@@ -77,7 +77,7 @@ export default function Agenda() {
   });
   const [appointments, setAppointments] = useState<Appt[]>([]);
   const [professionals, setProfessionals] = useState<Prof[]>([]);
-  const [profFilter, setProfFilter] = useState<string>('self'); // será atualizado após currentUser carregar
+  const [profFilter, setProfFilter] = useState<string>('all');
   const [loading, setLoading] = useState(true);
   const [mobileDay, setMobileDay] = useState<Date>(() => startOfDay(new Date()));
 
@@ -118,10 +118,10 @@ export default function Agenda() {
     [weekStart]
   );
 
-  // Inicializa filtro com o profissional logado
+  // Inicializa filtro com o profissional logado assim que currentUser carrega
   useEffect(() => {
     if (currentUser?.id) {
-      setProfFilter(currentUser.id);
+      setProfFilter(prev => prev === 'all' ? currentUser.id : prev);
     }
   }, [currentUser?.id]);
 
