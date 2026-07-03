@@ -312,12 +312,12 @@ export default function Agenda() {
     return (
       <div
         key={appt.id}
-        onClick={() => !isPast && setSelected(appt)}
+        onClick={() => setSelected(appt)}
         role="button"
         tabIndex={0}
         className={cn(
           'absolute left-1 right-1 rounded-md border px-2 py-1 text-xs text-left shadow-sm transition overflow-hidden',
-          isPast ? 'opacity-50 cursor-default' : 'hover:opacity-90 cursor-pointer',
+          isPast ? 'opacity-50 cursor-pointer' : 'hover:opacity-90 cursor-pointer',
           statusStyles[appt.status] ?? statusStyles.scheduled
         )}
         style={{ top, height }}
@@ -846,11 +846,17 @@ export default function Agenda() {
                 </div>
               </div>
               <div className="flex flex-col gap-2 mt-4">
+                {/* Aviso para eventos passados */}
+                {toBR(new Date(selected.starts_at)) < toBR(new Date()) && (
+                  <p className="text-xs text-muted-foreground text-center pb-1">
+                    Evento no passado — ações não disponíveis.
+                  </p>
+                )}
                 {(selected.status === 'scheduled' || selected.status === 'pending') && (
                   <button
                     onClick={() => handleConfirmAndNotify(selected)}
-                    disabled={acting}
-                    className="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center gap-2"
+                    disabled={acting || toBR(new Date(selected.starts_at)) < toBR(new Date())}
+                    className="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     Confirmar e notificar cliente
                   </button>
@@ -863,8 +869,8 @@ export default function Agenda() {
                         setSelected(null);
                         setTimeout(() => setCancelConfirmOpen(true), 100);
                       }}
-                      disabled={acting}
-                      className="flex-1 border border-red-500 text-red-500 hover:bg-red-50 font-medium py-2 px-4 rounded-lg"
+                      disabled={acting || toBR(new Date(selected.starts_at)) < toBR(new Date())}
+                      className="flex-1 border border-red-500 text-red-500 hover:bg-red-50 font-medium py-2 px-4 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       Cancelar
                     </button>
@@ -872,8 +878,8 @@ export default function Agenda() {
                   {(selected.status === 'scheduled' || selected.status === 'confirmed') && (
                     <button
                       onClick={handleStart}
-                      disabled={acting}
-                      className="flex-1 bg-purple-500 hover:bg-purple-600 text-white font-medium py-2 px-4 rounded-lg"
+                      disabled={acting || toBR(new Date(selected.starts_at)) < toBR(new Date())}
+                      className="flex-1 bg-purple-500 hover:bg-purple-600 text-white font-medium py-2 px-4 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       Iniciar atendimento
                     </button>
