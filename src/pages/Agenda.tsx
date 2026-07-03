@@ -286,12 +286,14 @@ export default function Agenda() {
     const svcLabel = (appt.services ?? []).map(s => s.service_name).join(', ');
     const isBlocked = appt.notes?.startsWith('BLOQUEADO');
     const blockReason = isBlocked ? appt.notes?.replace('BLOQUEADO: ', '').replace('BLOQUEADO', '') : '';
+    const isPast = toBR(start) < toBR(new Date()); // evento no passado
 
     if (isBlocked) {
       return (
         <div
           key={appt.id}
           onClick={() => {
+            if (isPast) return; // não permite remover bloqueio passado
             setCancelTarget(appt);
             setTimeout(() => setCancelConfirmOpen(true), 100);
           }}
@@ -310,11 +312,12 @@ export default function Agenda() {
     return (
       <div
         key={appt.id}
-        onClick={() => setSelected(appt)}
+        onClick={() => !isPast && setSelected(appt)}
         role="button"
         tabIndex={0}
         className={cn(
-          'absolute left-1 right-1 rounded-md border px-2 py-1 text-xs text-left shadow-sm hover:opacity-90 transition cursor-pointer overflow-hidden',
+          'absolute left-1 right-1 rounded-md border px-2 py-1 text-xs text-left shadow-sm transition overflow-hidden',
+          isPast ? 'opacity-50 cursor-default' : 'hover:opacity-90 cursor-pointer',
           statusStyles[appt.status] ?? statusStyles.scheduled
         )}
         style={{ top, height }}
@@ -669,7 +672,7 @@ export default function Agenda() {
                 <SelectItem value="all">Todos os profissionais</SelectItem>
                 {professionals.map(p => (
                   <SelectItem key={p.id} value={p.id}>
-                    {p.id === currentUser?.id ? `${p.name} (eu)` : p.name}
+                    {p.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -691,7 +694,7 @@ export default function Agenda() {
             <span className="text-base">{profFilter === 'all' ? '⚠️' : '👤'}</span>
             {profFilter === 'all'
               ? 'Visualizando todos — selecione um profissional para agendar ou bloquear'
-              : `Agenda de: ${professionals.find(p => p.id === profFilter)?.name ?? ''}${profFilter === currentUser?.id ? ' (você)' : ''}`
+              : `Agenda de: ${professionals.find(p => p.id === profFilter)?.name ?? ''}`
             }
           </div>
         )}
