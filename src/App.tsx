@@ -52,7 +52,13 @@ const AppRoutes = () => {
 
       {/* Rotas públicas de cliente (não passam pela auth interna) */}
       <Route path="/cadastro-cliente/:salonId" element={<CustomerSignup />} />
-      <Route path="/migrate-images" element={<MigrateImages />} />
+      <Route path="/migrate-images" element={
+        <CartProvider>
+          <ProtectedRoute requiredRoutes={["/"]}>
+            <MigrateImages />
+          </ProtectedRoute>
+        </CartProvider>
+      } />
       <Route path="/login-cliente" element={<CustomerLogin />} />
       <Route path="/minha-agenda" element={<ClientBooking />} />
       <Route path="/meus-agendamentos" element={<MeusAgendamentos />} />
