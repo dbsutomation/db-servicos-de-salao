@@ -63,7 +63,8 @@ const Services = () => {
         // Fetch services
         const { data: servicesData, error: servicesError } = await supabase
           .from('services')
-          .select('id, name, price, commission, category, type, duration, description, image');
+          .select('id, name, price, commission, category, type, duration, description, image')
+          .order('name', { ascending: true });
         
         if (servicesError) throw servicesError;
         

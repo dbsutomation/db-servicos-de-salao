@@ -33,7 +33,8 @@ const Clients = () => {
       try {
         const { data, error } = await supabase
           .from('clients')
-          .select('*');
+          .select('*')
+          .order('name', { ascending: true });
         
         if (error) throw error;
         
