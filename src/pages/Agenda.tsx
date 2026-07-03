@@ -639,28 +639,37 @@ export default function Agenda() {
   return (
     <MainLayout>
       <div className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="text-2xl font-bold">Agenda</h1>
-          <div className="flex items-center gap-2">
-            {isManager && (
-              <Select value={profFilter} onValueChange={setProfFilter}>
-                <SelectTrigger className="w-[220px]">
-                  <SelectValue placeholder="Profissional" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos os profissionais</SelectItem>
-                  {professionals.map(p => (
-                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-            <Button variant="outline" size="icon" onClick={goPrevWeek}><ChevronLeft className="h-4 w-4" /></Button>
-            <Button variant="outline" onClick={goToday}>Hoje</Button>
-            <Button variant="outline" size="icon" onClick={goNextWeek}><ChevronRight className="h-4 w-4" /></Button>
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold">Agenda</h1>
+            <div className="flex items-center gap-2">
+              {/* Navegação semana — só no desktop */}
+              <div className="hidden md:flex items-center gap-2">
+                <Button variant="outline" size="icon" onClick={goPrevWeek}><ChevronLeft className="h-4 w-4" /></Button>
+                <Button variant="outline" onClick={goToday}>Hoje</Button>
+                <Button variant="outline" size="icon" onClick={goNextWeek}><ChevronRight className="h-4 w-4" /></Button>
+              </div>
+            </div>
           </div>
+
+          {/* Filtro de profissional */}
+          {isManager && (
+            <Select value={profFilter} onValueChange={setProfFilter}>
+              <SelectTrigger className="w-full sm:w-[240px]">
+                <SelectValue placeholder="Profissional" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os profissionais</SelectItem>
+                {professionals.map(p => (
+                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+
+          {/* Range da semana — só no desktop */}
+          <div className="hidden md:block text-sm text-muted-foreground capitalize">{headerLabel}</div>
         </div>
-        <div className="text-sm text-muted-foreground capitalize">{headerLabel}</div>
 
         {/* Indicador do profissional sendo visualizado */}
         {isManager && (
@@ -684,37 +693,42 @@ export default function Agenda() {
           <div className="block md:hidden">
             <div className="flex items-center justify-between border-b px-3 py-2 sticky top-0 bg-white z-10">
               <button onClick={() => setMobileDay(d => addDays(d,-1))}
-                className="p-1 rounded hover:bg-muted"><ChevronLeft className="h-5 w-5" /></button>
+                className="p-2 rounded hover:bg-muted"><ChevronLeft className="h-5 w-5" /></button>
               <div className="text-center">
                 <div className={cn('text-sm font-semibold capitalize',
                   isSameDay(mobileDay, new Date()) && 'text-salon-purple')}>
-                  {format(mobileDay, "EEEE, dd 'de' MMMM", { locale: ptBR })}
+                  {format(mobileDay, "EEE, dd 'de' MMM", { locale: ptBR })}
                 </div>
                 {isSameDay(mobileDay, new Date()) && (
-                  <div className="text-xs text-salon-purple">Hoje</div>
+                  <div className="text-xs text-salon-purple font-medium">Hoje</div>
                 )}
               </div>
               <button onClick={() => setMobileDay(d => addDays(d,1))}
-                className="p-1 rounded hover:bg-muted"><ChevronRight className="h-5 w-5" /></button>
+                className="p-2 rounded hover:bg-muted"><ChevronRight className="h-5 w-5" /></button>
             </div>
-            <div className="overflow-auto" style={{ maxHeight: '65vh' }}>
-              <div className="relative" style={{ height: hours.length * 60 }}>
+            <div className="overflow-y-auto" style={{ maxHeight: '60vh' }}>
+              <div className="relative" style={{ height: hours.length * 60 + 16 }}>
                 {hours.map((h, i) => (
-                  <div key={h} className="absolute left-0 right-0 border-t border-dashed border-muted"
-                    style={{ top: i*60, height: 60 }}>
-                    <span className="absolute text-[10px] text-muted-foreground -top-3 left-1">
+                  <div key={h}
+                    className="absolute left-0 right-0 border-t border-dashed border-muted"
+                    style={{ top: i * 60 + 16 }}>
+                    <span className="absolute text-[10px] text-muted-foreground left-1 -top-3 bg-white px-0.5">
                       {String(h).padStart(2,'0')}:00
                     </span>
                   </div>
                 ))}
+                {/* Slots clicáveis */}
                 {hours.map((h, i) => (
                   <div key={`s${h}`}
-                    className="absolute left-10 right-0 cursor-pointer hover:bg-salon-purple/5 transition-colors"
-                    style={{ top: i*60, height: 60 }}
+                    className="absolute left-12 right-0 cursor-pointer hover:bg-salon-purple/5 transition-colors"
+                    style={{ top: i*60+16, height: 60 }}
                     onClick={() => handleSlotClick(mobileDay, h)} />
                 ))}
-                <div className="absolute left-10 right-0 top-0 bottom-0">
-                  {appointments.filter(a => isSameDay(toBR(new Date(a.starts_at)), mobileDay)).map(renderApptBlock)}
+                {/* Agendamentos */}
+                <div className="absolute left-12 right-1 top-4 bottom-0">
+                  {appointments
+                    .filter(a => isSameDay(toBR(new Date(a.starts_at)), mobileDay))
+                    .map(renderApptBlock)}
                 </div>
               </div>
             </div>
