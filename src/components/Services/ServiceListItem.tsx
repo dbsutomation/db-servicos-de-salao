@@ -40,6 +40,17 @@ const ServiceListItem = ({ service, canEdit, onEdit }: ServiceListItemProps) => 
 
   return (
     <div className="flex items-center justify-between gap-3 p-3 bg-white border rounded-lg hover:shadow-sm transition-shadow">
+      {/* Thumbnail da imagem */}
+      {service.image && service.image.startsWith('https://') && (
+        <div className="w-12 h-12 rounded-md overflow-hidden shrink-0 bg-muted">
+          <img
+            src={service.image}
+            alt={service.name}
+            className="w-full h-full object-cover"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+          />
+        </div>
+      )}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <h3 className="font-medium text-sm leading-snug">{service.name}</h3>
