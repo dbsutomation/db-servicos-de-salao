@@ -54,9 +54,7 @@ const AppRoutes = () => {
       <Route path="/cadastro-cliente/:salonId" element={<CustomerSignup />} />
       <Route path="/migrate-images" element={
         <CartProvider>
-          <ProtectedRoute requiredRoutes={["/"]}>
-            <MigrateImages />
-          </ProtectedRoute>
+          <MigrateImages />
         </CartProvider>
       } />
       <Route path="/login-cliente" element={<CustomerLogin />} />
