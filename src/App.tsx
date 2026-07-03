@@ -16,7 +16,6 @@ import Expenses from "./pages/Expenses";
 import ProfessionalSchedules from "./pages/ProfessionalSchedules";
 import Login from "./pages/Login";
 import CustomerSignup from "./pages/CustomerSignup";
-import MigrateImages from "./pages/MigrateImages";
 import CustomerLogin from "./pages/CustomerLogin";
 import ClientBooking from "./pages/ClientBooking";
 import MeusAgendamentos from "./pages/MeusAgendamentos";
@@ -52,11 +51,6 @@ const AppRoutes = () => {
 
       {/* Rotas públicas de cliente (não passam pela auth interna) */}
       <Route path="/cadastro-cliente/:salonId" element={<CustomerSignup />} />
-      <Route path="/migrate-images" element={
-        <CartProvider>
-          <MigrateImages />
-        </CartProvider>
-      } />
       <Route path="/login-cliente" element={<CustomerLogin />} />
       <Route path="/minha-agenda" element={<ClientBooking />} />
       <Route path="/meus-agendamentos" element={<MeusAgendamentos />} />
