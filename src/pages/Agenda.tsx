@@ -79,6 +79,7 @@ export default function Agenda() {
   const [professionals, setProfessionals] = useState<Prof[]>([]);
   const [profFilter, setProfFilter] = useState<string>('all');
   const [loading, setLoading] = useState(true);
+  const [mobileDay, setMobileDay] = useState<Date>(() => startOfDay(new Date()));
 
   // Horários de expediente dinâmicos
   const [hourStart, setHourStart] = useState(7);
@@ -677,77 +678,102 @@ export default function Agenda() {
           </div>
         )}
 
-        <div className="border rounded-lg overflow-auto bg-white">
-          {/* Header dias */}
-          <div className="grid sticky top-0 z-10 bg-white border-b" style={{ gridTemplateColumns: '60px repeat(7, minmax(120px, 1fr))' }}>
-            <div />
-            {weekDays.map((d, i) => {
-              const isToday = isSameDay(d, new Date());
-              return (
-                <div key={i} className={cn(
-                  'px-2 py-2 text-center border-l',
-                  isToday && 'bg-salon-purple/10'
-                )}>
-                  <div className={cn('text-xs uppercase font-medium', isToday ? 'text-salon-purple' : 'text-muted-foreground')}>
-                    {format(d, 'EEE', { locale: ptBR })}
-                  </div>
-                  <div className={cn(
-                    'text-sm font-bold mt-0.5 inline-flex items-center justify-center w-7 h-7 rounded-full mx-auto',
-                    isToday ? 'bg-salon-purple text-white' : 'text-foreground'
-                  )}>
-                    {format(d, 'dd')}
-                  </div>
-                  <div className={cn('text-[10px] mt-0.5', isToday ? 'text-salon-purple font-medium' : 'text-muted-foreground')}>
-                    {format(d, 'MM/yyyy')}
-                  </div>
+        <div className="border rounded-lg overflow-hidden bg-white">
+
+          {/* ── MOBILE: vista diária ── */}
+          <div className="block md:hidden">
+            <div className="flex items-center justify-between border-b px-3 py-2 sticky top-0 bg-white z-10">
+              <button onClick={() => setMobileDay(d => addDays(d,-1))}
+                className="p-1 rounded hover:bg-muted"><ChevronLeft className="h-5 w-5" /></button>
+              <div className="text-center">
+                <div className={cn('text-sm font-semibold capitalize',
+                  isSameDay(mobileDay, new Date()) && 'text-salon-purple')}>
+                  {format(mobileDay, "EEEE, dd 'de' MMMM", { locale: ptBR })}
                 </div>
-              );
-            })}
+                {isSameDay(mobileDay, new Date()) && (
+                  <div className="text-xs text-salon-purple">Hoje</div>
+                )}
+              </div>
+              <button onClick={() => setMobileDay(d => addDays(d,1))}
+                className="p-1 rounded hover:bg-muted"><ChevronRight className="h-5 w-5" /></button>
+            </div>
+            <div className="overflow-auto" style={{ maxHeight: '65vh' }}>
+              <div className="relative" style={{ height: hours.length * 60 }}>
+                {hours.map((h, i) => (
+                  <div key={h} className="absolute left-0 right-0 border-t border-dashed border-muted"
+                    style={{ top: i*60, height: 60 }}>
+                    <span className="absolute text-[10px] text-muted-foreground -top-3 left-1">
+                      {String(h).padStart(2,'0')}:00
+                    </span>
+                  </div>
+                ))}
+                {hours.map((h, i) => (
+                  <div key={`s${h}`}
+                    className="absolute left-10 right-0 cursor-pointer hover:bg-salon-purple/5 transition-colors"
+                    style={{ top: i*60, height: 60 }}
+                    onClick={() => handleSlotClick(mobileDay, h)} />
+                ))}
+                <div className="absolute left-10 right-0 top-0 bottom-0">
+                  {appointments.filter(a => isSameDay(toBR(new Date(a.starts_at)), mobileDay)).map(renderApptBlock)}
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Grade */}
-          <div className="grid relative" style={{ gridTemplateColumns: '60px repeat(7, minmax(120px, 1fr))' }}>
-            {/* Coluna de horas */}
-            <div className="relative" style={{ height: hours.length * 60 }}>
-              {hours.map((h, i) => (
-                <div key={h} className="absolute left-0 right-0 text-[11px] text-muted-foreground pr-1 text-right" style={{ top: i * 60 - 6 }}>
-                  {String(h).padStart(2, '0')}:00
-                </div>
-              ))}
+          {/* ── DESKTOP: vista semanal ── */}
+          <div className="hidden md:block overflow-auto">
+            <div className="grid sticky top-0 z-10 bg-white border-b"
+              style={{ gridTemplateColumns: '60px repeat(7, minmax(100px, 1fr))' }}>
+              <div />
+              {weekDays.map((d, i) => {
+                const isToday = isSameDay(d, new Date());
+                return (
+                  <div key={i} className={cn('px-2 py-2 text-center border-l', isToday && 'bg-salon-purple/10')}>
+                    <div className={cn('text-xs uppercase font-medium', isToday ? 'text-salon-purple' : 'text-muted-foreground')}>
+                      {format(d, 'EEE', { locale: ptBR })}
+                    </div>
+                    <div className={cn('text-sm font-bold mt-0.5 inline-flex items-center justify-center w-7 h-7 rounded-full mx-auto',
+                      isToday ? 'bg-salon-purple text-white' : 'text-foreground')}>
+                      {format(d, 'dd')}
+                    </div>
+                    <div className={cn('text-[10px] mt-0.5', isToday ? 'text-salon-purple font-medium' : 'text-muted-foreground')}>
+                      {format(d, 'MM/yyyy')}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-            {/* Colunas de dias */}
-            {weekDays.map((d, idx) => {
-              const isToday = isSameDay(d, new Date());
-              const dayAppts = appointments.filter(a => isSameDay(toBR(new Date(a.starts_at)), d));
-              return (
-                <div
-                  key={idx}
-                  className={cn('relative border-l', isToday && 'bg-salon-purple/5')}
-                  style={{ height: hours.length * 60 }}
-                >
-                  {/* linhas de hora clicáveis */}
-                  {hours.map((h, i) => (
-                    <div
-                      key={h}
-                      className={cn(
-                        'absolute left-0 right-0 border-t border-dashed cursor-pointer transition-colors',
-                        isToday
-                          ? 'border-salon-purple/20 hover:bg-salon-purple/10'
-                          : 'border-muted hover:bg-salon-purple/5'
-                      )}
-                      style={{ top: i * 60, height: 60 }}
-                      onClick={() => handleSlotClick(d, h)}
-                    />
-                  ))}
-                  {dayAppts.map(renderApptBlock)}
-                </div>
-              );
-            })}
+            <div className="grid relative" style={{ gridTemplateColumns: '60px repeat(7, minmax(100px, 1fr))' }}>
+              <div className="relative" style={{ height: hours.length * 60 }}>
+                {hours.map((h, i) => (
+                  <div key={h} className="absolute left-0 right-0 text-[11px] text-muted-foreground pr-1 text-right"
+                    style={{ top: i*60-6 }}>{String(h).padStart(2,'0')}:00</div>
+                ))}
+              </div>
+              {weekDays.map((d, idx) => {
+                const isToday = isSameDay(d, new Date());
+                const dayAppts = appointments.filter(a => isSameDay(toBR(new Date(a.starts_at)), d));
+                return (
+                  <div key={idx} className={cn('relative border-l', isToday && 'bg-salon-purple/5')}
+                    style={{ height: hours.length * 60 }}>
+                    {hours.map((h, i) => (
+                      <div key={h}
+                        className={cn('absolute left-0 right-0 border-t border-dashed cursor-pointer transition-colors',
+                          isToday ? 'border-salon-purple/20 hover:bg-salon-purple/10' : 'border-muted hover:bg-salon-purple/5')}
+                        style={{ top: i*60, height: 60 }}
+                        onClick={() => handleSlotClick(d, h)} />
+                    ))}
+                    {dayAppts.map(renderApptBlock)}
+                  </div>
+                );
+              })}
+            </div>
+            {loading && <div className="p-4 text-sm text-center text-muted-foreground">Carregando…</div>}
+            {!loading && appointments.length === 0 && (
+              <div className="p-6 text-sm text-center text-muted-foreground">Nenhum agendamento nesta semana.</div>
+            )}
           </div>
-          {loading && <div className="p-4 text-sm text-center text-muted-foreground">Carregando…</div>}
-          {!loading && appointments.length === 0 && (
-            <div className="p-6 text-sm text-center text-muted-foreground">Nenhum agendamento nesta semana.</div>
-          )}
+
         </div>
       </div>
 
