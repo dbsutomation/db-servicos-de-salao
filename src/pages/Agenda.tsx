@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { addDays, startOfWeek, format, isSameDay, isWithinInterval } from 'date-fns';
+import { addDays, startOfWeek, startOfDay, format, isSameDay, isWithinInterval } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import MainLayout from '@/components/Layout/MainLayout';
