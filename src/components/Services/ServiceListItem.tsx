@@ -39,7 +39,7 @@ const ServiceListItem = ({ service, canEdit, onEdit }: ServiceListItemProps) => 
   const categoryLabel = service.category ? categoryLabels[service.category] || service.category : '';
 
   return (
-    <div className="flex items-center justify-between gap-3 p-3 bg-white border rounded-lg hover:shadow-sm transition-shadow">
+    <div className="flex items-center gap-3 p-3 bg-white border rounded-lg hover:shadow-sm transition-shadow">
       {/* Thumbnail da imagem */}
       {service.image && service.image.startsWith('https://') && (
         <div className="w-12 h-12 rounded-md overflow-hidden shrink-0 bg-muted">
@@ -51,37 +51,39 @@ const ServiceListItem = ({ service, canEdit, onEdit }: ServiceListItemProps) => 
           />
         </div>
       )}
+
+      {/* Info principal */}
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
-          <h3 className="font-medium text-sm leading-snug">{service.name}</h3>
+        <h3 className="font-medium text-sm leading-snug truncate">{service.name}</h3>
+        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
           {categoryLabel && (
-            <Badge variant="secondary" className={categoryClass}>
+            <Badge variant="secondary" className={`${categoryClass} text-xs`}>
               {categoryLabel}
             </Badge>
           )}
+          <span className="font-semibold text-sm text-salon-purple">{formattedPrice}</span>
         </div>
       </div>
-      <div className="text-right shrink-0">
-        <p className="font-semibold text-salon-purple">{formattedPrice}</p>
-      </div>
-      <div className="flex items-center gap-2 shrink-0">
+
+      {/* Ações */}
+      <div className="flex items-center gap-1 shrink-0">
         {canEdit && onEdit && (
           <Button
             variant="outline"
             size="icon"
             onClick={() => onEdit(service)}
-            className="h-9 w-9"
+            className="h-8 w-8"
           >
-            <Pencil className="h-4 w-4 text-salon-purple" />
+            <Pencil className="h-3.5 w-3.5 text-salon-purple" />
           </Button>
         )}
         <Button
           onClick={() => addToCart(service)}
           size="icon"
-          className="h-9 w-9 bg-salon-purple hover:bg-salon-dark-purple shrink-0"
+          className="h-8 w-8 bg-salon-purple hover:bg-salon-dark-purple shrink-0"
           title="Adicionar ao carrinho"
         >
-          <Plus size={18} />
+          <Plus size={16} />
         </Button>
       </div>
     </div>
