@@ -77,7 +77,7 @@ export default function Agenda() {
   });
   const [appointments, setAppointments] = useState<Appt[]>([]);
   const [professionals, setProfessionals] = useState<Prof[]>([]);
-  const [profFilter, setProfFilter] = useState<string>('all');
+  const [profFilter, setProfFilter] = useState<string>('self'); // será atualizado após currentUser carregar
   const [loading, setLoading] = useState(true);
   const [mobileDay, setMobileDay] = useState<Date>(() => startOfDay(new Date()));
 
@@ -117,6 +117,13 @@ export default function Agenda() {
     () => Array.from({ length: DAY_COLS }, (_, i) => addDays(weekStart, i)),
     [weekStart]
   );
+
+  // Inicializa filtro com o profissional logado
+  useEffect(() => {
+    if (currentUser?.id) {
+      setProfFilter(currentUser.id);
+    }
+  }, [currentUser?.id]);
 
   // Carregar profissionais (para filtro do manager)
   useEffect(() => {
@@ -661,7 +668,9 @@ export default function Agenda() {
               <SelectContent>
                 <SelectItem value="all">Todos os profissionais</SelectItem>
                 {professionals.map(p => (
-                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.id === currentUser?.id ? `${p.name} (eu)` : p.name}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -681,8 +690,8 @@ export default function Agenda() {
           )}>
             <span className="text-base">{profFilter === 'all' ? '⚠️' : '👤'}</span>
             {profFilter === 'all'
-              ? 'Visualizando todos os profissionais — selecione um para agendar ou bloquear horários'
-              : `Modificando agenda de: ${professionals.find(p => p.id === profFilter)?.name ?? ''}`
+              ? 'Visualizando todos — selecione um profissional para agendar ou bloquear'
+              : `Agenda de: ${professionals.find(p => p.id === profFilter)?.name ?? ''}${profFilter === currentUser?.id ? ' (você)' : ''}`
             }
           </div>
         )}
