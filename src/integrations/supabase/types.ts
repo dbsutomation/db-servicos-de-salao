@@ -580,6 +580,17 @@ export type Database = {
       get_brasilia_date: { Args: never; Returns: string }
       get_brasilia_now: { Args: never; Returns: string }
       get_brasilia_time: { Args: never; Returns: string }
+      get_busy_slots: {
+        Args: {
+          p_date_end: string
+          p_date_start: string
+          p_professional_id: string
+        }
+        Returns: {
+          ends_at: string
+          starts_at: string
+        }[]
+      }
       get_customer_salon_id: { Args: never; Returns: string }
       get_user_salon_id: { Args: never; Returns: string }
       has_role: {
