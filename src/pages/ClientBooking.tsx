@@ -328,19 +328,48 @@ export default function ClientBooking() {
 
         {/* ── STEP 2: Serviços ── */}
         {step === 2 && (
-          <Card>
-            <CardHeader>
+          <Card className="flex flex-col">
+            <CardHeader className="pb-2">
               <CardTitle>Escolha os serviços</CardTitle>
               <CardDescription>
                 <span className="font-medium text-salon-purple">{selectedProf?.name}</span>
                 {' · '}Selecione um ou mais serviços.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
+
+            {/* Resumo fixo no topo */}
+            <div className="sticky top-0 z-10 bg-white border-b border-t px-6 py-3 shadow-sm">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  {selectedServices.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">Nenhum serviço selecionado</p>
+                  ) : (
+                    <div className="flex items-center gap-3">
+                      <div className="min-w-0">
+                        <p className="text-xs text-muted-foreground truncate">
+                          {selectedServices.map(s => s.name).join(', ')}
+                        </p>
+                        <p className="text-sm font-semibold">
+                          {totalDuration}min · R$ {totalPrice.toFixed(2).replace('.',',')}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  <Button variant="ghost" size="sm" onClick={() => setStep(1)}>Voltar</Button>
+                  <Button size="sm" disabled={selectedServiceIds.length === 0} onClick={() => setStep(3)}>
+                    Avançar
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            <CardContent className="p-0">
               {allServices.length === 0 && (
-                <p className="text-sm text-muted-foreground">Nenhum serviço disponível.</p>
+                <p className="text-sm text-muted-foreground p-4">Nenhum serviço disponível.</p>
               )}
-              <div className="divide-y border rounded-lg overflow-hidden">
+              <div className="divide-y">
                 {allServices.map(s => {
                   const selected = selectedServiceIds.includes(s.id);
                   return (
@@ -367,29 +396,6 @@ export default function ClientBooking() {
                     </button>
                   );
                 })}
-              </div>
-
-              {selectedServices.length > 0 && (
-                <div className="bg-muted/50 rounded-lg p-3 space-y-1">
-                  {selectedServices.map(s => (
-                    <div key={s.id} className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">{s.name}</span>
-                      <span>R$ {s.price.toFixed(2).replace('.',',')}</span>
-                    </div>
-                  ))}
-                  <Separator className="my-1" />
-                  <div className="flex justify-between text-sm font-semibold">
-                    <span>Total · {totalDuration}min</span>
-                    <span>R$ {totalPrice.toFixed(2).replace('.',',')}</span>
-                  </div>
-                </div>
-              )}
-
-              <div className="flex justify-between pt-2">
-                <Button variant="ghost" onClick={() => setStep(1)}>Voltar</Button>
-                <Button disabled={selectedServiceIds.length === 0} onClick={() => setStep(3)}>
-                  Avançar
-                </Button>
               </div>
             </CardContent>
           </Card>
