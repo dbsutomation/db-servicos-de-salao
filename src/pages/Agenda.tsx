@@ -720,27 +720,31 @@ export default function Agenda() {
             </div>
             <div className="overflow-y-auto" style={{ maxHeight: '60vh' }}>
               <div className="relative" style={{ height: hours.length * 60 + 16 }}>
+                {/* Linhas de hora — pointer-events-none para não bloquear o toque */}
                 {hours.map((h, i) => (
                   <div key={h}
-                    className="absolute left-0 right-0 border-t border-dashed border-muted"
+                    className="absolute left-0 right-0 border-t border-dashed border-muted pointer-events-none"
                     style={{ top: i * 60 + 16 }}>
-                    <span className="absolute text-[10px] text-muted-foreground left-1 -top-3 bg-white px-0.5">
+                    <span className="absolute text-[10px] text-muted-foreground left-1 -top-3 bg-white px-0.5 pointer-events-none">
                       {String(h).padStart(2,'0')}:00
                     </span>
                   </div>
                 ))}
-                {/* Slots clicáveis */}
+                {/* Slots clicáveis — z-index 10 para ficar acima das linhas */}
                 {hours.map((h, i) => (
                   <div key={`s${h}`}
-                    className="absolute left-12 right-0 cursor-pointer hover:bg-salon-purple/5 transition-colors"
-                    style={{ top: i*60+16, height: 60 }}
-                    onClick={() => handleSlotClick(mobileDay, h)} />
+                    className="absolute left-12 right-0 cursor-pointer active:bg-salon-purple/20 hover:bg-salon-purple/5 transition-colors z-10"
+                    style={{ top: i*60+16, height: 60, minHeight: 44 }}
+                    onClick={() => handleSlotClick(mobileDay, h)}
+                    onTouchEnd={(e) => { e.preventDefault(); handleSlotClick(mobileDay, h); }} />
                 ))}
-                {/* Agendamentos */}
-                <div className="absolute left-12 right-1 top-4 bottom-0">
-                  {appointments
-                    .filter(a => isSameDay(toBR(new Date(a.starts_at)), mobileDay))
-                    .map(renderApptBlock)}
+                {/* Agendamentos — z-index 20 para ficar acima dos slots */}
+                <div className="absolute left-12 right-1 top-4 bottom-0 z-20 pointer-events-none">
+                  <div className="relative w-full h-full pointer-events-auto">
+                    {appointments
+                      .filter(a => isSameDay(toBR(new Date(a.starts_at)), mobileDay))
+                      .map(renderApptBlock)}
+                  </div>
                 </div>
               </div>
             </div>
