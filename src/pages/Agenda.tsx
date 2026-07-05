@@ -725,13 +725,14 @@ export default function Agenda() {
                     </span>
                   </div>
                 ))}
-                {/* Slots clicáveis — z-index 10 para ficar acima das linhas */}
+                {/* Slots clicáveis — button garante toque no mobile */}
                 {hours.map((h, i) => (
-                  <div key={`s${h}`}
-                    className="absolute left-12 right-0 cursor-pointer active:bg-salon-purple/20 hover:bg-salon-purple/5 transition-colors z-10"
-                    style={{ top: i*60+16, height: 60, minHeight: 44 }}
+                  <button key={`s${h}`}
+                    type="button"
+                    className="absolute left-12 right-0 cursor-pointer active:bg-salon-purple/20 hover:bg-salon-purple/5 transition-colors z-10 border-0 bg-transparent"
+                    style={{ top: i*60+16, height: 60 }}
                     onClick={() => handleSlotClick(mobileDay, h)}
-                    onTouchEnd={(e) => { e.preventDefault(); handleSlotClick(mobileDay, h); }} />
+                  />
                 ))}
                 {/* Agendamentos — z-index 20 para ficar acima dos slots */}
                 <div className="absolute left-12 right-1 top-4 bottom-0 z-20 pointer-events-none">
