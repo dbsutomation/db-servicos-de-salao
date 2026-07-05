@@ -52,10 +52,12 @@ export function useCheckoutForm() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Fetch clients
+        // Fetch clients (excluindo cliente placeholder de bloqueio de agenda)
         const { data: clientsData, error: clientsError } = await supabase
           .from('clients')
-          .select('*');
+          .select('*')
+          .neq('name', '__BLOQUEADO__')
+          .order('name', { ascending: true });
         
         if (clientsError) throw clientsError;
         

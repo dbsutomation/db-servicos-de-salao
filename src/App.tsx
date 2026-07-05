@@ -17,6 +17,7 @@ import ProfessionalSchedules from "./pages/ProfessionalSchedules";
 import Login from "./pages/Login";
 import CustomerSignup from "./pages/CustomerSignup";
 import CustomerLogin from "./pages/CustomerLogin";
+import ResetPassword from "./pages/ResetPassword";
 import ClientBooking from "./pages/ClientBooking";
 import MeusAgendamentos from "./pages/MeusAgendamentos";
 import Agenda from "./pages/Agenda";
@@ -51,6 +52,7 @@ const AppRoutes = () => {
 
       {/* Rotas públicas de cliente (não passam pela auth interna) */}
       <Route path="/cadastro-cliente/:salonId" element={<CustomerSignup />} />
+      <Route path="/redefinir-senha" element={<ResetPassword />} />
       <Route path="/login-cliente" element={<CustomerLogin />} />
       <Route path="/minha-agenda" element={<ClientBooking />} />
       <Route path="/meus-agendamentos" element={<MeusAgendamentos />} />

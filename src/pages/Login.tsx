@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -11,74 +10,63 @@ import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { Eye, EyeOff } from 'lucide-react';
 
 const formSchema = z.object({
-  email: z.string().email({ message: 'Email inválido' }),
+  email:    z.string().email({ message: 'Email inválido' }),
   password: z.string().min(1, { message: 'A senha é obrigatória' }),
 });
-
 type LoginFormValues = z.infer<typeof formSchema>;
 
 const Login = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const { login, isAuthenticated } = useAuth();
+  const [isLoading, setIsLoading]   = useState(false);
+  const [showPass, setShowPass]     = useState(false);
+  const [resetting, setResetting]   = useState(false);
+  const [resetSent, setResetSent]   = useState(false);
+  const { login, isAuthenticated }  = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Verificar a conexão com o Supabase
-    const checkConnection = async () => {
-      try {
-        const { data, error } = await supabase.from('users').select('count').limit(1);
-        
-        if (error) {
-          console.error('Erro na conexão com Supabase:', error);
-          toast({
-            title: "Erro de conexão",
-            description: "Não foi possível conectar ao banco de dados. Verifique sua conexão com a internet.",
-            variant: "destructive",
-          });
-        } else {
-        }
-      } catch (err) {
-        console.error('Erro ao verificar conexão:', err);
-      }
-    };
-
-    checkConnection();
-
-    // Redirecionar para a página inicial se já estiver autenticado
-    if (isAuthenticated) {
-      navigate('/');
-    }
+    if (isAuthenticated) navigate('/');
   }, [isAuthenticated, navigate]);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-    },
+    defaultValues: { email: '', password: '' },
   });
 
   const onSubmit = async (values: LoginFormValues) => {
     setIsLoading(true);
     try {
       const success = await login(values.email, values.password);
-      if (success) {
-        navigate('/');
-      }
+      if (success) navigate('/');
     } catch (error: any) {
-      console.error('Erro completo durante login:', error);
-      toast({
-        title: "Erro ao fazer login",
-        description: error.message || "Ocorreu um erro inesperado",
-        variant: "destructive",
-      });
+      toast({ title: 'Erro ao fazer login', description: error.message || 'Ocorreu um erro inesperado', variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleReset = async () => {
+    const email = form.getValues('email');
+    if (!email.trim()) {
+      toast({ title: 'Digite seu email primeiro', variant: 'destructive' });
+      return;
+    }
+    setResetting(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: `${window.location.origin}/redefinir-senha`,
+      });
+      if (error) throw error;
+      setResetSent(true);
+      toast({ title: 'Email enviado!', description: 'Verifique sua caixa de entrada para redefinir a senha.' });
+    } catch (e: any) {
+      toast({ title: 'Erro ao enviar email', description: e.message, variant: 'destructive' });
+    } finally {
+      setResetting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
@@ -90,30 +78,40 @@ const Login = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {resetSent && (
+            <div className="mb-4 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+              Email de redefinição enviado! Verifique sua caixa de entrada.
+            </div>
+          )}
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-
-              <FormField
-                control={form.control}
-                name="email"
+              <FormField control={form.control} name="email"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="email@exemplo.com" {...field} />
+                      <Input placeholder="email@exemplo.com" autoComplete="email" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="password"
+              <FormField control={form.control} name="password"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Senha</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="Digite sua senha" {...field} />
+                      <div className="relative">
+                        <Input type={showPass ? 'text' : 'password'}
+                          placeholder="Digite sua senha"
+                          autoComplete="current-password"
+                          className="pr-10"
+                          {...field} />
+                        <button type="button" onClick={() => setShowPass(v => !v)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                          {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -125,7 +123,11 @@ const Login = () => {
             </form>
           </Form>
         </CardContent>
-        <CardFooter className="flex flex-col space-y-4">
+        <CardFooter className="flex flex-col gap-3">
+          <button type="button" onClick={handleReset} disabled={resetting}
+            className="text-sm text-salon-purple hover:underline disabled:opacity-50">
+            {resetting ? 'Enviando…' : 'Esqueci minha senha'}
+          </button>
           <p className="text-center text-sm text-gray-500">
             Caso não possua acesso, entre em contato com o gerente do salão.
           </p>
