@@ -713,7 +713,7 @@ export default function Agenda() {
               <button onClick={() => setMobileDay(d => addDays(d,1))}
                 className="p-2 rounded hover:bg-muted"><ChevronRight className="h-5 w-5" /></button>
             </div>
-            <div className="overflow-y-auto" style={{ maxHeight: '60vh' }}>
+            <div className="overflow-y-auto" style={{ maxHeight: '60vh', touchAction: 'pan-y' }}>
               <div className="relative" style={{ height: hours.length * 60 + 16 }}>
                 {/* Linhas de hora — pointer-events-none para não bloquear o toque */}
                 {hours.map((h, i) => (
@@ -725,12 +725,12 @@ export default function Agenda() {
                     </span>
                   </div>
                 ))}
-                {/* Slots clicáveis — button garante toque no mobile */}
+                {/* Slots clicáveis */}
                 {hours.map((h, i) => (
                   <button key={`s${h}`}
                     type="button"
-                    className="absolute left-12 right-0 cursor-pointer active:bg-salon-purple/20 hover:bg-salon-purple/5 transition-colors z-10 border-0 bg-transparent"
-                    style={{ top: i*60+16, height: 60 }}
+                    className="absolute left-12 right-0 z-10 border-0 bg-transparent active:bg-salon-purple/20"
+                    style={{ top: i*60+16, height: 60, touchAction: 'manipulation' }}
                     onClick={() => handleSlotClick(mobileDay, h)}
                   />
                 ))}
