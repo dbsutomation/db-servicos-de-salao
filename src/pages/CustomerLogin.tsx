@@ -82,7 +82,10 @@ export default function CustomerLogin() {
     <div className="min-h-screen flex items-center justify-center bg-muted p-4">
       <Card className="max-w-md w-full">
         <CardHeader className="text-center">
-          <CardTitle>Área do Cliente</CardTitle>
+          <div className="mx-auto w-12 h-12 rounded-full bg-salon-purple/10 flex items-center justify-center mb-2">
+            <span className="text-salon-purple font-bold text-lg">✂</span>
+          </div>
+          <CardTitle className="text-salon-purple">Portal do Cliente</CardTitle>
           <CardDescription>Entre com sua conta para agendar</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -125,11 +128,10 @@ export default function CustomerLogin() {
               {resetting ? 'Enviando…' : 'Esqueci minha senha'}
             </button>
             <p className="text-muted-foreground">
-              Não tem conta?{' '}
-              <a href="#" onClick={e => { e.preventDefault(); navigate('/cadastro-info'); }}
-                className="text-salon-purple hover:underline font-medium">
-                Solicite o link ao salão
-              </a>
+              Primeiro acesso?{' '}
+              <span className="text-salon-purple font-medium">
+                Use o link enviado pelo salão para se cadastrar.
+              </span>
             </p>
           </div>
         </CardContent>
