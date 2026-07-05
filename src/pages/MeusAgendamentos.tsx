@@ -144,15 +144,14 @@ export default function MeusAgendamentos() {
 
   return (
     <ClientLayout>
-      <div className="flex flex-col gap-4">
-        {/* Título fixo */}
-        <div className="sticky top-0 z-10 bg-white pb-3 border-b">
-          <h1 className="text-xl font-semibold">Meus agendamentos</h1>
-          <p className="text-sm text-muted-foreground">Acompanhe e gerencie seus horários</p>
-        </div>
+      {/* Título fixo */}
+      <div className="sticky top-0 z-10 bg-white pb-3 border-b mb-4 -mx-4 px-4 md:-mx-6 md:px-6">
+        <h1 className="text-xl font-semibold">Meus agendamentos</h1>
+        <p className="text-sm text-muted-foreground">Acompanhe e gerencie seus horários</p>
+      </div>
 
-        {/* Lista rolável */}
-        <div className="space-y-4">
+      {/* Lista */}
+      <div className="space-y-4">
 
       {appointments.length === 0 && (
         <Card>
@@ -270,7 +269,6 @@ export default function MeusAgendamentos() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-        </div>
       </div>
     </ClientLayout>
   );

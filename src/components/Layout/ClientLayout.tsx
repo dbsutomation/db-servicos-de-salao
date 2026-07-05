@@ -171,8 +171,11 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       {/* Conteúdo principal */}
       <main className="flex-1 md:ml-64 mt-16 md:mt-0 min-w-0 overflow-x-hidden">
         <div className="p-3 md:p-8">
-          <div className="bg-white rounded-lg shadow-md border-2 border-gray-100 p-4 md:p-6 w-full max-w-2xl mx-auto">
-            {children}
+          <div className="bg-white rounded-lg shadow-md border-2 border-gray-100 w-full max-w-2xl mx-auto overflow-y-auto"
+            style={{ maxHeight: 'calc(100vh - 5rem)' }}>
+            <div className="p-4 md:p-6">
+              {children}
+            </div>
           </div>
         </div>
       </main>
