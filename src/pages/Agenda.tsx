@@ -493,17 +493,12 @@ export default function Agenda() {
       return;
     }
 
-    // Verificar se o slot é no passado (horário de Brasília = UTC-3)
-    const now = new Date();
-    const brasiliaOffset = -3 * 60;
-    const localOffset = now.getTimezoneOffset();
-    const diffMs = (localOffset - brasiliaOffset) * 60000;
-    const nowBrasilia = new Date(now.getTime() - diffMs);
+    // Verificar se o slot é no passado
+    // Monta o timestamp UTC do slot: data + hora em Brasília → UTC
+    const dateStr = format(date, 'yyyy-MM-dd');
+    const slotUtc = new Date(`${dateStr}T${String(hour).padStart(2,'0')}:00:00-03:00`);
 
-    const slotTime = new Date(date);
-    slotTime.setHours(hour, 0, 0, 0);
-
-    if (slotTime <= nowBrasilia) {
+    if (slotUtc <= new Date()) {
       toast({ title: 'Horário no passado', description: 'Não é possível agendar em horários já passados.', variant: 'destructive' });
       return;
     }
@@ -541,8 +536,8 @@ export default function Agenda() {
     try {
       const salonId = await getCurrentSalonId();
       const profId = slot.profId || (currentUser?.id ?? '');
-      const starts = new Date(slot.date);
-      starts.setHours(slot.hour, 0, 0, 0);
+      const dateStr = format(slot.date, 'yyyy-MM-dd');
+      const starts = new Date(`${dateStr}T${String(slot.hour).padStart(2,'0')}:00:00-03:00`);
 
       const selectedSvcs = manualServices.filter(s => manualServiceIds.includes(s.id));
       const totalDuration = selectedSvcs.reduce((sum, s) => sum + s.duration, 0);
@@ -598,8 +593,8 @@ export default function Agenda() {
     try {
       const salonId = await getCurrentSalonId();
       const profId = slot.profId || (currentUser?.id ?? '');
-      const starts = new Date(slot.date);
-      starts.setHours(slot.hour, 0, 0, 0);
+      const dateStr = format(slot.date, 'yyyy-MM-dd');
+      const starts = new Date(`${dateStr}T${String(slot.hour).padStart(2,'0')}:00:00-03:00`);
       const ends = new Date(starts.getTime() + blockDuration * 60000);
 
       // Buscar ou criar cliente placeholder "BLOQUEADO" para o salão
