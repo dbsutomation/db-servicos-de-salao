@@ -734,9 +734,12 @@ export default function Agenda() {
                     onClick={() => handleSlotClick(mobileDay, h)}
                   />
                 ))}
-                {/* Agendamentos — z-index 20 para ficar acima dos slots */}
+                {/* Agendamentos — z-index 20 para ficar acima dos slots.
+                    O wrapper é pointer-events-none para deixar os toques passarem
+                    para os slots vazios embaixo; cada bloco de agendamento reativa
+                    pointer-events via suas próprias classes. */}
                 <div className="absolute left-12 right-1 top-4 bottom-0 z-20 pointer-events-none">
-                  <div className="relative w-full h-full pointer-events-auto">
+                  <div className="relative w-full h-full pointer-events-none [&>*]:pointer-events-auto">
                     {appointments
                       .filter(a => isSameDay(toBR(new Date(a.starts_at)), mobileDay))
                       .map(renderApptBlock)}
