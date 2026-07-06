@@ -76,12 +76,15 @@ export const updateTeamMember = async (memberId: string, data: any): Promise<boo
       .update(updateData)
       .eq('id', memberId);
       
-    if (error) {
-      console.error("Erro na operação de atualização:", error);
-      throw error;
-    }
-    
-    
+    if (error) throw error;
+
+    // Sincronizar user_roles com o perfil atualizado
+    const newRole = data.isManager ? 'manager' : 'professional';
+    await supabase
+      .from('user_roles')
+      .update({ role: newRole })
+      .eq('user_id', memberId);
+
     toast({
       title: "Profissional atualizado",
       description: `${data.name} foi atualizado com sucesso.`,
@@ -145,6 +148,13 @@ export const createTeamMember = async (data: any): Promise<boolean> => {
       .eq('id', userId);
 
     if (updateError) throw updateError;
+
+    // Atualizar user_roles conforme perfil selecionado
+    const newRole = data.isManager ? 'manager' : 'professional';
+    await supabase
+      .from('user_roles')
+      .update({ role: newRole })
+      .eq('user_id', userId);
 
     toast({
       title: 'Profissional adicionado!',
