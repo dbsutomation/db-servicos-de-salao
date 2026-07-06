@@ -39,7 +39,8 @@ const Login = () => {
     setIsLoading(true);
     try {
       const success = await login(values.email, values.password);
-      if (success) navigate('/');
+      // O AuthContext já faz o navigate correto (/ ou /redefinir-senha?obrigatorio=true)
+      // Não navegamos aqui para não sobrescrever o redirecionamento de 1º acesso
     } catch (error: any) {
       toast({ title: 'Erro ao fazer login', description: error.message || 'Ocorreu um erro inesperado', variant: 'destructive' });
     } finally {

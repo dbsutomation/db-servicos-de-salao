@@ -167,7 +167,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .maybeSingle();
 
         if ((userData as any)?.must_change_password) {
-          // Redireciona para troca obrigatória de senha
           navigate('/redefinir-senha?obrigatorio=true');
           return true;
         }
@@ -176,6 +175,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           title: "Login bem-sucedido",
           description: "Bem-vindo de volta!",
         });
+        navigate('/');
         return true;
       }
       
