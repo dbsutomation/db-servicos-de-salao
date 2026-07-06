@@ -10,23 +10,63 @@ import { toast } from '@/hooks/use-toast';
 import { Eye, EyeOff, KeyRound } from 'lucide-react';
 
 export default function ResetPassword() {
-  const navigate = useNavigate();
+  const navigate     = useNavigate();
   const [password, setPassword]       = useState('');
   const [confirm, setConfirm]         = useState('');
   const [showPass, setShowPass]       = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [submitting, setSubmitting]   = useState(false);
   const [isCustomer, setIsCustomer]   = useState(false);
+  const [salonName, setSalonName]     = useState('');
 
   useEffect(() => {
-    supabaseClient.auth.getSession().then(({ data }) => {
-      if (data.session) setIsCustomer(true);
-    });
+    // Detectar se é cliente ou profissional e buscar nome do salão
+    (async () => {
+      // Verificar sessão do cliente
+      const { data: clientSession } = await supabaseClient.auth.getSession();
+      if (clientSession.session) {
+        setIsCustomer(true);
+        // Buscar salon via customers
+        const { data: customer } = await supabaseClient
+          .from('customers' as any)
+          .select('salon_id')
+          .eq('id', clientSession.session.user.id)
+          .maybeSingle();
+        const sId = (customer as any)?.salon_id;
+        if (sId) {
+          const { data: salon } = await supabaseClient
+            .from('salons' as any)
+            .select('name')
+            .eq('id', sId)
+            .maybeSingle();
+          setSalonName((salon as any)?.name || '');
+        }
+        return;
+      }
+
+      // Verificar sessão do profissional
+      const { data: staffSession } = await supabase.auth.getSession();
+      if (staffSession.session) {
+        const { data: user } = await supabase
+          .from('users' as any)
+          .select('salon_id')
+          .eq('id', staffSession.session.user.id)
+          .maybeSingle();
+        const sId = (user as any)?.salon_id;
+        if (sId) {
+          const { data: salon } = await supabase
+            .from('salons' as any)
+            .select('name')
+            .eq('id', sId)
+            .maybeSingle();
+          setSalonName((salon as any)?.name || '');
+        }
+      }
+    })();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (password !== confirm) {
       toast({ title: 'Senhas não conferem', variant: 'destructive' });
       return;
@@ -35,16 +75,13 @@ export default function ResetPassword() {
       toast({ title: 'Senha muito curta', description: 'Mínimo 6 caracteres.', variant: 'destructive' });
       return;
     }
-
     setSubmitting(true);
     try {
       const client = isCustomer ? supabaseClient : supabase;
       const { error } = await client.auth.updateUser({ password });
       if (error) throw error;
-
-
       toast({ title: 'Senha redefinida com sucesso!' });
-      navigate(isCustomer ? '/login-cliente' : '/');
+      navigate(isCustomer ? '/login-cliente' : '/login');
     } catch (e: any) {
       toast({ title: 'Erro ao redefinir senha', description: e.message, variant: 'destructive' });
     } finally {
@@ -59,11 +96,14 @@ export default function ResetPassword() {
           <div className="mx-auto w-12 h-12 rounded-full bg-salon-purple/10 flex items-center justify-center mb-2">
             <KeyRound className="text-salon-purple" size={22} />
           </div>
-          <CardTitle>
-            Redefinir senha
-          </CardTitle>
+          {salonName && (
+            <p className="text-sm font-semibold text-salon-purple mb-1">{salonName}</p>
+          )}
+          <CardTitle>Redefinir senha</CardTitle>
           <CardDescription>
-            Digite sua nova senha abaixo.
+            {salonName
+              ? `Defina sua nova senha de acesso ao sistema ${salonName}.`
+              : 'Digite sua nova senha abaixo.'}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -94,7 +134,7 @@ export default function ResetPassword() {
                 </button>
               </div>
             </div>
-            <Button type="submit" className="w-full" disabled={submitting}>
+            <Button type="submit" className="w-full bg-salon-purple hover:bg-salon-dark-purple" disabled={submitting}>
               {submitting ? 'Salvando…' : 'Salvar nova senha'}
             </Button>
           </form>
