@@ -98,43 +98,65 @@ export const updateTeamMember = async (memberId: string, data: any): Promise<boo
 
 export const createTeamMember = async (data: any): Promise<boolean> => {
   try {
-    
-    const id = crypto.randomUUID();
-    
     const salonId = await getCurrentSalonId();
-    const insertData = {
-      id: id,
-      name: toTitleCase(data.name),
+
+    // Senha temporária aleatória segura
+    const tempPassword = data.password?.trim()
+      ? data.password
+      : Math.random().toString(36).slice(-8) + 'A1!x';
+
+    // 1. Criar conta no Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signUp({
       email: data.email,
-      phone: data.phone ? normalizePhone(data.phone) : null,
-      profession: data.profession || null,
-      has_access: data.hasAccess,
-      is_manager: data.isManager,
-      categories: data.categories || [],
-      salon_id: salonId,
-    };
-    
-    const { data: newMember, error } = await supabase
-      .from('users')
-      .insert(insertData as any)
-      .select();
-      
-      
-    if (error) {
-      console.error("Erro na operação de inserção:", error);
-      throw error;
-    }
-    
-    
-    toast({
-      title: "Profissional adicionado",
-      description: `${data.name} foi adicionado com sucesso.`
+      password: tempPassword,
+      options: {
+        data: {
+          name: toTitleCase(data.name),
+          salon_id: salonId,
+        },
+        emailRedirectTo: `${window.location.origin}/redefinir-senha`,
+      },
     });
-    
+
+    if (authError) throw authError;
+    if (!authData.user) throw new Error('Falha ao criar conta de acesso.');
+
+    const userId = authData.user.id;
+
+    // 2. Inserir na tabela users com o ID do Auth
+    const { error: insertError } = await supabase
+      .from('users')
+      .upsert({
+        id: userId,
+        name: toTitleCase(data.name),
+        email: data.email,
+        phone: data.phone ? normalizePhone(data.phone) : null,
+        profession: data.profession || null,
+        has_access: data.hasAccess,
+        is_manager: data.isManager,
+        categories: data.categories || [],
+        salon_id: salonId,
+      } as any);
+
+    if (insertError) throw insertError;
+
+    // 3. Enviar email de redefinição de senha para o profissional definir a própria senha
+    await supabase.auth.resetPasswordForEmail(data.email, {
+      redirectTo: `${window.location.origin}/redefinir-senha`,
+    });
+
+    toast({
+      title: 'Profissional adicionado!',
+      description: `Email enviado para ${data.email}. O profissional receberá o link para definir sua senha.`,
+    });
     return true;
   } catch (error: any) {
-    console.error("Erro completo na criação:", error);
-    handleError(error, "ao salvar o profissional");
+    console.error('Erro ao criar profissional:', error);
+    toast({
+      title: 'Erro ao criar profissional',
+      description: error.message || 'Ocorreu um erro inesperado.',
+      variant: 'destructive',
+    });
     return false;
   }
 };
