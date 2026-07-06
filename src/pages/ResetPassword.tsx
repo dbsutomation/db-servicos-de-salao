@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { supabaseClient } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -8,13 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
 import { Eye, EyeOff, KeyRound } from 'lucide-react';
-import { DEFAULT_PASSWORD } from '@/services/teamService';
 
 export default function ResetPassword() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const isObrigatorio = searchParams.get('obrigatorio') === 'true';
-
   const [password, setPassword]       = useState('');
   const [confirm, setConfirm]         = useState('');
   const [showPass, setShowPass]       = useState(false);
@@ -31,10 +27,6 @@ export default function ResetPassword() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (password === DEFAULT_PASSWORD && isObrigatorio) {
-      toast({ title: 'Escolha uma senha diferente da senha padrão.', variant: 'destructive' });
-      return;
-    }
     if (password !== confirm) {
       toast({ title: 'Senhas não conferem', variant: 'destructive' });
       return;
@@ -78,20 +70,13 @@ export default function ResetPassword() {
             <KeyRound className="text-salon-purple" size={22} />
           </div>
           <CardTitle>
-            {isObrigatorio ? 'Defina sua nova senha' : 'Redefinir senha'}
+            Redefinir senha
           </CardTitle>
           <CardDescription>
-            {isObrigatorio
-              ? 'Por segurança, você precisa definir uma senha pessoal antes de continuar.'
-              : 'Digite sua nova senha abaixo.'}
+            Digite sua nova senha abaixo.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {isObrigatorio && (
-            <div className="mb-4 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700">
-              Este é seu primeiro acesso. A senha padrão deve ser trocada agora.
-            </div>
-          )}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1">
               <Label htmlFor="password">Nova senha</Label>

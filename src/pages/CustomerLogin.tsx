@@ -18,9 +18,6 @@ export default function CustomerLogin() {
   const [resetSent, setResetSent] = useState(false);
   const [resetting, setResetting] = useState(false);
 
-  // Obtém salonId do customer logado para montar o link de cadastro
-  const [salonId, setSalonId]     = useState<string | null>(null);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -38,7 +35,6 @@ export default function CustomerLogin() {
         .from('customers' as any).select('name, salon_id').eq('id', userId).maybeSingle();
 
       if (customer && (customer as any).name) {
-        setSalonId((customer as any).salon_id);
         navigate('/minha-agenda');
         return;
       }
