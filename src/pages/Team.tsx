@@ -6,6 +6,8 @@ import useTeamManagement from '@/hooks/useTeamManagement';
 import TeamList from '@/components/Team/TeamList';
 import DeleteConfirmDialog from '@/components/Team/DeleteConfirmDialog';
 import TeamMemberDialog from '@/components/Team/TeamMemberDialog';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 
 const Team = () => {
   const { currentUser } = useAuth();
@@ -28,7 +30,16 @@ const Team = () => {
     <MainLayout>
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h1 className="text-3xl font-bold">Profissionais</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">Profissionais</h1>
+          {currentUser?.isManager && (
+            <Button
+              className="w-full sm:w-auto bg-salon-purple hover:bg-salon-dark-purple shadow-md"
+              onClick={() => { setEditingMember(null); setDialogOpen(true); }}
+            >
+              <Plus className="mr-2" size={18} />
+              Novo Profissional
+            </Button>
+          )}
         </div>
         
         <TeamList 
