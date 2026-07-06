@@ -102,7 +102,10 @@ export const createTeamMember = async (data: any): Promise<boolean> => {
   try {
     const salonId = await getCurrentSalonId();
 
-    // Sempre usa a senha padrão — profissional será obrigado a trocar no 1º acesso
+    // Salvar sessão atual do gerente antes do signUp trocar de sessão
+    const { data: { session: managerSession } } = await supabase.auth.getSession();
+
+    // Criar conta no Auth para o novo profissional
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: data.email,
       password: DEFAULT_PASSWORD,
@@ -119,27 +122,33 @@ export const createTeamMember = async (data: any): Promise<boolean> => {
 
     const userId = authData.user.id;
 
-    // Inserir na tabela users com must_change_password = true
-    const { error: insertError } = await supabase
+    // Restaurar sessão do gerente imediatamente
+    if (managerSession) {
+      await supabase.auth.setSession({
+        access_token: managerSession.access_token,
+        refresh_token: managerSession.refresh_token,
+      });
+    }
+
+    // Agora com sessão do gerente, atualizar os dados do profissional
+    const { error: updateError } = await supabase
       .from('users')
-      .upsert({
-        id: userId,
+      .update({
         name: toTitleCase(data.name),
-        email: data.email,
         phone: data.phone ? normalizePhone(data.phone) : null,
         profession: data.profession || null,
-        has_access: data.hasAccess,
-        is_manager: data.isManager,
+        has_access: data.hasAccess ?? true,
+        is_manager: data.isManager ?? false,
         categories: data.categories || [],
         salon_id: salonId,
-        must_change_password: true,
-      } as any);
+      } as any)
+      .eq('id', userId);
 
-    if (insertError) throw insertError;
+    if (updateError) throw updateError;
 
     toast({
       title: 'Profissional adicionado!',
-      description: `${toTitleCase(data.name)} pode acessar com a senha padrão e será obrigado a trocá-la no primeiro acesso.`,
+      description: `${toTitleCase(data.name)} pode acessar com email e senha padrão. Oriente-o a redefinir a senha no primeiro acesso.`,
     });
     return true;
   } catch (error: any) {

@@ -25,8 +25,8 @@ const useTeamMemberForm = ({ teamMemberId, onSuccess }: UseTeamMemberFormProps) 
       phone: '',
       email: '',
       password: '',
-      hasAccess: isEditing ? undefined : false,
-      isManager: false,
+      hasAccess: isEditing ? undefined : true,  // novo profissional já tem acesso por padrão
+      isManager: false,                          // gerente desligado por padrão
       categories: []
     }
   });
