@@ -96,25 +96,21 @@ export const updateTeamMember = async (memberId: string, data: any): Promise<boo
   }
 };
 
+export const DEFAULT_PASSWORD = '123456@';
+
 export const createTeamMember = async (data: any): Promise<boolean> => {
   try {
     const salonId = await getCurrentSalonId();
 
-    // Senha temporária aleatória segura
-    const tempPassword = data.password?.trim()
-      ? data.password
-      : Math.random().toString(36).slice(-8) + 'A1!x';
-
-    // 1. Criar conta no Supabase Auth
+    // Sempre usa a senha padrão — profissional será obrigado a trocar no 1º acesso
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: data.email,
-      password: tempPassword,
+      password: DEFAULT_PASSWORD,
       options: {
         data: {
           name: toTitleCase(data.name),
           salon_id: salonId,
         },
-        emailRedirectTo: `${window.location.origin}/redefinir-senha`,
       },
     });
 
@@ -123,7 +119,7 @@ export const createTeamMember = async (data: any): Promise<boolean> => {
 
     const userId = authData.user.id;
 
-    // 2. Inserir na tabela users com o ID do Auth
+    // Inserir na tabela users com must_change_password = true
     const { error: insertError } = await supabase
       .from('users')
       .upsert({
@@ -136,18 +132,14 @@ export const createTeamMember = async (data: any): Promise<boolean> => {
         is_manager: data.isManager,
         categories: data.categories || [],
         salon_id: salonId,
+        must_change_password: true,
       } as any);
 
     if (insertError) throw insertError;
 
-    // 3. Enviar email de redefinição de senha para o profissional definir a própria senha
-    await supabase.auth.resetPasswordForEmail(data.email, {
-      redirectTo: `${window.location.origin}/redefinir-senha`,
-    });
-
     toast({
       title: 'Profissional adicionado!',
-      description: `Email enviado para ${data.email}. O profissional receberá o link para definir sua senha.`,
+      description: `${toTitleCase(data.name)} pode acessar com a senha padrão e será obrigado a trocá-la no primeiro acesso.`,
     });
     return true;
   } catch (error: any) {

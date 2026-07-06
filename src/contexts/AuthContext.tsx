@@ -150,7 +150,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       
       if (error) {
-        console.error("Erro no login:", error);
         toast({
           title: "Falha no login",
           description: error.message,
@@ -160,6 +159,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       
       if (data.user) {
+        // Verificar se precisa trocar a senha (primeiro acesso)
+        const { data: userData } = await supabase
+          .from('users')
+          .select('must_change_password')
+          .eq('id', data.user.id)
+          .maybeSingle();
+
+        if ((userData as any)?.must_change_password) {
+          // Redireciona para troca obrigatória de senha
+          navigate('/redefinir-senha?obrigatorio=true');
+          return true;
+        }
+
         toast({
           title: "Login bem-sucedido",
           description: "Bem-vindo de volta!",
@@ -169,7 +181,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       return false;
     } catch (error: any) {
-      console.error("Erro inesperado no login:", error);
       toast({
         title: "Erro no login",
         description: error.message ?? "Ocorreu um erro inesperado",
