@@ -78,12 +78,14 @@ export const updateTeamMember = async (memberId: string, data: any): Promise<boo
       
     if (error) throw error;
 
-    // Sincronizar user_roles com o perfil atualizado
+    // Sincronizar user_roles via RPC (SECURITY DEFINER)
+    const salonId = await getCurrentSalonId();
     const newRole = data.isManager ? 'manager' : 'professional';
-    await supabase
-      .from('user_roles')
-      .update({ role: newRole })
-      .eq('user_id', memberId);
+    await supabase.rpc('set_user_role', {
+      p_user_id:  memberId,
+      p_role:     newRole,
+      p_salon_id: salonId,
+    });
 
     toast({
       title: "Profissional atualizado",
@@ -107,8 +109,12 @@ export const createTeamMember = async (data: any): Promise<boolean> => {
   try {
     const salonId = await getCurrentSalonId();
 
-    // Salvar sessão atual do gerente antes do signUp trocar de sessão
+    // Salvar tokens do gerente antes do signUp
     const { data: { session: managerSession } } = await supabase.auth.getSession();
+    if (!managerSession) throw new Error('Sessão do gerente não encontrada.');
+
+    const managerAccessToken  = managerSession.access_token;
+    const managerRefreshToken = managerSession.refresh_token;
 
     // Criar conta no Auth para o novo profissional
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -127,15 +133,16 @@ export const createTeamMember = async (data: any): Promise<boolean> => {
 
     const userId = authData.user.id;
 
-    // Restaurar sessão do gerente imediatamente
-    if (managerSession) {
-      await supabase.auth.setSession({
-        access_token: managerSession.access_token,
-        refresh_token: managerSession.refresh_token,
-      });
-    }
+    // Restaurar sessão do gerente IMEDIATAMENTE após signUp
+    await supabase.auth.setSession({
+      access_token: managerAccessToken,
+      refresh_token: managerRefreshToken,
+    });
 
-    // Agora com sessão do gerente, atualizar os dados do profissional
+    // Pequena espera para garantir que a sessão foi restaurada
+    await new Promise(res => setTimeout(res, 500));
+
+    // Atualizar dados do profissional com sessão do gerente
     const { error: updateError } = await supabase
       .from('users')
       .update({
@@ -151,12 +158,15 @@ export const createTeamMember = async (data: any): Promise<boolean> => {
 
     if (updateError) throw updateError;
 
-    // Atualizar user_roles conforme perfil selecionado
+    // Atualizar user_roles via RPC (SECURITY DEFINER — não depende da sessão)
     const newRole = data.isManager ? 'manager' : 'professional';
-    await supabase
-      .from('user_roles')
-      .update({ role: newRole })
-      .eq('user_id', userId);
+    const { error: roleError } = await supabase.rpc('set_user_role', {
+      p_user_id:  userId,
+      p_role:     newRole,
+      p_salon_id: salonId,
+    });
+
+    if (roleError) throw roleError;
 
     toast({
       title: 'Profissional adicionado!',
