@@ -524,6 +524,7 @@ export type Database = {
           has_access: boolean
           id: string
           is_manager: boolean
+          must_change_password: boolean | null
           name: string
           phone: string | null
           profession: string | null
@@ -539,6 +540,7 @@ export type Database = {
           has_access?: boolean
           id: string
           is_manager?: boolean
+          must_change_password?: boolean | null
           name: string
           phone?: string | null
           profession?: string | null
@@ -554,6 +556,7 @@ export type Database = {
           has_access?: boolean
           id?: string
           is_manager?: boolean
+          must_change_password?: boolean | null
           name?: string
           phone?: string | null
           profession?: string | null
@@ -577,9 +580,6 @@ export type Database = {
     }
     Functions: {
       get_authenticated_user_id: { Args: never; Returns: string }
-      get_brasilia_date: { Args: never; Returns: string }
-      get_brasilia_now: { Args: never; Returns: string }
-      get_brasilia_time: { Args: never; Returns: string }
       get_busy_slots: {
         Args: {
           p_date_end: string
@@ -602,6 +602,10 @@ export type Database = {
       }
       is_authenticated_user: { Args: never; Returns: boolean }
       is_manager: { Args: never; Returns: boolean }
+      set_user_role: {
+        Args: { p_role: string; p_salon_id: string; p_user_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "manager" | "professional"

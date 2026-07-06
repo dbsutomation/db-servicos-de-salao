@@ -107,66 +107,25 @@ export const DEFAULT_PASSWORD = '123456@';
 
 export const createTeamMember = async (data: any): Promise<boolean> => {
   try {
-    const salonId = await getCurrentSalonId();
-
-    // Salvar tokens do gerente antes do signUp
-    const { data: { session: managerSession } } = await supabase.auth.getSession();
-    if (!managerSession) throw new Error('Sessão do gerente não encontrada.');
-
-    const managerAccessToken  = managerSession.access_token;
-    const managerRefreshToken = managerSession.refresh_token;
-
-    // Criar conta no Auth para o novo profissional
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: data.email,
-      password: DEFAULT_PASSWORD,
-      options: {
-        data: {
-          name: toTitleCase(data.name),
-          salon_id: salonId,
+    // Chama edge function que usa service role — NÃO altera a sessão do gerente
+    const { data: result, error } = await supabase.functions.invoke(
+      'create-team-member',
+      {
+        body: {
+          name: data.name,
+          email: data.email,
+          password: DEFAULT_PASSWORD,
+          phone: data.phone,
+          profession: data.profession,
+          hasAccess: data.hasAccess ?? true,
+          isManager: data.isManager ?? false,
+          categories: data.categories || [],
         },
-      },
-    });
+      }
+    );
 
-    if (authError) throw authError;
-    if (!authData.user) throw new Error('Falha ao criar conta de acesso.');
-
-    const userId = authData.user.id;
-
-    // Restaurar sessão do gerente IMEDIATAMENTE após signUp
-    await supabase.auth.setSession({
-      access_token: managerAccessToken,
-      refresh_token: managerRefreshToken,
-    });
-
-    // Pequena espera para garantir que a sessão foi restaurada
-    await new Promise(res => setTimeout(res, 500));
-
-    // Atualizar dados do profissional com sessão do gerente
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({
-        name: toTitleCase(data.name),
-        phone: data.phone ? normalizePhone(data.phone) : null,
-        profession: data.profession || null,
-        has_access: data.hasAccess ?? true,
-        is_manager: data.isManager ?? false,
-        categories: data.categories || [],
-        salon_id: salonId,
-      } as any)
-      .eq('id', userId);
-
-    if (updateError) throw updateError;
-
-    // Atualizar user_roles via RPC (SECURITY DEFINER — não depende da sessão)
-    const newRole = data.isManager ? 'manager' : 'professional';
-    const { error: roleError } = await supabase.rpc('set_user_role', {
-      p_user_id:  userId,
-      p_role:     newRole,
-      p_salon_id: salonId,
-    });
-
-    if (roleError) throw roleError;
+    if (error) throw error;
+    if (result?.error) throw new Error(result.error);
 
     toast({
       title: 'Profissional adicionado!',
@@ -183,6 +142,7 @@ export const createTeamMember = async (data: any): Promise<boolean> => {
     return false;
   }
 };
+
 
 export const deleteTeamMember = async (memberId: string, memberName?: string): Promise<boolean> => {
   try {
