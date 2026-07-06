@@ -93,8 +93,10 @@ export const updateTeamMember = async (memberId: string, data: any): Promise<boo
     
     return true;
   } catch (error: any) {
-    console.error("Erro completo na atualização:", error);
-    handleError(error, "ao atualizar o profissional");
+    const msg = error.code === '23505'
+      ? 'Este email já está em uso por outro profissional'
+      : error.message || 'Ocorreu um erro ao atualizar o profissional';
+    toast({ title: 'Erro ao atualizar profissional', description: msg, variant: 'destructive' });
     return false;
   }
 };
@@ -230,20 +232,3 @@ export const deleteTeamMember = async (memberId: string, memberName?: string): P
   }
 };
 
-const handleError = (error: any, action: string): void => {
-  let errorMessage = error.message || `Ocorreu um erro ${action}`;
-  
-  if (error.code === '23505') {
-    errorMessage = "Este email já está em uso por outro profissional";
-  } else if (error.code === '23514') {
-    errorMessage = "Os dados fornecidos não atendem às restrições do banco de dados";
-  }
-  
-  console.error("Erro detalhado:", error);
-  
-  toast({
-    title: "Erro",
-    description: errorMessage,
-    variant: "destructive"
-  });
-};

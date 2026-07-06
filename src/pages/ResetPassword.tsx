@@ -42,16 +42,6 @@ export default function ResetPassword() {
       const { error } = await client.auth.updateUser({ password });
       if (error) throw error;
 
-      // Zerar must_change_password se for profissional
-      if (!isCustomer) {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          await supabase
-            .from('users')
-            .update({ must_change_password: false } as any)
-            .eq('id', user.id);
-        }
-      }
 
       toast({ title: 'Senha redefinida com sucesso!' });
       navigate(isCustomer ? '/login-cliente' : '/');

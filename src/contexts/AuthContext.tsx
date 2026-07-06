@@ -44,7 +44,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 .single();
                 
               if (error) {
-                console.error('Erro ao buscar dados do usuário:', error);
                 throw error;
               }
               
@@ -97,11 +96,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   currentUser: teamMember
                 });
               } else {
-                console.error("Dados do usuário não encontrados");
               }
             } catch (error) {
-              console.error('Erro ao buscar dados do usuário:', error);
-            } finally {
+              } finally {
               setIsLoading(false);
             }
           }, 0);
@@ -118,7 +115,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { data: { session: existingSession }, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error('Erro ao verificar sessão:', error);
           throw error;
         }
         
@@ -128,7 +124,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else {
         }
       } catch (error) {
-        console.error('Erro ao verificar sessão:', error);
       } finally {
         setIsLoading(false);
       }
@@ -191,7 +186,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         description: "Você saiu do sistema.",
       });
     } catch (error: any) {
-      console.error("Erro no logout:", error);
       toast({
         title: "Erro ao sair",
         description: error.message ?? "Ocorreu um erro inesperado",
