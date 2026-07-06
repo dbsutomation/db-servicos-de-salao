@@ -2,7 +2,7 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/comp
 import { Input } from '@/components/ui/input';
 import { UseFormReturn } from 'react-hook-form';
 import { TeamMemberFormValues } from './validationSchema';
-import { ShieldAlert } from 'lucide-react';
+import { Info } from 'lucide-react';
 import { DEFAULT_PASSWORD } from '@/services/teamService';
 
 interface AccountFieldsProps {
@@ -30,7 +30,7 @@ const AccountFields = ({ form, isEditing }: AccountFieldsProps) => {
       {!isEditing && (
         <div className="space-y-2">
           <div className="space-y-1">
-            <FormLabel>Senha padrão de primeiro acesso</FormLabel>
+            <FormLabel>Senha padrão de acesso</FormLabel>
             <Input
               type="text"
               value={DEFAULT_PASSWORD}
@@ -38,11 +38,16 @@ const AccountFields = ({ form, isEditing }: AccountFieldsProps) => {
               className="bg-muted font-mono text-muted-foreground cursor-default select-all"
             />
           </div>
-          <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">
-            <ShieldAlert size={16} className="mt-0.5 shrink-0" />
-            <p>
-              Informe esta senha ao profissional. No <strong>primeiro acesso</strong>, o sistema exigirá a criação de uma senha pessoal.
-            </p>
+          <div className="flex items-start gap-2 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-700">
+            <Info size={16} className="mt-0.5 shrink-0" />
+            <div className="space-y-1">
+              <p><strong>Instrua o profissional a:</strong></p>
+              <ol className="list-decimal list-inside space-y-0.5 text-xs">
+                <li>Fazer login com o email e a senha padrão acima</li>
+                <li>Na tela de login, clicar em <strong>"Esqueci minha senha"</strong></li>
+                <li>Verificar o email e definir uma senha pessoal</li>
+              </ol>
+            </div>
           </div>
         </div>
       )}

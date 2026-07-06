@@ -159,18 +159,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       
       if (data.user) {
-        // Verificar se precisa trocar a senha (primeiro acesso)
-        const { data: userData } = await supabase
-          .from('users')
-          .select('must_change_password')
-          .eq('id', data.user.id)
-          .maybeSingle();
-
-        if ((userData as any)?.must_change_password) {
-          navigate('/redefinir-senha?obrigatorio=true');
-          return true;
-        }
-
         toast({
           title: "Login bem-sucedido",
           description: "Bem-vindo de volta!",
