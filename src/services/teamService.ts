@@ -137,6 +137,15 @@ export const createTeamMember = async (data: any): Promise<boolean> => {
 
     if (insertError) throw insertError;
 
+    // Garantir must_change_password = true com update explícito
+    // (o trigger handle_new_user pode ter inserido o registro antes do upsert)
+    const { error: flagError } = await supabase
+      .from('users')
+      .update({ must_change_password: true } as any)
+      .eq('id', userId);
+
+    if (flagError) console.error('Erro ao marcar must_change_password:', flagError);
+
     toast({
       title: 'Profissional adicionado!',
       description: `${toTitleCase(data.name)} pode acessar com a senha padrão e será obrigado a trocá-la no primeiro acesso.`,
