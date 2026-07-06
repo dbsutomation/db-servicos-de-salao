@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useMemo } from 'react';
-import { isAfter, isBefore, addDays, parseISO, format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
+import { isAfter, isBefore, addDays, parseISO, format, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import { fromZonedTime, toZonedTime } from 'date-fns-tz';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
