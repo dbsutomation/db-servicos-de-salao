@@ -322,6 +322,8 @@ export type Database = {
           name: string
           owner_id: string
           phone: string | null
+          provision_ref: string | null
+          status: string
           updated_at: string
         }
         Insert: {
@@ -332,6 +334,8 @@ export type Database = {
           name: string
           owner_id: string
           phone?: string | null
+          provision_ref?: string | null
+          status?: string
           updated_at?: string
         }
         Update: {
@@ -342,6 +346,8 @@ export type Database = {
           name?: string
           owner_id?: string
           phone?: string | null
+          provision_ref?: string | null
+          status?: string
           updated_at?: string
         }
         Relationships: [
@@ -491,6 +497,27 @@ export type Database = {
           },
         ]
       }
+      system_admins: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -576,6 +603,33 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_get_salon: {
+        Args: { p_salon_id: string }
+        Returns: {
+          address: string
+          created_at: string
+          id: string
+          name: string
+          owner_email: string
+          owner_name: string
+          phone: string
+          professionals_count: number
+          status: string
+        }[]
+      }
+      admin_list_salons: {
+        Args: never
+        Returns: {
+          address: string
+          created_at: string
+          id: string
+          name: string
+          owner_name: string
+          phone: string
+          professionals_count: number
+          status: string
+        }[]
+      }
       get_authenticated_user_id: { Args: never; Returns: string }
       get_busy_slots: {
         Args: {
@@ -599,6 +653,8 @@ export type Database = {
       }
       is_authenticated_user: { Args: never; Returns: boolean }
       is_manager: { Args: never; Returns: boolean }
+      is_salon_active: { Args: never; Returns: boolean }
+      is_system_admin: { Args: never; Returns: boolean }
       set_user_role: {
         Args: { p_role: string; p_salon_id: string; p_user_id: string }
         Returns: undefined
