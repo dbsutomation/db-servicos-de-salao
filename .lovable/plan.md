@@ -1,55 +1,57 @@
-# Criação de novos salões — Painel do administrador
+# Admin MVP — cadastro manual de novos salões
 
-## O que já existe hoje
+## Análise do que já existe
 
-- O banco já é multi-salão: todas as tabelas principais (serviços, clientes, equipe, agenda, despesas) têm `salon_id` e regras de isolamento por salão.
-- Quando um novo usuário é criado com a marcação "novo gerente" e o nome do salão, o sistema já cria automaticamente o salão, o gerente e o papel de gerente.
-- A tabela de salões guarda: nome, responsável (dono), telefone, endereço e se está ativo.
+- Banco já é multi-salão: `salon_id` nas tabelas principais e RLS por salão (`get_user_salon_id()`, `has_role()`, `is_manager()`).
+- `handle_new_user` já cria salão + gerente + papel quando o usuário nasce com `is_new_manager` + `salon_name`. Não será alterado.
+- Já existe rotina de servidor que cria usuário sem derrubar a sessão de quem cria (`create-team-member`, com service role, validação de JWT e rollback do usuário Auth em caso de falha). Serve de modelo direto.
+- Já existe recuperação de senha por e-mail (`/redefinir-senha`) e o login já sabe redirecionar para troca obrigatória de senha no primeiro acesso.
+- `salons` já tem nome, dono, telefone, endereço, `is_active` e data de criação.
 
-## O que está faltando
+Faltam apenas: perfil de administrador da plataforma, telas `/admin/*`, campo de status e efeito da suspensão.
 
-1. Não existe nenhuma tela para criar um salão — nem pública, nem administrativa. Hoje só seria possível pelo banco.
-2. Não existe o perfil de administrador do sistema (acima dos salões), nem login separado para ele.
-3. Não existem os campos de gestão comercial pedidos: **Plano**, **Status** (Ativo/Inativo/Suspenso) e **limite de profissionais**.
-4. Não há listagem de salões com responsável, plano, status, nº de profissionais e data de criação.
-5. Criar o gerente inicial exige criar a conta de acesso sem derrubar a sessão de quem está criando — isso precisa de uma rotina de servidor (já existe uma parecida para criar profissionais, servirá de modelo).
+## O que será criado/alterado
 
-## Plano
+Banco (uma migração incremental, sem apagar nada):
+- Nova tabela `system_admins` (referência ao usuário de autenticação) + GRANTs + RLS.
+- Função segura `is_system_admin()`.
+- Novas políticas em `salons` e `users` permitindo leitura/edição apenas ao administrador da plataforma — nenhuma política existente é removida ou enfraquecida.
+- Coluna `status` em `salons` com valores `ativo` e `suspenso`, padrão `ativo` (o salão atual nasce `ativo`). `is_active` permanece como está, sem uso novo.
+- Inserção do primeiro administrador da plataforma.
 
-### 1. Banco de dados
-- Nova tabela `system_admins` (quem é administrador do sistema).
-- Nova tabela `plans` (nome do plano, ex. Piloto/Básico/Pro, limite de profissionais, preço mensal).
-- Novos campos em `salons`: `plan_id`, `status` (ativo/inativo/suspenso, padrão ativo), `max_professionals`.
-- Função `is_system_admin()` e regras de acesso: administrador enxerga e edita todos os salões e planos; gerentes e profissionais continuam vendo apenas o próprio salão.
-- Administrador não aparece nas listas de equipe/clientes dos salões.
+Servidor:
+- Nova rotina `create-salon`: valida o JWT, confirma que é administrador da plataforma, cria o gerente pela API administrativa (sem tocar na sessão do admin) usando os metadados que o gatilho já entende, confirma que salão + gerente + papel ficaram consistentes e desfaz o usuário criado se algo falhar. Se o e-mail já existir, responde com mensagem clara em vez de criar registro duplicado; se o salão já tiver sido criado numa tentativa anterior, reaproveita em vez de duplicar.
+- Nova rotina `update-salon` (ou reuso via RLS de administrador) para editar dados básicos e alternar status.
 
-### 2. Rotina de criação no servidor (edge function `create-salon`)
-- Valida que quem chamou é administrador do sistema.
-- Cria a conta de acesso do gerente (e-mail + senha inicial), o registro do salão, o registro do gerente e o papel de gerente — tudo em uma operação, sem afetar a sessão do administrador.
-- Salão nasce vazio: sem serviços, equipe ou horários de exemplo.
-
-### 3. Telas do administrador
+Telas novas (nenhuma tela existente muda de comportamento):
 - `/admin/login` — entrada exclusiva do administrador.
-- `/admin/saloes` — lista com as colunas: **Salão, Responsável, Plano, Status, Profissionais, Criado em**, com busca e filtro por status.
-- `/admin/saloes/novo` — formulário: nome do salão, telefone e endereço (opcionais), nome/e-mail/senha inicial do gerente, plano e limite de profissionais.
-- `/admin/saloes/:id` — detalhe: dados do salão, trocar plano, mudar status, ver profissionais do salão.
-- `/admin/planos` — criar e editar planos.
-- Rotas protegidas: quem não é administrador é redirecionado.
+- `/admin/saloes` — colunas: Salão, Responsável, Profissionais, Criado em, Status, ação "Abrir"; busca por nome/responsável, filtro por status, botão "+ Novo salão".
+- `/admin/saloes/novo` — Nome do salão*, Responsável*, Telefone, Endereço; Nome* e E-mail* do gerente; botão "CRIAR SALÃO".
+- `/admin/saloes/:id` — dados básicos, data de criação, status, nº de profissionais; editar dados, suspender, reativar.
+- Proteção de rota: gerente, profissional ou visitante não entra em `/admin`.
 
-### 4. Efeito do status e do limite
-- Salão com status diferente de "ativo": gerentes e profissionais daquele salão veem aviso de acesso suspenso ao entrar.
-- Ao criar um profissional acima do limite do salão, o sistema bloqueia com mensagem clara.
+Senha do gerente (recomendação):
+- O administrador não define nem conhece senha. A conta é criada e o gerente recebe um e-mail de definição de senha, usando o fluxo `/redefinir-senha` que já existe. A tela de detalhe terá um botão "Reenviar convite".
 
-## Detalhes técnicos
+Efeito da suspensão:
+- Ao entrar, gerentes e profissionais de salão suspenso veem uma mensagem clara de acesso suspenso e não acessam as telas operacionais. Nenhum dado é apagado; reativar devolve tudo.
 
-- Migração cria `system_admins`, `plans`, colunas em `salons`, GRANTs e políticas RLS usando uma função `SECURITY DEFINER` `is_system_admin()`.
-- Edge function `create-salon` com service role, validando o JWT do chamador (mesmo padrão de `create-team-member`), usando `auth.admin.createUser` com metadados `is_new_manager` + `salon_name`, e depois aplicando `plan_id`/`status`/`max_professionals` ao salão criado pelo gatilho.
-- Contagem de profissionais na lista via agregação em `users` por `salon_id`.
-- Frontend em React + shadcn, reaproveitando o padrão visual atual.
+## Riscos para o salão em produção e como evitá-los
+
+- Alterar `handle_new_user` poderia quebrar cadastros atuais — por isso ele não será alterado; a nova rotina usa os metadados que ele já suporta.
+- Novas políticas de administrador poderiam abrir brechas — serão políticas adicionais restritas a `is_system_admin()`, nunca afrouxando as existentes.
+- A checagem de suspensão entra em um único ponto de entrada do sistema, sem mexer em agenda, carrinho, painel, clientes, serviços, despesas ou portal do cliente.
+- Migração apenas aditiva: nova tabela, nova coluna com valor padrão, novas funções e políticas.
+
+## Fora do escopo (removido do plano anterior)
+
+Planos, `plan_id`, `max_professionals`, limite de profissionais, tela de planos, preço, cobrança, assinatura, pagamentos, trial, autoatendimento, cadastro público, status "inativo".
 
 ## Ordem de entrega
 
-1. Migração de banco.
-2. Edge function `create-salon` + promoção do primeiro administrador.
-3. Telas `/admin/login`, `/admin/saloes`, `/admin/saloes/novo`.
-4. Detalhe do salão, planos, status e limite de profissionais.
+1. Migração (`system_admins`, `is_system_admin()`, `status`, políticas, primeiro admin).
+2. Rotina de criação/edição de salão no servidor.
+3. `/admin/login`, `/admin/saloes`, `/admin/saloes/novo`.
+4. `/admin/saloes/:id` com edição, suspender/reativar e reenvio de convite.
+5. Bloqueio de acesso para salão suspenso.
+6. Roteiro de teste: login admin; criar Salão B e gerente B; abrir, suspender, verificar bloqueio, reativar; isolamento A×B em clientes, serviços, profissionais, agenda e financeiro; tentativas de acesso a `/admin` como gerente, profissional e sem login; e-mail duplicado; falha no meio da criação; primeiro acesso do gerente.
