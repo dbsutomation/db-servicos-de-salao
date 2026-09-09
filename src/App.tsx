@@ -61,6 +61,14 @@ const AppRoutes = () => {
       <Route path="/login-cliente" element={<CustomerLogin />} />
       <Route path="/minha-agenda" element={<ClientBooking />} />
       <Route path="/meus-agendamentos" element={<MeusAgendamentos />} />
+
+      {/* Administração da plataforma */}
+      <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/admin" element={<Navigate to="/admin/saloes" replace />} />
+      <Route path="/admin/saloes" element={<AdminGuard><AdminSalons /></AdminGuard>} />
+      <Route path="/admin/saloes/novo" element={<AdminGuard><AdminSalonNew /></AdminGuard>} />
+      <Route path="/admin/saloes/:id" element={<AdminGuard><AdminSalonDetail /></AdminGuard>} />
+      
       
       <Route path="/" element={
         <CartProvider>
