@@ -22,6 +22,11 @@ import ClientBooking from "./pages/ClientBooking";
 import MeusAgendamentos from "./pages/MeusAgendamentos";
 import Agenda from "./pages/Agenda";
 import NotFound from "./pages/NotFound";
+import AdminGuard from "./components/admin/AdminGuard";
+import AdminLogin from "./pages/admin/AdminLogin";
+import AdminSalons from "./pages/admin/AdminSalons";
+import AdminSalonNew from "./pages/admin/AdminSalonNew";
+import AdminSalonDetail from "./pages/admin/AdminSalonDetail";
 
 const queryClient = new QueryClient();
 
