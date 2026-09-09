@@ -41,12 +41,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 .from('users')
                 .select('*, salon_id')
                 .eq('id', newSession.user.id)
-                .single();
-                
+                .maybeSingle();
+
               if (error) {
                 throw error;
               }
-              
+
+              if (!data) {
+                // Pode ser um administrador da plataforma
+                const { data: adminRow } = await supabase
+                  .from('system_admins')
+                  .select('user_id')
+                  .eq('user_id', newSession.user.id)
+                  .maybeSingle();
+
+                if (adminRow) {
+                  setAuthState({ isAuthenticated: false, currentUser: null });
+                  navigate('/admin/saloes');
+                  return;
+                }
+
+                toast({
+                  title: "Conta sem acesso",
+                  description: "Esta conta não está vinculada a nenhum estabelecimento.",
+                  variant: "destructive",
+                });
+                await supabase.auth.signOut();
+                setAuthState({ isAuthenticated: false, currentUser: null });
+                navigate('/login');
+                return;
+              }
+
               if (data) {
                 // Verificar se o usuário tem acesso
                 if (!data.has_access) {
