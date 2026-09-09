@@ -1,57 +1,91 @@
-# Admin MVP — cadastro manual de novos salões
+# Admin MVP — cadastro manual de novos salões (revisado)
 
 ## Análise do que já existe
 
-- Banco já é multi-salão: `salon_id` nas tabelas principais e RLS por salão (`get_user_salon_id()`, `has_role()`, `is_manager()`).
+- Banco já é multi-salão: `salon_id` nas tabelas principais e RLS por salão (`get_user_salon_id()`, `get_customer_salon_id()`, `has_role()`, `is_manager()`).
 - `handle_new_user` já cria salão + gerente + papel quando o usuário nasce com `is_new_manager` + `salon_name`. Não será alterado.
-- Já existe rotina de servidor que cria usuário sem derrubar a sessão de quem cria (`create-team-member`, com service role, validação de JWT e rollback do usuário Auth em caso de falha). Serve de modelo direto.
-- Já existe recuperação de senha por e-mail (`/redefinir-senha`) e o login já sabe redirecionar para troca obrigatória de senha no primeiro acesso.
+- `create-team-member` já cria usuário pela API administrativa sem derrubar a sessão de quem cria, valida JWT e desfaz o usuário Auth se algo falhar. É o modelo a reaproveitar.
+- Já existem recuperação de senha por e-mail (`/redefinir-senha`) e redirecionamento de troca obrigatória no primeiro acesso.
 - `salons` já tem nome, dono, telefone, endereço, `is_active` e data de criação.
 
-Faltam apenas: perfil de administrador da plataforma, telas `/admin/*`, campo de status e efeito da suspensão.
+Onde `is_active` de `salons` é usado hoje: apenas na regra de leitura de salões e na visão pública usada pelo cadastro de clientes. Nenhuma tela usa esse campo diretamente (os usos de `is_active` no código são de horários de trabalho, coisa diferente). Por isso `is_active` fica intocado, sem lógica nova, e `status` passa a ser a única fonte de verdade para ativo/suspenso.
 
-## O que será criado/alterado
+## 1. Banco de dados (migração aditiva)
 
-Banco (uma migração incremental, sem apagar nada):
-- Nova tabela `system_admins` (referência ao usuário de autenticação) + GRANTs + RLS.
-- Função segura `is_system_admin()`.
-- Novas políticas em `salons` e `users` permitindo leitura/edição apenas ao administrador da plataforma — nenhuma política existente é removida ou enfraquecida.
-- Coluna `status` em `salons` com valores `ativo` e `suspenso`, padrão `ativo` (o salão atual nasce `ativo`). `is_active` permanece como está, sem uso novo.
-- Inserção do primeiro administrador da plataforma.
+Tabelas/colunas criadas:
+- `system_admins` — quem é administrador da plataforma (referência ao usuário de autenticação + data de criação). GRANTs mínimos, RLS ativa, leitura só do próprio registro.
+- `salons.status` — texto com valores `ativo` e `suspenso`, padrão `ativo`, validado por restrição. Todos os salões existentes nascem `ativo`.
 
-Servidor:
-- Nova rotina `create-salon`: valida o JWT, confirma que é administrador da plataforma, cria o gerente pela API administrativa (sem tocar na sessão do admin) usando os metadados que o gatilho já entende, confirma que salão + gerente + papel ficaram consistentes e desfaz o usuário criado se algo falhar. Se o e-mail já existir, responde com mensagem clara em vez de criar registro duplicado; se o salão já tiver sido criado numa tentativa anterior, reaproveita em vez de duplicar.
-- Nova rotina `update-salon` (ou reuso via RLS de administrador) para editar dados básicos e alternar status.
+Funções criadas (todas `SECURITY DEFINER` com `search_path` fixo em `public` e sem consultar tabelas protegidas por políticas que dependam delas, evitando recursão):
+- `is_system_admin()` — verifica se o usuário atual está em `system_admins`. Execução concedida só a usuários autenticados; não recebe parâmetro, então ninguém pode consultar por outro usuário nem usá-la para elevar privilégio.
+- `is_salon_active()` — retorna verdadeiro quando o salão do usuário atual (equipe ou cliente) não está suspenso. Sem parâmetros, apenas leitura de `salons`.
+- `admin_list_salons()` — devolve, só para administradores, a lista de salões com nome, responsável, telefone, endereço, status, data de criação e a **contagem** de profissionais. Isso evita dar ao administrador leitura ampla de `users`.
+- `admin_get_salon(id)` — mesma ideia para a tela de detalhe.
 
-Telas novas (nenhuma tela existente muda de comportamento):
+## 2. Comportamento exato da suspensão no backend
+
+O bloqueio passa a existir no banco, não só na tela. Mecanismo: adicionar a condição `is_salon_active()` às políticas de escrita e leitura operacionais já existentes, sem reescrevê-las e sem afrouxar nenhuma.
+
+Políticas que serão alteradas (apenas acrescentando a checagem de status):
+- `appointments`, `appointment_services`
+- `clients`, `customers`
+- `services`
+- `service_records`
+- `expenses`
+- `professional_schedules`
+- `users` (leitura/edição da equipe do salão)
+
+Não são alteradas: `salons`, `user_roles`, a visão pública de salões e as políticas de storage.
+
+Efeito: um usuário de salão suspenso, mesmo com sessão válida e chamando o backend diretamente, não lê nem grava dados operacionais. Nada é apagado; reativar devolve tudo. O administrador da plataforma continua administrando salões suspensos, porque age pelas funções administrativas e pelas políticas próprias de `salons`, que não dependem de `is_salon_active()`.
+
+No aplicativo, o usuário de salão suspenso vê uma mensagem clara de "acesso do estabelecimento suspenso" em vez de erros soltos.
+
+## 3. Privilégio mínimo do administrador da plataforma
+
+O administrador recebe acesso apenas a:
+- ler e editar `salons` (dados básicos e status);
+- as funções administrativas de listagem/detalhe, que já entregam a contagem de profissionais;
+- criar salão/gerente e reenviar convite pela rotina de servidor.
+
+Ele **não** ganha política de leitura em clientes, agenda, serviços, atendimentos, despesas, financeiro ou demais dados operacionais.
+
+## 4. Rotina de servidor `create-salon`
+
+Fluxo: valida o JWT → confirma que é administrador da plataforma → cria o gerente pela API administrativa com os metadados que o gatilho já entende (`is_new_manager` + `salon_name`), o que cria salão, gerente e papel numa só operação → confirma que os três ficaram consistentes → aplica telefone, endereço e responsável no salão → responde sucesso.
+
+Idempotência, com correlação inequívoca:
+- Cada tentativa gera um identificador de operação enviado pelo administrador e gravado no salão criado (`provision_ref`, único).
+- Se o e-mail já existir no sistema: só é possível retomar quando o salão pendente tiver exatamente o mesmo `provision_ref` **e** o gerente vinculado for exatamente aquele usuário. Nesse caso a rotina completa o que faltou.
+- Qualquer outro caso (e-mail já usado em outro salão, salão sem correlação, dados divergentes) falha com mensagem clara ao administrador; nunca vincula por nome, responsável ou semelhança.
+- Se a criação falhar depois do usuário Auth existir e sem salão consistente, o usuário criado é desfeito, como já faz a rotina de profissionais.
+
+## 5. Telas novas (nenhuma tela atual muda)
+
 - `/admin/login` — entrada exclusiva do administrador.
-- `/admin/saloes` — colunas: Salão, Responsável, Profissionais, Criado em, Status, ação "Abrir"; busca por nome/responsável, filtro por status, botão "+ Novo salão".
+- `/admin/saloes` — Salão, Responsável, Profissionais, Criado em, Status, ação "Abrir"; busca por nome/responsável, filtro por status, botão "+ Novo salão".
 - `/admin/saloes/novo` — Nome do salão*, Responsável*, Telefone, Endereço; Nome* e E-mail* do gerente; botão "CRIAR SALÃO".
-- `/admin/saloes/:id` — dados básicos, data de criação, status, nº de profissionais; editar dados, suspender, reativar.
-- Proteção de rota: gerente, profissional ou visitante não entra em `/admin`.
+- `/admin/saloes/:id` — dados básicos, criação, status, nº de profissionais; editar, suspender, reativar, reenviar convite.
+- Proteção: gerente, profissional ou visitante não entra em `/admin`.
 
-Senha do gerente (recomendação):
-- O administrador não define nem conhece senha. A conta é criada e o gerente recebe um e-mail de definição de senha, usando o fluxo `/redefinir-senha` que já existe. A tela de detalhe terá um botão "Reenviar convite".
+Senha do gerente: o administrador não define nem conhece senha. A conta é criada e o gerente recebe e-mail para definir a própria senha pelo fluxo `/redefinir-senha` já existente.
 
-Efeito da suspensão:
-- Ao entrar, gerentes e profissionais de salão suspenso veem uma mensagem clara de acesso suspenso e não acessam as telas operacionais. Nenhum dado é apagado; reativar devolve tudo.
+## 6. Fora do escopo
 
-## Riscos para o salão em produção e como evitá-los
+Planos, preço, limite de profissionais, cobrança, assinatura, pagamentos, trial, autoatendimento, cadastro público, status "inativo".
 
-- Alterar `handle_new_user` poderia quebrar cadastros atuais — por isso ele não será alterado; a nova rotina usa os metadados que ele já suporta.
-- Novas políticas de administrador poderiam abrir brechas — serão políticas adicionais restritas a `is_system_admin()`, nunca afrouxando as existentes.
-- A checagem de suspensão entra em um único ponto de entrada do sistema, sem mexer em agenda, carrinho, painel, clientes, serviços, despesas ou portal do cliente.
-- Migração apenas aditiva: nova tabela, nova coluna com valor padrão, novas funções e políticas.
+## 7. Riscos e cuidados com o salão em produção
 
-## Fora do escopo (removido do plano anterior)
+- `handle_new_user` não é alterado.
+- Migração só aditiva: nova tabela, nova coluna com padrão, novas funções, políticas ajustadas apenas com uma condição extra.
+- Como todo salão existente nasce `ativo`, a nova condição de status não muda nada no comportamento atual.
+- Nenhuma alteração em agenda, carrinho, painel, clientes, serviços, despesas ou portal do cliente.
 
-Planos, `plan_id`, `max_professionals`, limite de profissionais, tela de planos, preço, cobrança, assinatura, pagamentos, trial, autoatendimento, cadastro público, status "inativo".
+## 8. Ordem de entrega e teste final
 
-## Ordem de entrega
-
-1. Migração (`system_admins`, `is_system_admin()`, `status`, políticas, primeiro admin).
-2. Rotina de criação/edição de salão no servidor.
+1. Migração (tabela, coluna, funções, políticas administrativas e checagem de suspensão).
+2. Rotinas de servidor de criação/edição de salão e reenvio de convite.
 3. `/admin/login`, `/admin/saloes`, `/admin/saloes/novo`.
-4. `/admin/saloes/:id` com edição, suspender/reativar e reenvio de convite.
-5. Bloqueio de acesso para salão suspenso.
-6. Roteiro de teste: login admin; criar Salão B e gerente B; abrir, suspender, verificar bloqueio, reativar; isolamento A×B em clientes, serviços, profissionais, agenda e financeiro; tentativas de acesso a `/admin` como gerente, profissional e sem login; e-mail duplicado; falha no meio da criação; primeiro acesso do gerente.
+4. `/admin/saloes/:id` com edição, suspender/reativar e convite.
+5. Mensagem de acesso suspenso no aplicativo.
+6. Roteiro de teste: login admin; criar Salão B e gerente B; abrir, suspender, verificar bloqueio inclusive por chamada direta ao backend, reativar; isolamento A×B em clientes, serviços, profissionais, agenda e financeiro; tentativas de acesso a `/admin` como gerente, profissional e sem login; e-mail duplicado; falha no meio da criação e nova tentativa; primeiro acesso do gerente.
