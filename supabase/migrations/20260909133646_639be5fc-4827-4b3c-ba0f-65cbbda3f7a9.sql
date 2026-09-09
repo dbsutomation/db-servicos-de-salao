@@ -1,0 +1,11 @@
+GRANT EXECUTE ON FUNCTION public.is_salon_active() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_user_salon_id() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_customer_salon_id() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.has_role(uuid, public.app_role) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.is_manager() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.is_system_admin() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.is_authenticated_user() TO authenticated, anon;
+GRANT EXECUTE ON FUNCTION public.get_authenticated_user_id() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_list_salons() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_get_salon(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_busy_slots(uuid, timestamptz, timestamptz) TO authenticated;
