@@ -18,7 +18,7 @@ Tabelas/colunas criadas:
 
 Funções criadas (todas `SECURITY DEFINER` com `search_path` fixo em `public` e sem consultar tabelas protegidas por políticas que dependam delas, evitando recursão):
 - `is_system_admin()` — verifica se o usuário atual está em `system_admins`. Execução concedida só a usuários autenticados; não recebe parâmetro, então ninguém pode consultar por outro usuário nem usá-la para elevar privilégio.
-- `is_salon_active()` — retorna verdadeiro quando o salão do usuário atual (equipe ou cliente) não está suspenso. Sem parâmetros, apenas leitura de `salons`.
+- `is_salon_active()` — retorna verdadeiro apenas quando o salão do usuário atual está com status `ativo`. Identifica o salão pelo vínculo da equipe e, se não houver, pelo vínculo de cliente, usando os relacionamentos já existentes. Se o vínculo não existir, estiver inconsistente ou apontar para mais de um salão, a função bloqueia (falha segura) em vez de assumir ativo. Sem parâmetros, apenas leitura de `salons`.
 - `admin_list_salons()` — devolve, só para administradores, a lista de salões com nome, responsável, telefone, endereço, status, data de criação e a **contagem** de profissionais. Isso evita dar ao administrador leitura ampla de `users`.
 - `admin_get_salon(id)` — mesma ideia para a tela de detalhe.
 
@@ -55,8 +55,8 @@ Ele **não** ganha política de leitura em clientes, agenda, serviços, atendime
 Fluxo: valida o JWT → confirma que é administrador da plataforma → cria o gerente pela API administrativa com os metadados que o gatilho já entende (`is_new_manager` + `salon_name`), o que cria salão, gerente e papel numa só operação → confirma que os três ficaram consistentes → aplica telefone, endereço e responsável no salão → responde sucesso.
 
 Idempotência, com correlação inequívoca:
-- Cada tentativa gera um identificador de operação enviado pelo administrador e gravado no salão criado (`provision_ref`, único).
-- Se o e-mail já existir no sistema: só é possível retomar quando o salão pendente tiver exatamente o mesmo `provision_ref` **e** o gerente vinculado for exatamente aquele usuário. Nesse caso a rotina completa o que faltou.
+- O identificador da operação (`provision_ref`) é gerado no servidor pela própria rotina, gravado no salão criado e único. A tela nunca decide sozinha que uma tentativa anterior pertence à mesma operação.
+- Se o e-mail já existir no sistema, a rotina localiza no servidor o salão pendente associado àquele usuário gerente e só retoma quando a correlação é inequívoca: o salão tem `provision_ref` e o gerente vinculado é exatamente aquele usuário. Nesse caso completa o que faltou.
 - Qualquer outro caso (e-mail já usado em outro salão, salão sem correlação, dados divergentes) falha com mensagem clara ao administrador; nunca vincula por nome, responsável ou semelhança.
 - Se a criação falhar depois do usuário Auth existir e sem salão consistente, o usuário criado é desfeito, como já faz a rotina de profissionais.
 
