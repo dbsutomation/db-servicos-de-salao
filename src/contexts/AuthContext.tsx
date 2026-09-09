@@ -65,15 +65,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 // Converter para o formato TeamMember
                 const salonId = (data as any).salon_id || '';
                 
-                // Buscar nome do salão
+                // Buscar nome e situação do salão
                 let salonName = '';
                 if (salonId) {
                   const { data: salonData } = await supabase
                     .from('salons' as any)
-                    .select('name')
+                    .select('name, status')
                     .eq('id', salonId)
                     .single();
                   salonName = (salonData as any)?.name || '';
+
+                  const salonStatus = (salonData as any)?.status;
+                  if (salonStatus && salonStatus !== 'ativo') {
+                    toast({
+                      title: "Acesso suspenso",
+                      description: "O acesso deste estabelecimento está suspenso. Fale com o administrador da plataforma.",
+                      variant: "destructive",
+                    });
+                    await supabase.auth.signOut();
+                    setAuthState({ isAuthenticated: false, currentUser: null });
+                    navigate('/login');
+                    return;
+                  }
                 }
 
                 const teamMember: TeamMember = {
