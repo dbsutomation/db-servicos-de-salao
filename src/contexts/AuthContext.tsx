@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
+import { clearSalonCache } from '@/lib/salon';
 
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<boolean>;
