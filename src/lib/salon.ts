@@ -1,16 +1,18 @@
 import { supabase } from '@/integrations/supabase/client';
 
 let cachedSalonId: string | null = null;
+let cachedUserId: string | null = null;
 
 /**
  * Returns the salon_id of the currently authenticated user.
- * Cached for the session.
+ * Cached per authenticated user (avoids reusing another account's salon).
  */
 export async function getCurrentSalonId(): Promise<string> {
-  if (cachedSalonId) return cachedSalonId;
-
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Usuário não autenticado');
+
+  if (cachedSalonId && cachedUserId === user.id) return cachedSalonId;
+
 
   const { data, error } = await supabase
     .from('users')
@@ -23,9 +25,11 @@ export async function getCurrentSalonId(): Promise<string> {
   if (!salonId) throw new Error('Salão do usuário não encontrado');
 
   cachedSalonId = salonId;
+  cachedUserId = user.id;
   return salonId;
 }
 
 export function clearSalonCache() {
   cachedSalonId = null;
+  cachedUserId = null;
 }
