@@ -67,10 +67,14 @@ CREATE FUNCTION public.customer_has_salon(p_salon_id uuid) RETURNS boolean
 AS $$ SELECT EXISTS (SELECT 1 FROM public.customers c
                      WHERE c.id = auth.uid() AND c.salon_id = p_salon_id) $$;
 
-CREATE FUNCTION public.customer_client_ids() RETURNS SETOF uuid
+-- prova conjunta: conta + salão da linha + ficha daquela mesma linha
+CREATE FUNCTION public.customer_owns_client_in_salon(p_salon_id uuid, p_client_id uuid)
+  RETURNS boolean
   LANGUAGE sql STABLE SECURITY DEFINER SET search_path = ''
-AS $$ SELECT c.client_id FROM public.customers c
-      WHERE c.id = auth.uid() AND c.client_id IS NOT NULL $$;
+AS $$ SELECT EXISTS (SELECT 1 FROM public.customers c
+                     WHERE c.id = auth.uid()
+                       AND c.salon_id = p_salon_id
+                       AND c.client_id = p_client_id) $$;
 
 CREATE FUNCTION public.is_salon_active(p_salon_id uuid) RETURNS boolean
   LANGUAGE sql STABLE SECURITY DEFINER SET search_path = ''
@@ -78,16 +82,22 @@ AS $$ SELECT EXISTS (SELECT 1 FROM public.salons s
                      WHERE s.id = p_salon_id AND s.status = 'ativo') $$;
 ```
 
-A `is_salon_active()` **sem parâmetro continua existindo e inalterada** — as políticas da equipe (profissionais/gerentes) não são tocadas. A versão com parâmetro é usada apenas nas políticas do portal, sempre combinada com `customer_has_salon(...)`, então o salão informado nunca é autorização por si só.
+A `is_salon_active()` **sem parâmetro continua existindo e inalterada** — as políticas da equipe (profissionais/gerentes) não são tocadas. A versão com parâmetro é usada apenas nas políticas do portal, sempre combinada com a prova de vínculo, então o salão informado nunca é autorização por si só.
 
-Políticas alteradas (somente ramos do cliente):
-- `appointments`: criar → `is_salon_active(salon_id) AND customer_has_salon(salon_id)`; ver/cancelar → `customer_has_salon(salon_id) AND client_id IN (SELECT customer_client_ids())`.
-- `appointment_services`: mesmas condições através do agendamento.
+Políticas alteradas (somente ramos do cliente) — a autorização sempre prova **conta + salão da linha + ficha daquela linha** em conjunto, nunca uma ficha do mesmo usuário em outro salão:
+- `appointments` (ver, criar, cancelar): `is_salon_active(salon_id) AND customer_owns_client_in_salon(salon_id, client_id)`. Não será usado `client_id IN (lista de fichas do usuário)`.
+- `appointment_services`: mesma condição, avaliada sobre o agendamento correspondente (`EXISTS` em `appointments a` com `customer_owns_client_in_salon(a.salon_id, a.client_id)`).
 - `customers`: "ver/atualizar o próprio registro" passa a validar linha a linha (`id = auth.uid()` + salão ativo daquela linha).
 - Políticas de gerente/profissional: **inalteradas** — continuam presas a `get_user_salon_id()`, então Gerente A nunca vê ficha, agenda ou histórico do Salão B e vice-versa.
 - `get_customer_salon_id()` fica como está por compatibilidade até a Fase 2 remover seus usos.
 
-Teste de aceite da Fase 1 (antes de seguir): conta atual do Salão A entra e opera normalmente; criação manual de um segundo vínculo em laboratório mostra cada salão vendo só o seu; salão suspenso continua bloqueado.
+### `handle_new_user()` — verificação concluída
+A definição atual foi lida por completo. No trecho de cliente há apenas:
+`INSERT INTO public.customers (id, client_id, salon_id, name, phone, email) VALUES (...)`.
+Não existe `ON CONFLICT (id)`, não existe upsert por `id`, não existe `SELECT`/`UPDATE` em `customers` por `id`, e nenhum outro ponto depende de `UNIQUE(id)` (o único `ON CONFLICT` da função é em `user_roles`, sem relação). A busca de ficha é sempre `clients` filtrado por `salon_id`.
+**Conclusão: nenhuma alteração em `handle_new_user()` é necessária na Fase 1.** Com a chave composta, a nova chave passa a impedir vínculo duplicado no mesmo salão e a permitir vínculo em outro salão.
+
+Teste de aceite da Fase 1 (antes de seguir): conta atual do Salão A entra e opera normalmente; vínculo extra criado em laboratório mostra cada salão vendo só o seu; tentativa de usar a ficha do Salão A dentro do contexto do Salão B é negada; salão suspenso continua bloqueado.
 
 ## 5. Fase 2 — vínculo e login (só após a Fase 1 validada)
 
@@ -106,6 +116,8 @@ Telas ajustadas na Fase 2: `CustomerSignup`, `CustomerLogin`, `ClientLayout`, `M
 
 ## 6. Rollback
 
-- Fase 1: reverter a chave primária para (`id`) e restaurar as políticas anteriores (guardadas no arquivo de migração). Como só existe 1 linha, não há risco de dados duplicados impedindo a volta.
-- Fase 2: as telas voltam ao comportamento anterior sem tocar no banco; a Edge Function pode ser desativada isoladamente.
+A volta da chave antiga **só é possível enquanto cada conta tiver no máximo um vínculo**. Depois que existir uma conta ligada a A e B, restaurar `PRIMARY KEY (id)` falha, porque haveria dois registros com o mesmo `id`.
+
+- **Fase 1 (janela segura).** Hoje existe 1 vínculo apenas, então a volta é limpa. Passos: (1) apagar os vínculos extras criados em laboratório, deixando no máximo um por conta — conferindo antes com uma contagem de vínculos por conta; (2) restaurar as políticas anteriores, guardadas no arquivo da migração; (3) restaurar `PRIMARY KEY (id)`; (4) remover as funções novas. Vínculos de laboratório devem ser criados sempre com contas de teste identificáveis, nunca com a conta real do Salão A.
+- **Fase 2 (janela fechada).** Assim que existirem vínculos multi-salão reais, o rollback **não pode ser só de frontend**: o código antigo lê a linha do cliente com `maybeSingle()` por `id` e passa a receber erro/resultado indefinido com mais de uma linha. A reversão nesse ponto exige decidir qual vínculo permanece (e remover os demais, perdendo o acesso do cliente ao outro salão) antes de qualquer volta de código ou de chave. Por isso a Fase 2 só começa com a Fase 1 validada.
 - Regra de segurança em ambas: qualquer função nova falha fechada (sem vínculo comprovado, nega).
