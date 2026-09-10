@@ -219,6 +219,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       setIsLoading(true);
+      clearSalonCache();
       await supabase.auth.signOut();
       setAuthState({ isAuthenticated: false, currentUser: null });
       navigate('/login');
