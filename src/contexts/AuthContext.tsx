@@ -57,7 +57,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
                 if (adminRow) {
                   setAuthState({ isAuthenticated: false, currentUser: null });
-                  navigate('/admin/saloes');
+                  if (!window.location.pathname.startsWith('/admin')) {
+                    navigate('/admin/saloes');
+                  }
                   return;
                 }
 
