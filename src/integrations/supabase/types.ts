@@ -630,6 +630,11 @@ export type Database = {
           status: string
         }[]
       }
+      customer_has_salon: { Args: { p_salon_id: string }; Returns: boolean }
+      customer_owns_client_in_salon: {
+        Args: { p_client_id: string; p_salon_id: string }
+        Returns: boolean
+      }
       get_authenticated_user_id: { Args: never; Returns: string }
       get_busy_slots: {
         Args: {
@@ -653,7 +658,9 @@ export type Database = {
       }
       is_authenticated_user: { Args: never; Returns: boolean }
       is_manager: { Args: never; Returns: boolean }
-      is_salon_active: { Args: never; Returns: boolean }
+      is_salon_active:
+        | { Args: never; Returns: boolean }
+        | { Args: { p_salon_id: string }; Returns: boolean }
       is_system_admin: { Args: never; Returns: boolean }
       set_user_role: {
         Args: { p_role: string; p_salon_id: string; p_user_id: string }
