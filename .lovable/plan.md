@@ -116,6 +116,8 @@ Telas ajustadas na Fase 2: `CustomerSignup`, `CustomerLogin`, `ClientLayout`, `M
 
 ## 6. Rollback
 
-- Fase 1: reverter a chave primária para (`id`) e restaurar as políticas anteriores (guardadas no arquivo de migração). Como só existe 1 linha, não há risco de dados duplicados impedindo a volta.
-- Fase 2: as telas voltam ao comportamento anterior sem tocar no banco; a Edge Function pode ser desativada isoladamente.
+A volta da chave antiga **só é possível enquanto cada conta tiver no máximo um vínculo**. Depois que existir uma conta ligada a A e B, restaurar `PRIMARY KEY (id)` falha, porque haveria dois registros com o mesmo `id`.
+
+- **Fase 1 (janela segura).** Hoje existe 1 vínculo apenas, então a volta é limpa. Passos: (1) apagar os vínculos extras criados em laboratório, deixando no máximo um por conta — conferindo antes com uma contagem de vínculos por conta; (2) restaurar as políticas anteriores, guardadas no arquivo da migração; (3) restaurar `PRIMARY KEY (id)`; (4) remover as funções novas. Vínculos de laboratório devem ser criados sempre com contas de teste identificáveis, nunca com a conta real do Salão A.
+- **Fase 2 (janela fechada).** Assim que existirem vínculos multi-salão reais, o rollback **não pode ser só de frontend**: o código antigo lê a linha do cliente com `maybeSingle()` por `id` e passa a receber erro/resultado indefinido com mais de uma linha. A reversão nesse ponto exige decidir qual vínculo permanece (e remover os demais, perdendo o acesso do cliente ao outro salão) antes de qualquer volta de código ou de chave. Por isso a Fase 2 só começa com a Fase 1 validada.
 - Regra de segurança em ambas: qualquer função nova falha fechada (sem vínculo comprovado, nega).
