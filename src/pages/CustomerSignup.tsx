@@ -78,7 +78,15 @@ export default function CustomerSignup() {
       if (error) throw error;
       setDone(true);
     } catch (e: any) {
-      toast({ title: 'Erro no cadastro', description: e.message || 'Tente novamente.', variant: 'destructive' });
+      const raw = String(e?.message || '');
+      const jaExiste = /already registered|already been registered|User already/i.test(raw);
+      toast({
+        title: jaExiste ? 'E-mail já cadastrado' : 'Erro no cadastro',
+        description: jaExiste
+          ? 'Este e-mail já possui uma conta. Use a opção "Entrar" ou cadastre-se com outro e-mail.'
+          : raw || 'Tente novamente.',
+        variant: 'destructive',
+      });
     } finally {
       setSubmitting(false);
     }
