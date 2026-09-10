@@ -25,9 +25,11 @@ export async function getCurrentSalonId(): Promise<string> {
   if (!salonId) throw new Error('Salão do usuário não encontrado');
 
   cachedSalonId = salonId;
+  cachedUserId = user.id;
   return salonId;
 }
 
 export function clearSalonCache() {
   cachedSalonId = null;
+  cachedUserId = null;
 }
