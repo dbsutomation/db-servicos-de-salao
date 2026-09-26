@@ -1,0 +1,1 @@
+GRANT UPDATE (feature_expenses, feature_agenda, feature_work_hours) ON public.salons TO authenticated;
