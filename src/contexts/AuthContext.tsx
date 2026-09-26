@@ -98,7 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 if (salonId) {
                   const { data: salonData } = await supabase
                     .from('salons' as any)
-                    .select('name, status')
+                    .select('name, status, feature_expenses, feature_agenda, feature_work_hours')
                     .eq('id', salonId)
                     .single();
                   salonName = (salonData as any)?.name || '';
@@ -130,6 +130,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   categories: (data as any).categories || [],
                   salonId,
                   salonName,
+                  features: {
+                    expenses: (salonData as any)?.feature_expenses === true,
+                    agenda: (salonData as any)?.feature_agenda === true,
+                    workHours: (salonData as any)?.feature_agenda === true && (salonData as any)?.feature_work_hours === true,
+                  },
                 };
                 
                 setAuthState({
@@ -243,6 +248,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!authState.isAuthenticated || !authState.currentUser) {
       return false;
     }
+    const features = authState.currentUser.features;
+    if (requiredRoutes.some(route => route === '/expenses' && !features?.expenses || route === '/agenda' && !features?.agenda || route === '/configurar-horarios' && !features?.workHours)) return false;
     
     // Gerentes têm acesso a tudo
     if (authState.currentUser.isManager) {

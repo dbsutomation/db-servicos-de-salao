@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   AlertDialog,
@@ -44,6 +45,8 @@ export default function AdminSalonDetail() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
+  const [features, setFeatures] = useState({ feature_expenses: false, feature_agenda: false, feature_work_hours: false });
+  const [savingFeatures, setSavingFeatures] = useState(false);
 
   const load = async () => {
     if (!id) return;
@@ -54,6 +57,8 @@ export default function AdminSalonDetail() {
       setName(row.name ?? "");
       setPhone(row.phone ?? "");
       setAddress(row.address ?? "");
+      const { data: settings } = await supabase.from("salons").select("feature_expenses, feature_agenda, feature_work_hours").eq("id", id).single();
+      if (settings) setFeatures({ feature_expenses: settings.feature_expenses, feature_agenda: settings.feature_agenda, feature_work_hours: settings.feature_work_hours });
     }
     setLoading(false);
   };
@@ -90,6 +95,22 @@ export default function AdminSalonDetail() {
     }
     toast({ title: next === "ativo" ? "Salão reativado" : "Salão suspenso" });
     load();
+  };
+
+  const updateFeature = async (key: keyof typeof features, enabled: boolean) => {
+    if (!id || savingFeatures) return;
+    const next = { ...features, [key]: enabled };
+    if (key === "feature_agenda" && !enabled) next.feature_work_hours = false;
+    setSavingFeatures(true);
+    const { data, error } = await supabase.from("salons").update(next).eq("id", id)
+      .select("feature_expenses, feature_agenda, feature_work_hours").single();
+    setSavingFeatures(false);
+    if (error || !data) {
+      toast({ title: "Não foi possível alterar as funções", description: error?.message, variant: "destructive" });
+      return;
+    }
+    setFeatures({ feature_expenses: data.feature_expenses, feature_agenda: data.feature_agenda, feature_work_hours: data.feature_work_hours });
+    toast({ title: "Funções atualizadas" });
   };
 
   const resendInvite = async () => {
@@ -181,6 +202,23 @@ export default function AdminSalonDetail() {
                 </Button>
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader><CardTitle>Funções do salão</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">Início, Serviços e Produtos, Clientes, Profissionais e Carrinho estão sempre disponíveis.</p>
+            {([
+              ["feature_expenses", "Despesas", "Controle de despesas do salão"],
+              ["feature_agenda", "Agenda", "Inclui agendamentos no portal do cliente"],
+              ["feature_work_hours", "Horários de trabalho", "Disponível apenas com Agenda ligada"],
+            ] as const).map(([key, label, description]) => (
+              <div key={key} className="flex items-center justify-between gap-4 border-t pt-4">
+                <div><label htmlFor={key} className="font-medium">{label}</label><p className="text-sm text-muted-foreground">{description}</p></div>
+                <Switch id={key} checked={features[key]} disabled={savingFeatures || (key === "feature_work_hours" && !features.feature_agenda)} onCheckedChange={(checked) => updateFeature(key, checked)} aria-label={label} />
+              </div>
+            ))}
           </CardContent>
         </Card>
       </div>
