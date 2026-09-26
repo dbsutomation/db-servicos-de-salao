@@ -34,6 +34,7 @@ export interface TeamMember {
   categories?: string[]; // Categorias do profissional
   salonId?: string;   // Salão ao qual o usuário pertence
   salonName?: string; // Nome do salão
+  features?: { expenses: boolean; agenda: boolean; workHours: boolean };
 }
 
 export interface ServiceRecord {

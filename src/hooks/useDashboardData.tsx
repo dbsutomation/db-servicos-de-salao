@@ -40,9 +40,9 @@ export const useDashboardData = () => {
       setLoading(true);
       try {
         // Fetch expenses
-        const { data: expensesData, error: expensesError } = await supabase
-          .from('expenses')
-          .select('*');
+        const { data: expensesData, error: expensesError } = currentUser?.features?.expenses
+          ? await supabase.from('expenses').select('*')
+          : { data: [], error: null };
 
         if (expensesError) {
           throw expensesError;
@@ -116,7 +116,7 @@ export const useDashboardData = () => {
     };
 
     fetchData();
-  }, []);
+  }, [currentUser?.features?.expenses]);
 
   // If user is not a manager, pre-filter by their ID
   useEffect(() => {

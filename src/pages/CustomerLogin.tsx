@@ -35,6 +35,11 @@ export default function CustomerLogin() {
         .from('customers' as any).select('name, salon_id').eq('id', userId).maybeSingle();
 
       if (customer && (customer as any).name) {
+        const { data: salon } = await supabase.from('salons').select('feature_agenda').eq('id', (customer as any).salon_id).maybeSingle();
+        if (!salon?.feature_agenda) {
+          setError('Este salão não está recebendo agendamentos pelo portal.');
+          return;
+        }
         navigate('/minha-agenda');
         return;
       }

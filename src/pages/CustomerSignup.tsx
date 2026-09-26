@@ -31,10 +31,10 @@ export default function CustomerSignup() {
       }
       const { data } = await supabase
         .from('salons' as any)
-        .select('name')
+        .select('name, feature_agenda')
         .eq('id', salonId)
         .maybeSingle();
-      if (data && (data as any).name) {
+      if (data && (data as any).name && (data as any).feature_agenda) {
         setSalonName((data as any).name);
         setSalonValid(true);
       }
@@ -101,8 +101,8 @@ export default function CustomerSignup() {
       <div className="min-h-screen flex items-center justify-center bg-muted p-4">
         <Card className="max-w-md w-full">
           <CardHeader>
-            <CardTitle>Link inválido</CardTitle>
-            <CardDescription>O salão informado não existe ou o link está incorreto.</CardDescription>
+            <CardTitle>Agendamentos indisponíveis</CardTitle>
+            <CardDescription>Este salão não está recebendo agendamentos pelo portal.</CardDescription>
           </CardHeader>
         </Card>
       </div>

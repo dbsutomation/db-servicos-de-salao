@@ -27,6 +27,7 @@ import AdminLogin from "./pages/admin/AdminLogin";
 import AdminSalons from "./pages/admin/AdminSalons";
 import AdminSalonNew from "./pages/admin/AdminSalonNew";
 import AdminSalonDetail from "./pages/admin/AdminSalonDetail";
+import ClientPortalGuard from "./components/Layout/ClientPortalGuard";
 
 const queryClient = new QueryClient();
 
@@ -59,8 +60,8 @@ const AppRoutes = () => {
       <Route path="/cadastro-cliente/:salonId" element={<CustomerSignup />} />
       <Route path="/redefinir-senha" element={<ResetPassword />} />
       <Route path="/login-cliente" element={<CustomerLogin />} />
-      <Route path="/minha-agenda" element={<ClientBooking />} />
-      <Route path="/meus-agendamentos" element={<MeusAgendamentos />} />
+      <Route path="/minha-agenda" element={<ClientPortalGuard><ClientBooking /></ClientPortalGuard>} />
+      <Route path="/meus-agendamentos" element={<ClientPortalGuard><MeusAgendamentos /></ClientPortalGuard>} />
 
       {/* Administração da plataforma */}
       <Route path="/admin/login" element={<AdminLogin />} />

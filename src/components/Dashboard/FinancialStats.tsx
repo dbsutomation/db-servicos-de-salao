@@ -54,7 +54,7 @@ const FinancialStats: React.FC<FinancialStatsProps> = ({
           </CardHeader>
         </Card>
         
-        {isManager && (
+        {isManager && currentUser?.features?.expenses && (
           <Card className="shadow-md border-2 border-gray-100">
             <CardHeader className="bg-[#ea384c]/20">
               <CardDescription>Despesas</CardDescription>
@@ -68,7 +68,7 @@ const FinancialStats: React.FC<FinancialStatsProps> = ({
           </Card>
         )}
         
-        {isManager && (
+        {isManager && currentUser?.features?.expenses && (
           <Card className="shadow-md border-2 border-gray-100">
             <CardHeader className={profitBackgroundColor}>
               <CardDescription>Lucro Líquido</CardDescription>
