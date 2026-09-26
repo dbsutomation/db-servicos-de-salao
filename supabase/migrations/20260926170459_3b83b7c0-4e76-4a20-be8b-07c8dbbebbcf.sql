@@ -1,0 +1,1 @@
+ALTER POLICY "Anon can view active salons id and name" ON public.salons USING (is_active = true AND status = 'ativo');
