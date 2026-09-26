@@ -317,6 +317,9 @@ export type Database = {
         Row: {
           address: string | null
           created_at: string
+          feature_agenda: boolean
+          feature_expenses: boolean
+          feature_work_hours: boolean
           id: string
           is_active: boolean
           name: string
@@ -329,6 +332,9 @@ export type Database = {
         Insert: {
           address?: string | null
           created_at?: string
+          feature_agenda?: boolean
+          feature_expenses?: boolean
+          feature_work_hours?: boolean
           id?: string
           is_active?: boolean
           name: string
@@ -341,6 +347,9 @@ export type Database = {
         Update: {
           address?: string | null
           created_at?: string
+          feature_agenda?: boolean
+          feature_expenses?: boolean
+          feature_work_hours?: boolean
           id?: string
           is_active?: boolean
           name?: string
@@ -662,6 +671,10 @@ export type Database = {
         | { Args: never; Returns: boolean }
         | { Args: { p_salon_id: string }; Returns: boolean }
       is_system_admin: { Args: never; Returns: boolean }
+      salon_feature_enabled: {
+        Args: { p_feature: string; p_salon_id: string }
+        Returns: boolean
+      }
       set_user_role: {
         Args: { p_role: string; p_salon_id: string; p_user_id: string }
         Returns: undefined
