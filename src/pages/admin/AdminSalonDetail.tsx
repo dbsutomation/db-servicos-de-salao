@@ -59,6 +59,7 @@ export default function AdminSalonDetail() {
       setAddress(row.address ?? "");
       const { data: settings } = await supabase.from("salons").select("feature_expenses, feature_agenda, feature_work_hours").eq("id", id).single();
       if (settings) setFeatures({ feature_expenses: settings.feature_expenses, feature_agenda: settings.feature_agenda, feature_work_hours: settings.feature_work_hours });
+      else toast({ title: "Não foi possível carregar as funções", variant: "destructive" });
     }
     setLoading(false);
   };
