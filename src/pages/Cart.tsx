@@ -1,6 +1,6 @@
 
 import React, { useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import MainLayout from '@/components/Layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/contexts/CartContext';
@@ -12,7 +12,6 @@ import { Service } from '@/types';
 
 const Cart = () => {
   const { cartItems, getCartTotal, getCartTipsTotal, clearCart, addToCart } = useCart();
-  const navigate = useNavigate();
   const prefilledRef = useRef(false);
 
   // Prefill do carrinho quando vier de um agendamento iniciado na /agenda
@@ -36,20 +35,15 @@ const Cart = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleCheckoutSuccess = () => {
-    navigate('/records');
-  };
-
-
   return (
     <MainLayout>
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold">Carrinho</h1>
+        <h1 className="text-2xl md:text-3xl font-bold">Carrinho</h1>
 
         {cartItems.length > 0 ? (
           <>
             <div>
-              <div className="flex justify-between mb-4">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
                 <Button variant="link" className="px-0" onClick={clearCart}>
                   Limpar carrinho
                 </Button>
@@ -58,7 +52,7 @@ const Cart = () => {
                 </Link>
               </div>
               
-              <div className="bg-white rounded-lg shadow p-6">
+              <div className="bg-card rounded-lg border border-border p-4 md:p-6">
                 <div className="space-y-2">
                   {cartItems.map((item) => (
                     <CartItem key={item.service.id} item={item} />
@@ -99,16 +93,16 @@ const Cart = () => {
               </div>
             </div>
             
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-card rounded-lg border border-border p-4 md:p-6">
               <h2 className="text-xl font-semibold mb-6">Finalizar Registro</h2>
-              <CheckoutForm onSuccess={handleCheckoutSuccess} />
+              <CheckoutForm />
             </div>
           </>
         ) : (
-          <div className="text-center py-16 bg-white rounded-lg shadow">
-            <h2 className="text-xl font-medium text-gray-500 mb-6">Seu carrinho está vazio</h2>
+          <div className="text-center py-16 bg-card rounded-lg border border-border">
+            <h2 className="text-xl font-medium text-muted-foreground mb-6">Seu carrinho está vazio</h2>
             <Link to="/services">
-              <Button className="bg-primary hover:bg-primary/90">
+              <Button>
                 Adicionar serviços
               </Button>
             </Link>

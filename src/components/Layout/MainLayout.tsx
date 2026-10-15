@@ -118,9 +118,11 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         currentUser={currentUser}
       />
 
+      {isMobile && <BottomNav items={filteredNavItems} onMore={toggleMobileMenu} />}
+
       {/* Main content */}
-      <main className={`flex-1 min-w-0 overflow-x-hidden p-3 md:p-8 ${isMobile ? 'mt-16' : 'ml-64'} bg-background`}>
-        <div className="bg-card rounded-lg shadow-md border-2 border-border p-4 md:p-6 w-full min-w-0">
+      <main className={`flex-1 min-w-0 overflow-x-hidden md:p-8 ${isMobile ? 'pt-14 pb-20' : 'ml-64'} bg-background`}>
+        <div className="bg-card md:rounded-lg md:shadow-md md:border-2 border-border p-4 md:p-6 w-full min-w-0 min-h-full">
           {children}
         </div>
       </main>

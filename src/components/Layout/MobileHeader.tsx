@@ -28,9 +28,9 @@ const MobileHeader = ({ toggleMobileMenu }: MobileHeaderProps) => {
   };
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-40 bg-card border-b-2 border-border p-4 shadow-md">
-      <div className="flex items-center justify-between">
-        <Button variant="ghost" size="icon" onClick={toggleMobileMenu}>
+    <div className="fixed top-0 left-0 right-0 z-40 bg-card border-b border-border px-3 h-14 flex items-center shadow-sm">
+      <div className="flex w-full items-center justify-between">
+        <Button variant="ghost" size="icon" onClick={toggleMobileMenu} aria-label="Abrir menu">
           <MenuIcon size={24} />
         </Button>
         <h1 className="text-sm font-bold text-primary truncate max-w-[180px]">
