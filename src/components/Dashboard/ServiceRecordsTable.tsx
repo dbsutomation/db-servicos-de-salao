@@ -250,10 +250,10 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex flex-col gap-3 md:flex-row md:justify-between md:items-center mb-4">
         <h2 className="text-xl font-semibold">Serviços realizados</h2>
         <div className="relative w-full md:w-96">
-          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
           <Input 
             placeholder="Buscar" 
             value={searchTerm}
@@ -265,7 +265,42 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
           />
         </div>
       </div>
-      <Card className="shadow-md border-2 border-gray-100 overflow-x-auto">
+      <div className="space-y-3 md:hidden">
+        {paginatedRecords.map((record) => (
+          <Card key={record.id} className="p-4 space-y-2">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <p className="font-semibold truncate">{record.service}</p>
+                <p className="text-sm text-muted-foreground truncate">{record.client} · {record.professional}</p>
+              </div>
+              <p className="font-bold text-primary whitespace-nowrap">{new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(record.serviceValue)}</p>
+            </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+              <span>{dateFormat(parseISO(record.date), 'dd/MM/yyyy')}</span>
+              <span>{record.paymentMethod}</span>
+              <span>Comissão {new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(record.commissionAmount)}</span>
+              <span>Gorjeta {new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(record.tipAmount || 0)}</span>
+            </div>
+            {currentUser?.isManager && (
+              <div className="flex justify-end gap-1 pt-1 border-t border-border">
+                <Button variant="ghost" size="sm" onClick={() => handleEdit(record)}><Edit size={16} className="mr-1" />Editar</Button>
+                <Button variant="ghost" size="sm" className="text-destructive" onClick={() => handleDelete(record)}><Trash2 size={16} className="mr-1" />Excluir</Button>
+              </div>
+            )}
+          </Card>
+        ))}
+        {filteredRecords.length === 0 && (
+          <p className="text-center py-6 text-muted-foreground">{searchTerm ? "Nenhum resultado encontrado para a busca" : "Nenhum dado para o período selecionado"}</p>
+        )}
+        {filteredRecords.length > 0 && (
+          <Card className="p-4 grid grid-cols-3 gap-2 text-center text-xs">
+            <div><p className="text-muted-foreground">Comissões</p><p className="font-bold text-sm">{new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(filteredTotalCommissions)}</p></div>
+            <div><p className="text-muted-foreground">Gorjetas</p><p className="font-bold text-sm">{new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(filteredTotalTips)}</p></div>
+            <div><p className="text-muted-foreground">Total</p><p className="font-bold text-sm text-primary">{new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(filteredTotalServiceValue)}</p></div>
+          </Card>
+        )}
+      </div>
+      <Card className="hidden md:block shadow-md border-2 border-border overflow-x-auto">
         <Table className="min-w-[600px]">
           <TableHeader>
             <TableRow className="bg-muted/50">
@@ -284,7 +319,7 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
             {paginatedRecords.map((record) => (
               <TableRow 
                 key={record.id} 
-                className="border-b border-gray-200 hover:bg-purple-100 hover:text-purple-800 transition-colors duration-150"
+                className="border-b border-border hover:bg-accent hover:text-accent-foreground transition-colors duration-150"
               >
                 <TableCell>{dateFormat(parseISO(record.date), 'dd/MM/yyyy')}</TableCell>
                 <TableCell>{record.professional}</TableCell>
@@ -344,19 +379,19 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
           <TableFooter>
             <TableRow>
               <TableCell colSpan={7} className="font-bold">Total</TableCell>
-              <TableCell className="text-right font-bold bg-[#ea384c]/20">
+              <TableCell className="text-right font-bold bg-destructive/10">
                 {new Intl.NumberFormat('pt-BR', {
                   style: 'currency', 
                   currency: 'BRL'
                 }).format(filteredTotalCommissions)}
               </TableCell>
-              <TableCell className="text-right font-bold bg-[#F9E79F]">
+              <TableCell className="text-right font-bold bg-secondary">
                 {new Intl.NumberFormat('pt-BR', {
                   style: 'currency', 
                   currency: 'BRL'
                 }).format(filteredTotalTips)}
               </TableCell>
-              <TableCell className="text-right font-bold bg-[#F2FCE2]">
+              <TableCell className="text-right font-bold bg-accent">
                 {new Intl.NumberFormat('pt-BR', {
                   style: 'currency', 
                   currency: 'BRL'
