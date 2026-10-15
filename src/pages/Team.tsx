@@ -33,7 +33,7 @@ const Team = () => {
           <h1 className="text-2xl sm:text-3xl font-bold">Profissionais</h1>
           {currentUser?.isManager && (
             <Button
-              className="w-full sm:w-auto bg-salon-purple hover:bg-salon-dark-purple shadow-md"
+              className="w-full sm:w-auto bg-primary hover:bg-primary/90 shadow-md"
               onClick={() => { setEditingMember(null); setDialogOpen(true); }}
             >
               <Plus className="mr-2" size={18} />

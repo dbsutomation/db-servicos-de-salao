@@ -33,7 +33,7 @@ const MobileHeader = ({ toggleMobileMenu }: MobileHeaderProps) => {
         <Button variant="ghost" size="icon" onClick={toggleMobileMenu}>
           <MenuIcon size={24} />
         </Button>
-        <h1 className="text-sm font-bold text-salon-purple truncate max-w-[180px]">
+        <h1 className="text-sm font-bold text-primary truncate max-w-[180px]">
           {currentUser?.salonName || 'Gestão de Produtos e Serviços'}
         </h1>
         
@@ -42,7 +42,7 @@ const MobileHeader = ({ toggleMobileMenu }: MobileHeaderProps) => {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="rounded-full">
                 <Avatar className="h-8 w-8 border border-gray-200">
-                  <AvatarFallback className="bg-salon-purple/20 text-salon-purple">
+                  <AvatarFallback className="bg-primary/20 text-primary">
                     {currentUser.name.charAt(0)}
                   </AvatarFallback>
                 </Avatar>

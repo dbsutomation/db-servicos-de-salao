@@ -45,7 +45,7 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
         </CardHeader>
         <CardContent className="pt-0 pb-2 flex-grow">
           <div className="flex flex-col">
-            <p className="text-xl font-semibold text-salon-purple">{formattedPrice}</p>
+            <p className="text-xl font-semibold text-primary">{formattedPrice}</p>
             <div className="flex items-center text-sm text-gray-500 mt-1">
               <Percent size={14} className="mr-1" />
               <span>Comissão: {service.commission}%</span>
@@ -55,7 +55,7 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
         <CardFooter className="pt-0 pb-4">
           <Button 
             onClick={() => addToCart(service)} 
-            className="w-full bg-salon-purple hover:bg-salon-dark-purple"
+            className="w-full bg-primary hover:bg-primary/90"
           >
             <Plus size={16} className="mr-2" /> Adicionar
           </Button>

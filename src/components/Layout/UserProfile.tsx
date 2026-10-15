@@ -12,7 +12,7 @@ const UserProfile = ({ name, isManager }: UserProfileProps) => {
     <div className="border-t-2 border-gray-200 p-4 bg-gray-50">
       <div className="flex items-center">
         <Avatar className="h-8 w-8 mr-2 border border-gray-200">
-          <AvatarFallback className="bg-salon-purple/20 text-salon-purple">
+          <AvatarFallback className="bg-primary/20 text-primary">
             {name.charAt(0)}
           </AvatarFallback>
         </Avatar>

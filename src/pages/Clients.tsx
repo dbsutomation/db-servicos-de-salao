@@ -203,7 +203,7 @@ const Clients = () => {
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button 
-                  className="w-full sm:w-auto bg-salon-purple hover:bg-salon-dark-purple shadow-md"
+                  className="w-full sm:w-auto bg-primary hover:bg-primary/90 shadow-md"
                   onClick={() => setEditingClient(null)}
                 >
                   <Plus className="mr-2" size={18} />
@@ -243,8 +243,8 @@ const Clients = () => {
                 className="bg-white rounded-lg shadow-md border-2 border-gray-100 overflow-hidden flex flex-col cursor-pointer hover:shadow-lg transition-shadow"
               >
                 <div className="p-6 flex items-start gap-4">
-                  <Avatar className="h-16 w-16 flex-shrink-0 bg-salon-purple/20">
-                    <AvatarFallback className="bg-salon-purple/20 text-salon-purple">
+                  <Avatar className="h-16 w-16 flex-shrink-0 bg-primary/20">
+                    <AvatarFallback className="bg-primary/20 text-primary">
                       {client.name.charAt(0)}
                     </AvatarFallback>
                   </Avatar>

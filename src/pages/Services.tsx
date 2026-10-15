@@ -347,7 +347,7 @@ const Services = () => {
                 resetForm();
                 setOpen(true); 
               }} 
-              className="w-full sm:w-auto bg-salon-purple hover:bg-salon-dark-purple"
+              className="w-full sm:w-auto bg-primary hover:bg-primary/90"
             >
               <Plus className="mr-2" size={18} />
               Novo Item
@@ -383,7 +383,7 @@ const Services = () => {
               variant={selectedCategory === cat.value ? 'default' : 'outline'}
               size="sm"
               onClick={() => setSelectedCategory(cat.value)}
-              className={selectedCategory === cat.value ? 'bg-salon-purple hover:bg-salon-dark-purple' : ''}
+              className={selectedCategory === cat.value ? 'bg-primary hover:bg-primary/90' : ''}
             >
               {cat.label}
             </Button>

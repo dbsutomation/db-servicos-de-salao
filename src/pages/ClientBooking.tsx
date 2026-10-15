@@ -332,7 +332,7 @@ export default function ClientBooking() {
             <CardHeader className="pb-2">
               <CardTitle>Escolha os serviços</CardTitle>
               <CardDescription>
-                <span className="font-medium text-salon-purple">{selectedProf?.name}</span>
+                <span className="font-medium text-primary">{selectedProf?.name}</span>
                 {' · '}Selecione um ou mais serviços.
               </CardDescription>
             </CardHeader>
@@ -386,7 +386,7 @@ export default function ClientBooking() {
                         <p className="font-medium text-sm">{s.name}</p>
                         <p className="text-xs text-muted-foreground">{s.duration}min</p>
                       </div>
-                      <span className="text-sm font-semibold text-salon-purple shrink-0">
+                      <span className="text-sm font-semibold text-primary shrink-0">
                         R$ {s.price.toFixed(2).replace('.',',')}
                       </span>
                       <span className={cn('w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0',
@@ -407,7 +407,7 @@ export default function ClientBooking() {
             <CardHeader>
               <CardTitle>Escolha a data</CardTitle>
               <CardDescription>
-                <span className="font-medium text-salon-purple">{selectedProf?.name}</span>
+                <span className="font-medium text-primary">{selectedProf?.name}</span>
                 {' · '}{totalDuration}min de serviços · Próximos 30 dias.
               </CardDescription>
             </CardHeader>
@@ -485,7 +485,7 @@ export default function ClientBooking() {
             <CardHeader>
               <CardTitle>Escolha o horário</CardTitle>
               <CardDescription>
-                <span className="font-medium text-salon-purple">{selectedProf?.name}</span>
+                <span className="font-medium text-primary">{selectedProf?.name}</span>
                 {selectedDate && <>{' · '}{format(selectedDate,"EEEE, dd 'de' MMMM",{locale:ptBR})}</>}
                 {' · '}{totalDuration}min
               </CardDescription>
