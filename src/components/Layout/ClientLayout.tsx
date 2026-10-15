@@ -24,7 +24,7 @@ function SidebarContent({ onLogout, onNavigate, onNavigateTo, salonName, clientN
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-4 py-6 border-b-2 border-gray-100">
+      <div className="px-4 py-6 border-b-2 border-border">
         <h1 className="font-bold text-primary text-xl">{salonName || 'Meu Salão'}</h1>
         <p className="text-xs text-muted-foreground mt-1">Portal do cliente</p>
       </div>
@@ -42,8 +42,8 @@ function SidebarContent({ onLogout, onNavigate, onNavigateTo, salonName, clientN
               className={cn(
                 'flex w-full items-center gap-3 px-4 py-3 text-sm rounded-md transition-colors border-2',
                 active
-                  ? 'bg-primary/10 text-primary border-primary/20 font-semibold'
-                  : 'text-gray-700 hover:bg-gray-100 border-transparent hover:border-gray-200'
+                  ? 'bg-accent text-accent-foreground border-transparent font-semibold'
+                  : 'text-foreground hover:bg-muted border-transparent hover:border-border'
               )}
             >
               {item.icon}
@@ -54,7 +54,7 @@ function SidebarContent({ onLogout, onNavigate, onNavigateTo, salonName, clientN
 
         <Button
           variant="ghost"
-          className="flex w-full items-center gap-3 px-4 py-3 text-sm rounded-md transition-colors text-gray-700 hover:bg-gray-100 justify-start border-2 border-transparent hover:border-gray-200 mt-4"
+          className="flex w-full items-center gap-3 px-4 py-3 text-sm rounded-md transition-colors text-foreground hover:bg-muted justify-start border-2 border-transparent hover:border-border mt-4"
           onClick={onLogout}
         >
           <LogOut size={20} />
@@ -63,7 +63,7 @@ function SidebarContent({ onLogout, onNavigate, onNavigateTo, salonName, clientN
       </nav>
 
       {clientName && (
-        <div className="border-t-2 border-gray-200 p-4 bg-gray-50">
+        <div className="border-t-2 border-border p-4 bg-background">
           <div className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
               <span className="text-primary font-semibold text-sm">
@@ -72,7 +72,7 @@ function SidebarContent({ onLogout, onNavigate, onNavigateTo, salonName, clientN
             </div>
             <div className="flex flex-col min-w-0">
               <span className="text-sm font-medium truncate">{clientName}</span>
-              <span className="text-xs text-gray-500">Cliente</span>
+              <span className="text-xs text-muted-foreground">Cliente</span>
             </div>
           </div>
         </div>
@@ -115,14 +115,14 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-background">
       {/* Sidebar desktop */}
-      <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r-2 border-gray-200 shadow-md hidden md:block">
+      <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-card border-r-2 border-border shadow-md hidden md:block">
         <SidebarContent onLogout={handleLogout} onNavigateTo={navigate} salonName={salonName} clientName={clientName} />
       </aside>
 
       {/* Header mobile */}
-      <header className="fixed top-0 left-0 right-0 z-40 h-16 bg-white border-b-2 border-gray-200 shadow-sm flex items-center px-4 justify-between md:hidden">
+      <header className="fixed top-0 left-0 right-0 z-40 h-16 bg-card border-b-2 border-border shadow-sm flex items-center px-4 justify-between md:hidden">
         <Button variant="ghost" size="icon" onClick={() => setMobileOpen(true)}>
           <Menu size={22} />
         </Button>
@@ -131,7 +131,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             {salonName || 'Meu Salão'}
           </span>
           {clientName && (
-            <span className="text-xs text-gray-500 truncate max-w-[200px] leading-tight">
+            <span className="text-xs text-muted-foreground truncate max-w-[200px] leading-tight">
               {clientName}
             </span>
           )}
@@ -151,9 +151,9 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       {/* Sidebar mobile overlay */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
-          <aside className="absolute left-0 top-0 bottom-0 w-72 bg-white shadow-xl flex flex-col">
-            <div className="flex items-center justify-between px-4 py-3 border-b-2 border-gray-100">
+          <div className="absolute inset-0 bg-foreground/40" onClick={() => setMobileOpen(false)} />
+          <aside className="absolute left-0 top-0 bottom-0 w-72 bg-card shadow-xl flex flex-col">
+            <div className="flex items-center justify-between px-4 py-3 border-b-2 border-border">
               <span className="font-bold text-primary text-base truncate">
                 {salonName || 'Meu Salão'}
               </span>
@@ -171,7 +171,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       {/* Conteúdo principal */}
       <main className="flex-1 md:ml-64 mt-16 md:mt-0 min-w-0 overflow-x-hidden">
         <div className="p-3 md:p-8">
-          <div className="bg-white rounded-lg shadow-md border-2 border-gray-100 w-full max-w-2xl mx-auto overflow-y-auto"
+          <div className="bg-card rounded-lg shadow-md border-2 border-border w-full max-w-2xl mx-auto overflow-y-auto"
             style={{ maxHeight: 'calc(100vh - 5rem)' }}>
             <div className="p-4 md:p-6">
               {children}

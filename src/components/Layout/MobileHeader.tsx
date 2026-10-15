@@ -28,7 +28,7 @@ const MobileHeader = ({ toggleMobileMenu }: MobileHeaderProps) => {
   };
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-40 bg-white border-b-2 border-gray-200 p-4 shadow-md">
+    <div className="fixed top-0 left-0 right-0 z-40 bg-card border-b-2 border-border p-4 shadow-md">
       <div className="flex items-center justify-between">
         <Button variant="ghost" size="icon" onClick={toggleMobileMenu}>
           <MenuIcon size={24} />
@@ -41,14 +41,14 @@ const MobileHeader = ({ toggleMobileMenu }: MobileHeaderProps) => {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="rounded-full">
-                <Avatar className="h-8 w-8 border border-gray-200">
+                <Avatar className="h-8 w-8 border border-border">
                   <AvatarFallback className="bg-primary/20 text-primary">
                     {currentUser.name.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="shadow-lg border-2 border-gray-200">
+            <DropdownMenuContent align="end" className="shadow-lg border-2 border-border">
               <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem>

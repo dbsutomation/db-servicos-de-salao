@@ -64,7 +64,7 @@ const Sidebar = ({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-4 py-6 border-b-2 border-gray-100 flex justify-between items-center">
+      <div className="px-4 py-6 border-b-2 border-border flex justify-between items-center">
         <h1 className={`font-bold text-primary ${isMobile ? 'text-lg' : 'text-xl'}`}>
           {currentUser?.salonName || 'Gestão de Produtos e Serviços'}
         </h1>
@@ -80,7 +80,7 @@ const Sidebar = ({
         
         <Button
           variant="ghost"
-          className="flex w-full items-center px-4 py-3 text-sm rounded-md transition-colors text-gray-700 hover:bg-gray-100 justify-start border-2 border-transparent hover:border-gray-200 mt-4"
+          className="flex w-full items-center px-4 py-3 text-sm rounded-md transition-colors text-foreground hover:bg-muted justify-start border-2 border-transparent hover:border-border mt-4"
           onClick={handleLogout}
         >
           <LogOut size={20} className="mr-3" />
