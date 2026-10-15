@@ -90,10 +90,10 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-background">
       {/* Sidebar for desktop */}
       <aside 
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r-2 border-gray-200 shadow-md transition-transform duration-300 ease-in-out ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-card border-r-2 border-border shadow-md transition-transform duration-300 ease-in-out ${
           isMobile ? '-translate-x-full' : 'translate-x-0'
         }`}
       >
@@ -119,8 +119,8 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       />
 
       {/* Main content */}
-      <main className={`flex-1 min-w-0 overflow-x-hidden p-3 md:p-8 ${isMobile ? 'mt-16' : 'ml-64'} bg-gray-50`}>
-        <div className="bg-white rounded-lg shadow-md border-2 border-gray-100 p-4 md:p-6 w-full min-w-0">
+      <main className={`flex-1 min-w-0 overflow-x-hidden p-3 md:p-8 ${isMobile ? 'mt-16' : 'ml-64'} bg-background`}>
+        <div className="bg-card rounded-lg shadow-md border-2 border-border p-4 md:p-6 w-full min-w-0">
           {children}
         </div>
       </main>

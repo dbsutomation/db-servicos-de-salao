@@ -5,65 +5,65 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    --background: 210.00 40.00% 98.04%;
+    --foreground: 217.24 32.58% 17.45%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card: 0.00 0.00% 100.00%;
+    --card-foreground: 217.24 32.58% 17.45%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover: 0.00 0.00% 100.00%;
+    --popover-foreground: 217.24 32.58% 17.45%;
 
-    --primary: 161 94% 30%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 176.92 100.00% 22.94%;
+    --primary-foreground: 0.00 0.00% 100.00%;
 
-    --secondary: 215 25% 27%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 210.00 30.77% 94.90%;
+    --secondary-foreground: 215.29 25.00% 26.67%;
 
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 210.00 40.00% 96.08%;
+    --muted-foreground: 215.38 16.32% 46.86%;
 
-    --accent: 152 76% 96%;
-    --accent-foreground: 163 88% 20%;
+    --accent: 172.50 44.44% 92.94%;
+    --accent-foreground: 176.92 100.00% 22.94%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 161 94% 30%;
+    --border: 213.00 38.46% 89.80%;
+    --input: 213.00 38.46% 89.80%;
+    --ring: 176.92 100.00% 22.94%;
 
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
+    --background: 208.24 30.91% 10.78%;
+    --foreground: 210.00 40.00% 96.08%;
 
-    --card: 217 33% 14%;
-    --card-foreground: 210 40% 98%;
+    --card: 210.00 28.21% 15.29%;
+    --card-foreground: 210.00 40.00% 96.08%;
 
-    --popover: 217 33% 14%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 210.00 28.21% 15.29%;
+    --popover-foreground: 210.00 40.00% 96.08%;
 
-    --primary: 158 64% 45%;
-    --primary-foreground: 222 47% 11%;
+    --primary: 174.10 50.83% 52.94%;
+    --primary-foreground: 172.17 41.82% 10.78%;
 
-    --secondary: 215 25% 27%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 207.50 23.08% 20.39%;
+    --secondary-foreground: 214.29 31.82% 91.37%;
 
-    --muted: 217 33% 18%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 210.00 24.49% 19.22%;
+    --muted-foreground: 212.73 21.85% 70.39%;
 
-    --accent: 215 25% 22%;
-    --accent-foreground: 158 64% 70%;
+    --accent: 178.29 41.18% 16.67%;
+    --accent-foreground: 173.55 53.14% 65.69%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217 33% 20%;
-    --input: 217 33% 20%;
-    --ring: 158 64% 45%;
+    --border: 208.97 21.80% 26.08%;
+    --input: 208.97 21.80% 26.08%;
+    --ring: 174.10 50.83% 52.94%;
   }
 }
 
@@ -80,15 +80,15 @@
 /* Classes personalizadas para estilo Microsoft Teams */
 @layer utilities {
   .bg-gray-25 {
-    background-color: #fafafa;
+    background-color: hsl(var(--background));
   }
   
   .bg-blue-25 {
-    background-color: #f8faff;
+    background-color: hsl(var(--accent));
   }
   
   .text-blue-900 {
-    color: #1e3a8a;
+    color: hsl(var(--foreground));
   }
 
 }

@@ -70,7 +70,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl text-center font-bold">Acesso ao sistema</CardTitle>
@@ -80,7 +80,7 @@ const Login = () => {
         </CardHeader>
         <CardContent>
           {resetSent && (
-            <div className="mb-4 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+            <div className="mb-4 rounded-md border border-primary/20 bg-accent p-3 text-sm text-accent-foreground">
               Email de redefinição enviado! Verifique sua caixa de entrada.
             </div>
           )}
@@ -129,7 +129,7 @@ const Login = () => {
             className="text-sm text-primary hover:underline disabled:opacity-50">
             {resetting ? 'Enviando…' : 'Esqueci minha senha'}
           </button>
-          <p className="text-center text-sm text-gray-500">
+          <p className="text-center text-sm text-muted-foreground">
             Caso não possua acesso, entre em contato com o gerente do salão.
           </p>
         </CardFooter>
