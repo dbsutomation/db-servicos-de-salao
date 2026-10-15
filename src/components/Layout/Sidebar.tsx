@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { LogOut, ShoppingCart } from 'lucide-react';
+import { LogOut, X } from 'lucide-react';
 import SidebarLink from './SidebarLink';
 import UserProfile from './UserProfile';
 import { NavItem } from './types';
@@ -53,7 +53,7 @@ const Sidebar = ({
         {/* Badge para agendamentos pendentes */}
         {item.path === '/agenda' && pendingCount > 0 && (
           <Badge
-            className="absolute -top-1 -right-1 h-5 min-w-5 px-1 text-xs flex items-center justify-center rounded-full bg-orange-500 text-white border-transparent hover:bg-orange-500"
+            className="absolute -top-1 -right-1 h-5 min-w-5 px-1 text-xs flex items-center justify-center rounded-full bg-destructive text-destructive-foreground border-transparent hover:bg-destructive"
           >
             {pendingCount}
           </Badge>
@@ -63,14 +63,14 @@ const Sidebar = ({
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full overflow-y-auto">
       <div className="px-4 py-6 border-b-2 border-border flex justify-between items-center">
         <h1 className={`font-bold text-primary ${isMobile ? 'text-lg' : 'text-xl'}`}>
           {currentUser?.salonName || 'Gestão de Produtos e Serviços'}
         </h1>
         {isMobile && (
-          <Button variant="ghost" size="icon" onClick={toggleMobileMenu}>
-            <LogOut size={24} />
+          <Button variant="ghost" size="icon" onClick={toggleMobileMenu} aria-label="Fechar menu">
+            <X size={24} />
           </Button>
         )}
       </div>

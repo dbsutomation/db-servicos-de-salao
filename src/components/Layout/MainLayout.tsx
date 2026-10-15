@@ -1,23 +1,14 @@
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Home, 
-  Scissors, 
-  Users, 
-  User, 
-  BarChart3, 
-  ShoppingBag,
-  Calendar,
-  Receipt,
-  Clock
-} from 'lucide-react';
+import { Home, Scissors, Users, User, ShoppingBag, Calendar, Receipt, Clock } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMediaQuery } from '@/hooks/use-mobile';
 import { MainLayoutProps, NavItem } from './types';
 import Sidebar from './Sidebar';
 import MobileSidebar from './MobileSidebar';
 import MobileHeader from './MobileHeader';
+import BottomNav from './BottomNav';
 
 const MainLayout = ({ children }: MainLayoutProps) => {
   const { currentUser, logout, checkAccess } = useAuth();
@@ -118,9 +109,11 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         currentUser={currentUser}
       />
 
+      {isMobile && <BottomNav items={filteredNavItems} onMore={toggleMobileMenu} />}
+
       {/* Main content */}
-      <main className={`flex-1 min-w-0 overflow-x-hidden p-3 md:p-8 ${isMobile ? 'mt-16' : 'ml-64'} bg-background`}>
-        <div className="bg-card rounded-lg shadow-md border-2 border-border p-4 md:p-6 w-full min-w-0">
+      <main className={`flex-1 min-w-0 overflow-x-hidden md:p-8 ${isMobile ? 'pt-14 pb-20' : 'ml-64'} bg-background`}>
+        <div className="bg-card md:rounded-lg md:shadow-md md:border-2 border-border p-4 md:p-6 w-full min-w-0 min-h-full">
           {children}
         </div>
       </main>
