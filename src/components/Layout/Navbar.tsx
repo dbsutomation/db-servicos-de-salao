@@ -20,7 +20,7 @@ const Navbar = () => {
       <div className="flex flex-wrap justify-between items-center">
         <div className="flex items-center">
           <Link to="/" className="flex items-center">
-            <span className="self-center text-xl font-semibold whitespace-nowrap text-salon-purple">
+            <span className="self-center text-xl font-semibold whitespace-nowrap text-primary">
               Gestão Salão
             </span>
           </Link>

@@ -93,11 +93,11 @@ export default function ResetPassword() {
     <div className="min-h-screen flex items-center justify-center bg-muted p-4">
       <Card className="max-w-md w-full">
         <CardHeader className="text-center">
-          <div className="mx-auto w-12 h-12 rounded-full bg-salon-purple/10 flex items-center justify-center mb-2">
-            <KeyRound className="text-salon-purple" size={22} />
+          <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+            <KeyRound className="text-primary" size={22} />
           </div>
           {salonName && (
-            <p className="text-sm font-semibold text-salon-purple mb-1">{salonName}</p>
+            <p className="text-sm font-semibold text-primary mb-1">{salonName}</p>
           )}
           <CardTitle>Redefinir senha</CardTitle>
           <CardDescription>
@@ -134,7 +134,7 @@ export default function ResetPassword() {
                 </button>
               </div>
             </div>
-            <Button type="submit" className="w-full bg-salon-purple hover:bg-salon-dark-purple" disabled={submitting}>
+            <Button type="submit" className="w-full bg-primary hover:bg-primary/90" disabled={submitting}>
               {submitting ? 'Salvando…' : 'Salvar nova senha'}
             </Button>
           </form>

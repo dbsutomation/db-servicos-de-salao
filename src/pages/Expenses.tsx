@@ -162,7 +162,7 @@ const Expenses = () => {
           <h1 className="text-3xl font-bold">Despesas</h1>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-salon-purple hover:bg-salon-dark-purple shadow-md" onClick={openNew}>
+              <Button className="bg-primary hover:bg-primary/90 shadow-md" onClick={openNew}>
                 <Plus className="mr-2" size={18} />
                 Nova Despesa
               </Button>
@@ -203,7 +203,7 @@ const Expenses = () => {
                 </div>
                 <div className="flex justify-end gap-2">
                   <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-                  <Button type="submit" className="bg-salon-purple hover:bg-salon-dark-purple">
+                  <Button type="submit" className="bg-primary hover:bg-primary/90">
                     {editingId ? 'Salvar' : 'Adicionar'}
                   </Button>
                 </div>

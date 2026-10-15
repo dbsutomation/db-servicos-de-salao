@@ -126,7 +126,7 @@ const Login = () => {
         </CardContent>
         <CardFooter className="flex flex-col gap-3">
           <button type="button" onClick={handleReset} disabled={resetting}
-            className="text-sm text-salon-purple hover:underline disabled:opacity-50">
+            className="text-sm text-primary hover:underline disabled:opacity-50">
             {resetting ? 'Enviando…' : 'Esqueci minha senha'}
           </button>
           <p className="text-center text-sm text-gray-500">

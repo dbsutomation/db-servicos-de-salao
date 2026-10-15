@@ -18,7 +18,7 @@ const SidebarLink = ({ path, label, icon, onClick }: SidebarLinkProps) => {
         cn(
           "flex items-center px-4 py-3 text-sm rounded-md transition-colors border-2",
           isActive
-            ? "bg-salon-purple text-white border-salon-purple shadow-md"
+            ? "bg-primary text-primary-foreground border-primary shadow-md"
             : "text-gray-700 hover:bg-gray-100 border-transparent hover:border-gray-200"
         )
       }

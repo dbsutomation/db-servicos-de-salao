@@ -61,7 +61,7 @@ const ServiceListItem = ({ service, canEdit, onEdit }: ServiceListItemProps) => 
               {categoryLabel}
             </Badge>
           )}
-          <span className="font-semibold text-sm text-salon-purple">{formattedPrice}</span>
+          <span className="font-semibold text-sm text-primary">{formattedPrice}</span>
         </div>
       </div>
 
@@ -74,13 +74,13 @@ const ServiceListItem = ({ service, canEdit, onEdit }: ServiceListItemProps) => 
             onClick={() => onEdit(service)}
             className="h-8 w-8"
           >
-            <Pencil className="h-3.5 w-3.5 text-salon-purple" />
+            <Pencil className="h-3.5 w-3.5 text-primary" />
           </Button>
         )}
         <Button
           onClick={() => addToCart(service)}
           size="icon"
-          className="h-8 w-8 bg-salon-purple hover:bg-salon-dark-purple shrink-0"
+          className="h-8 w-8 bg-primary hover:bg-primary/90 shrink-0"
           title="Adicionar ao carrinho"
         >
           <Plus size={16} />

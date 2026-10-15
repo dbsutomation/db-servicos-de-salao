@@ -65,7 +65,7 @@ const Sidebar = ({
   return (
     <div className="flex flex-col h-full">
       <div className="px-4 py-6 border-b-2 border-gray-100 flex justify-between items-center">
-        <h1 className={`font-bold text-salon-purple ${isMobile ? 'text-lg' : 'text-xl'}`}>
+        <h1 className={`font-bold text-primary ${isMobile ? 'text-lg' : 'text-xl'}`}>
           {currentUser?.salonName || 'Gestão de Produtos e Serviços'}
         </h1>
         {isMobile && (

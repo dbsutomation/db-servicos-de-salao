@@ -684,7 +684,7 @@ export default function Agenda() {
             'flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium',
             profFilter === 'all'
               ? 'bg-amber-50 border border-amber-200 text-amber-700'
-              : 'bg-salon-purple/10 border border-salon-purple/20 text-salon-purple'
+              : 'bg-primary/10 border border-primary/20 text-primary'
           )}>
             <span className="text-base">{profFilter === 'all' ? '⚠️' : '👤'}</span>
             {profFilter === 'all'
@@ -703,11 +703,11 @@ export default function Agenda() {
                 className="p-2 rounded hover:bg-muted"><ChevronLeft className="h-5 w-5" /></button>
               <div className="text-center">
                 <div className={cn('text-sm font-semibold capitalize',
-                  isSameDay(mobileDay, new Date()) && 'text-salon-purple')}>
+                  isSameDay(mobileDay, new Date()) && 'text-primary')}>
                   {format(mobileDay, "EEE, dd 'de' MMM", { locale: ptBR })}
                 </div>
                 {isSameDay(mobileDay, new Date()) && (
-                  <div className="text-xs text-salon-purple font-medium">Hoje</div>
+                  <div className="text-xs text-primary font-medium">Hoje</div>
                 )}
               </div>
               <button onClick={() => setMobileDay(d => addDays(d,1))}
@@ -729,7 +729,7 @@ export default function Agenda() {
                 {hours.map((h, i) => (
                   <button key={`s${h}`}
                     type="button"
-                    className="absolute left-12 right-0 z-10 border-0 bg-transparent active:bg-salon-purple/20"
+                    className="absolute left-12 right-0 z-10 border-0 bg-transparent active:bg-primary/20"
                     style={{ top: i*60+16, height: 60, touchAction: 'manipulation' }}
                     onClick={() => handleSlotClick(mobileDay, h)}
                   />
@@ -757,15 +757,15 @@ export default function Agenda() {
               {weekDays.map((d, i) => {
                 const isToday = isSameDay(d, new Date());
                 return (
-                  <div key={i} className={cn('px-2 py-2 text-center border-l', isToday && 'bg-salon-purple/10')}>
-                    <div className={cn('text-xs uppercase font-medium', isToday ? 'text-salon-purple' : 'text-muted-foreground')}>
+                  <div key={i} className={cn('px-2 py-2 text-center border-l', isToday && 'bg-primary/10')}>
+                    <div className={cn('text-xs uppercase font-medium', isToday ? 'text-primary' : 'text-muted-foreground')}>
                       {format(d, 'EEE', { locale: ptBR })}
                     </div>
                     <div className={cn('text-sm font-bold mt-0.5 inline-flex items-center justify-center w-7 h-7 rounded-full mx-auto',
-                      isToday ? 'bg-salon-purple text-white' : 'text-foreground')}>
+                      isToday ? 'bg-primary text-primary-foreground' : 'text-foreground')}>
                       {format(d, 'dd')}
                     </div>
-                    <div className={cn('text-[10px] mt-0.5', isToday ? 'text-salon-purple font-medium' : 'text-muted-foreground')}>
+                    <div className={cn('text-[10px] mt-0.5', isToday ? 'text-primary font-medium' : 'text-muted-foreground')}>
                       {format(d, 'MM/yyyy')}
                     </div>
                   </div>
@@ -783,12 +783,12 @@ export default function Agenda() {
                 const isToday = isSameDay(d, new Date());
                 const dayAppts = appointments.filter(a => isSameDay(toBR(new Date(a.starts_at)), d));
                 return (
-                  <div key={idx} className={cn('relative border-l', isToday && 'bg-salon-purple/5')}
+                  <div key={idx} className={cn('relative border-l', isToday && 'bg-primary/5')}
                     style={{ height: hours.length * 60 }}>
                     {hours.map((h, i) => (
                       <div key={h}
                         className={cn('absolute left-0 right-0 border-t border-dashed cursor-pointer transition-colors',
-                          isToday ? 'border-salon-purple/20 hover:bg-salon-purple/10' : 'border-muted hover:bg-salon-purple/5')}
+                          isToday ? 'border-primary/20 hover:bg-primary/10' : 'border-muted hover:bg-primary/5')}
                         style={{ top: i*60, height: 60 }}
                         onClick={() => handleSlotClick(d, h)} />
                     ))}
@@ -997,7 +997,7 @@ export default function Agenda() {
             <DialogDescription>O que deseja fazer neste horário?</DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-3 pt-2">
-            <Button className="w-full bg-salon-purple hover:bg-salon-dark-purple" onClick={openManual}>
+            <Button className="w-full bg-primary hover:bg-primary/90" onClick={openManual}>
               + Agendar cliente
             </Button>
             <Button variant="outline" className="w-full border-red-300 text-red-600 hover:bg-red-50" onClick={() => { openBlock(); }}>
@@ -1035,7 +1035,7 @@ export default function Agenda() {
                   <label key={s.id} className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-muted/50">
                     <input
                       type="checkbox"
-                      className="h-4 w-4 accent-salon-purple"
+                      className="h-4 w-4 accent-primary"
                       checked={manualServiceIds.includes(s.id)}
                       onChange={e => {
                         if (e.target.checked) {
@@ -1064,7 +1064,7 @@ export default function Agenda() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setManualOpen(false)}>Cancelar</Button>
             <Button
-              className="bg-salon-purple hover:bg-salon-dark-purple"
+              className="bg-primary hover:bg-primary/90"
               onClick={handleManualSave}
               disabled={manualSaving || !manualClientId || manualServiceIds.length === 0}
             >

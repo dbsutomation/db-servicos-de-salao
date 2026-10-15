@@ -63,13 +63,6 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				salon: {
-					pink: '#F7CAD9',
-					purple: '#9B87F5',
-					'light-purple': '#D6BCFA',
-					'dark-purple': '#7E69AB',
-					'soft-pink': '#FFDEE2',
-				}
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

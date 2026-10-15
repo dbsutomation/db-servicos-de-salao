@@ -108,7 +108,7 @@ const Cart = () => {
           <div className="text-center py-16 bg-white rounded-lg shadow">
             <h2 className="text-xl font-medium text-gray-500 mb-6">Seu carrinho está vazio</h2>
             <Link to="/services">
-              <Button className="bg-salon-purple hover:bg-salon-dark-purple">
+              <Button className="bg-primary hover:bg-primary/90">
                 Adicionar serviços
               </Button>
             </Link>

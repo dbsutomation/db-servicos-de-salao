@@ -46,7 +46,7 @@ const CheckoutForm = ({ onSuccess }: CheckoutFormProps) => {
           
           <Button 
             type="submit" 
-            className="flex-1 bg-salon-purple hover:bg-salon-dark-purple" 
+            className="flex-1 bg-primary hover:bg-primary/90" 
             disabled={loading}
           >
             Finalizar Registro
