@@ -1,23 +1,14 @@
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Home, 
-  Scissors, 
-  Users, 
-  User, 
-  BarChart3, 
-  ShoppingBag,
-  Calendar,
-  Receipt,
-  Clock
-} from 'lucide-react';
+import { Home, Scissors, Users, User, ShoppingBag, Calendar, Receipt, Clock } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMediaQuery } from '@/hooks/use-mobile';
 import { MainLayoutProps, NavItem } from './types';
 import Sidebar from './Sidebar';
 import MobileSidebar from './MobileSidebar';
 import MobileHeader from './MobileHeader';
+import BottomNav from './BottomNav';
 
 const MainLayout = ({ children }: MainLayoutProps) => {
   const { currentUser, logout, checkAccess } = useAuth();
