@@ -30,7 +30,7 @@ const CartItem = ({ item }: CartItemProps) => {
   };
 
   return (
-    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b py-4">
+    <div className="flex flex-col items-start justify-between border-b py-4">
       <div className="flex items-center space-x-4">
         <div className="w-16 h-16 bg-muted rounded overflow-hidden shrink-0 flex items-center justify-center">
           {service.image ? (
@@ -50,7 +50,7 @@ const CartItem = ({ item }: CartItemProps) => {
         </div>
       </div>
       
-      <div className="flex items-center space-x-4 mt-4 sm:mt-0">
+      <div className="flex items-center space-x-4 mt-4">
         <div className="flex items-center">
           <Button
             variant="outline"
