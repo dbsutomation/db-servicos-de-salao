@@ -33,8 +33,12 @@ const queryClient = new QueryClient();
 
 // Protected route component
 const ProtectedRoute = ({ children, requiredRoutes }: { children: JSX.Element, requiredRoutes: string[] }) => {
-  const { isAuthenticated, checkAccess } = useAuth();
-  
+  const { isAuthenticated, isLoading, checkAccess } = useAuth();
+
+  if (isLoading) {
+    return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Carregando...</div>;
+  }
+
   if (!isAuthenticated) {
     return <Navigate to="/login" />;
   }
@@ -48,12 +52,12 @@ const ProtectedRoute = ({ children, requiredRoutes }: { children: JSX.Element, r
 
 // Auth wrapper that uses the context
 const AppRoutes = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
   return (
     <Routes>
       <Route path="/login" element={
-        isAuthenticated ? <Navigate to="/" /> : <Login />
+        isAuthenticated && !isLoading ? <Navigate to="/" /> : <Login />
       } />
 
       {/* Rotas públicas de cliente (não passam pela auth interna) */}
