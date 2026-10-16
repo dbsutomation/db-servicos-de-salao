@@ -20,8 +20,8 @@ const FinancialStats: React.FC<FinancialStatsProps> = ({
   const isManager = currentUser?.isManager;
   
   // Define the correct background colors
-  const positiveBackgroundColor = "bg-[#F2FCE2]"; // Matches revenue background
-  const negativeBackgroundColor = "bg-[#ea384c]/20"; // Matches expenses background
+  const positiveBackgroundColor = "bg-accent"; // Matches revenue background
+  const negativeBackgroundColor = "bg-destructive/10"; // Matches expenses background
   
   // Use different backgrounds based on profit value
   const profitBackgroundColor = netProfit >= 0 ? positiveBackgroundColor : negativeBackgroundColor;
@@ -30,8 +30,8 @@ const FinancialStats: React.FC<FinancialStatsProps> = ({
     <>
       <h2 className="text-xl font-semibold">Indicadores Financeiros</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="shadow-md border-2 border-gray-100">
-          <CardHeader className="bg-[#F2FCE2]">
+        <Card className="shadow-md border-2 border-border">
+          <CardHeader className="bg-accent">
             <CardDescription>Faturamento Total</CardDescription>
             <CardTitle className="text-3xl">
               {new Intl.NumberFormat('pt-BR', {
@@ -42,8 +42,8 @@ const FinancialStats: React.FC<FinancialStatsProps> = ({
           </CardHeader>
         </Card>
         
-        <Card className="shadow-md border-2 border-gray-100">
-          <CardHeader className="bg-[#ea384c]/20">
+        <Card className="shadow-md border-2 border-border">
+          <CardHeader className="bg-destructive/10">
             <CardDescription>Comissão Total</CardDescription>
             <CardTitle className="text-3xl">
               {new Intl.NumberFormat('pt-BR', {
@@ -55,8 +55,8 @@ const FinancialStats: React.FC<FinancialStatsProps> = ({
         </Card>
         
         {isManager && currentUser?.features?.expenses && (
-          <Card className="shadow-md border-2 border-gray-100">
-            <CardHeader className="bg-[#ea384c]/20">
+          <Card className="shadow-md border-2 border-border">
+            <CardHeader className="bg-destructive/10">
               <CardDescription>Despesas</CardDescription>
               <CardTitle className="text-3xl">
                 {new Intl.NumberFormat('pt-BR', {
@@ -69,7 +69,7 @@ const FinancialStats: React.FC<FinancialStatsProps> = ({
         )}
         
         {isManager && currentUser?.features?.expenses && (
-          <Card className="shadow-md border-2 border-gray-100">
+          <Card className="shadow-md border-2 border-border">
             <CardHeader className={profitBackgroundColor}>
               <CardDescription>Lucro Líquido</CardDescription>
               <CardTitle className="text-3xl">

@@ -338,7 +338,7 @@ const Services = () => {
 
   return (
     <MainLayout>
-      <div className="container mx-auto px-4 space-y-6">
+      <div className="space-y-6">
         <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center">
           <h1 className="text-2xl sm:text-3xl font-bold">Serviços e Produtos</h1>
           {currentUser?.isManager && (
@@ -355,7 +355,7 @@ const Services = () => {
           )}
         </div>
         
-        <p className="text-gray-500">
+        <p className="text-muted-foreground">
           {currentUser?.isManager ? 
             "Selecione os serviços ou produtos para adicionar ao carrinho ou editar." :
             "Selecione os serviços ou produtos para adicionar ao carrinho."
@@ -363,10 +363,10 @@ const Services = () => {
         </p>
 
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
           <Input 
             placeholder="Buscar por nome, descrição ou categoria" 
-            className="pl-10 border-2 border-gray-200 shadow-sm bg-white"
+            className="pl-10 border-2 border-border shadow-sm bg-card"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -407,13 +407,13 @@ const Services = () => {
               ))}
 
               {filteredServices.length === 0 && !loading && (
-                <div className="text-center py-12 text-gray-500 bg-white rounded-lg shadow-md border-2 border-gray-100">
+                <div className="text-center py-12 text-muted-foreground bg-card rounded-lg shadow-md border-2 border-border">
                   {searchTerm || selectedCategory !== 'all' ? 'Nenhum serviço ou produto encontrado para os filtros aplicados' : 'Nenhum serviço ou produto cadastrado'}
                 </div>
               )}
             </div>
             {visibleCount < filteredServices.length && (
-              <div ref={sentinelRef} className="flex justify-center py-6 text-sm text-gray-500">
+              <div ref={sentinelRef} className="flex justify-center py-6 text-sm text-muted-foreground">
                 Carregando mais...
               </div>
             )}
@@ -571,7 +571,7 @@ const Services = () => {
                           ref={field.ref}
                           className="pr-8"
                         />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">%</span>
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">%</span>
                       </div>
                     </FormControl>
                   </FormItem>

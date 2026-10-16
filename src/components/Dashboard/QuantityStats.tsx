@@ -24,21 +24,21 @@ const QuantityStats: React.FC<QuantityStatsProps> = ({
     <>
       <h2 className="text-xl font-semibold">Indicadores de Quantidade</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="shadow-md border-2 border-gray-100">
+        <Card className="shadow-md border-2 border-border">
           <CardHeader>
             <CardDescription>Total de Serviços</CardDescription>
             <CardTitle className="text-3xl">{totalServices}</CardTitle>
           </CardHeader>
         </Card>
         
-        <Card className="shadow-md border-2 border-gray-100">
+        <Card className="shadow-md border-2 border-border">
           <CardHeader>
             <CardDescription>Clientes Atendidos</CardDescription>
             <CardTitle className="text-3xl">{totalClients}</CardTitle>
           </CardHeader>
         </Card>
 
-        <Card className="shadow-md border-2 border-gray-100">
+        <Card className="shadow-md border-2 border-border">
           <CardHeader>
             <CardDescription>Serviço Mais Realizado</CardDescription>
             <CardTitle className="text-2xl">
@@ -47,7 +47,7 @@ const QuantityStats: React.FC<QuantityStatsProps> = ({
           </CardHeader>
         </Card>
         
-        <Card className="shadow-md border-2 border-gray-100">
+        <Card className="shadow-md border-2 border-border">
           <CardHeader>
             <CardDescription>Cliente com Mais Serviços</CardDescription>
             <CardTitle className="text-2xl">

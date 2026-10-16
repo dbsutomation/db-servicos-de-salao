@@ -240,7 +240,7 @@ const ProfessionalSchedules = () => {
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-primary">Configurar horários de trabalho</h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-muted-foreground mt-1">
             Defina os dias e horários em que {isManager ? 'o profissional' : 'você'} atende.
           </p>
         </div>
@@ -261,7 +261,7 @@ const ProfessionalSchedules = () => {
               </SelectContent>
             </Select>
             {selectedProfessional && (
-              <p className="text-sm text-gray-500 mt-2">
+              <p className="text-sm text-muted-foreground mt-2">
                 Editando horários de <strong>{selectedProfessional.name}</strong>
               </p>
             )}
@@ -272,7 +272,7 @@ const ProfessionalSchedules = () => {
           {schedules.map((d) => (
             <div
               key={d.day_of_week}
-              className="border-2 border-gray-100 rounded-lg p-4 flex flex-col md:flex-row md:items-center gap-4"
+              className="border-2 border-border rounded-lg p-4 flex flex-col md:flex-row md:items-center gap-4"
             >
               <div className="flex items-center gap-3 md:w-56">
                 <Switch
@@ -285,23 +285,23 @@ const ProfessionalSchedules = () => {
 
               <div className="flex flex-1 gap-4 items-end">
                 <div className="flex-1">
-                  <Label className="text-xs text-gray-600">Início</Label>
+                  <Label className="text-xs text-muted-foreground">Início</Label>
                   <Input
                     type="time"
                     value={d.start_time}
                     disabled={!d.is_active || loading}
                     onChange={(e) => updateDay(d.day_of_week, { start_time: e.target.value })}
-                    className={!d.is_active ? 'bg-gray-100 text-gray-400' : ''}
+                    className={!d.is_active ? 'bg-muted text-muted-foreground' : ''}
                   />
                 </div>
                 <div className="flex-1">
-                  <Label className="text-xs text-gray-600">Fim</Label>
+                  <Label className="text-xs text-muted-foreground">Fim</Label>
                   <Input
                     type="time"
                     value={d.end_time}
                     disabled={!d.is_active || loading}
                     onChange={(e) => updateDay(d.day_of_week, { end_time: e.target.value })}
-                    className={!d.is_active ? 'bg-gray-100 text-gray-400' : ''}
+                    className={!d.is_active ? 'bg-muted text-muted-foreground' : ''}
                   />
                 </div>
               </div>

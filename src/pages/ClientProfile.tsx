@@ -121,7 +121,7 @@ const ClientProfile: React.FC = () => {
           <p>Cliente não encontrado.</p>
         ) : (
           <>
-            <Card className="p-6 shadow-md border-2 border-gray-100">
+            <Card className="p-6 shadow-md border-2 border-border">
               <h1 className="text-3xl font-bold">{client.name}</h1>
               <div className="mt-2 text-sm text-muted-foreground space-y-1">
                 {client.phone && <p>Telefone: {client.phone}</p>}
@@ -151,7 +151,7 @@ const ClientProfile: React.FC = () => {
               </div>
             </Card>
 
-            <Card className="shadow-md border-2 border-gray-100">
+            <Card className="shadow-md border-2 border-border">
               <div className="p-4 border-b">
                 <h2 className="text-xl font-semibold">Histórico de atendimentos</h2>
               </div>
@@ -188,7 +188,7 @@ const ClientProfile: React.FC = () => {
               </Table>
             </Card>
 
-            <Card className="p-6 shadow-md border-2 border-gray-100">
+            <Card className="p-6 shadow-md border-2 border-border">
               <h2 className="text-xl font-semibold mb-4">Serviços mais realizados</h2>
               {topServices.length === 0 ? (
                 <p className="text-muted-foreground">Nenhum serviço registrado.</p>

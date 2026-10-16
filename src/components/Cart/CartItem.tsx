@@ -46,7 +46,7 @@ const CartItem = ({ item }: CartItemProps) => {
         </div>
         <div>
           <h3 className="font-medium">{service.name}</h3>
-          <p className="text-sm text-gray-500">{formattedPrice}</p>
+          <p className="text-sm text-muted-foreground">{formattedPrice}</p>
         </div>
       </div>
       
@@ -74,7 +74,7 @@ const CartItem = ({ item }: CartItemProps) => {
           <p className="font-semibold">{formattedTotal}</p>
         </div>
         <div className="flex flex-col">
-          <label htmlFor={`tip-${service.id}`} className="text-xs text-gray-500">Gorjeta (R$)</label>
+          <label htmlFor={`tip-${service.id}`} className="text-xs text-muted-foreground">Gorjeta (R$)</label>
           <Input
             id={`tip-${service.id}`}
             type="number"

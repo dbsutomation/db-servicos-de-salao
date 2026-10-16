@@ -10,6 +10,7 @@ interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   checkAccess: (requiredRoutes: string[]) => boolean;
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -143,10 +144,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   isAuthenticated: true,
                   currentUser: teamMember
                 });
-              } else {
               }
             } catch (error) {
-              } finally {
+              console.error('Erro ao carregar usuário:', error);
+            } finally {
               setIsLoading(false);
             }
           }, 0);
@@ -170,9 +171,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setSession(existingSession);
           setUser(existingSession.user);
         } else {
+          setIsLoading(false);
         }
       } catch (error) {
-      } finally {
         setIsLoading(false);
       }
     };
@@ -264,7 +265,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ ...authState, login, logout, checkAccess }}>
+    <AuthContext.Provider value={{ ...authState, isLoading, login, logout, checkAccess }}>
       {children}
     </AuthContext.Provider>
   );

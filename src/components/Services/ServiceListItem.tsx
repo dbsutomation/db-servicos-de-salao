@@ -12,7 +12,7 @@ interface ServiceListItemProps {
 }
 
 const categoryColors: Record<string, string> = {
-  Cabelo: 'bg-purple-100 text-purple-800 hover:bg-purple-100',
+  Cabelo: 'bg-accent text-accent-foreground hover:bg-accent',
   'Depilação': 'bg-pink-100 text-pink-800 hover:bg-pink-100',
   Podologia: 'bg-blue-100 text-blue-800 hover:bg-blue-100',
   Sobrancelhas: 'bg-amber-100 text-amber-800 hover:bg-amber-100',
@@ -35,11 +35,11 @@ const ServiceListItem = ({ service, canEdit, onEdit }: ServiceListItemProps) => 
     currency: 'BRL',
   }).format(service.price);
 
-  const categoryClass = service.category ? categoryColors[service.category] || 'bg-gray-100 text-gray-800' : 'bg-gray-100 text-gray-800';
+  const categoryClass = service.category ? categoryColors[service.category] || 'bg-muted text-foreground' : 'bg-muted text-foreground';
   const categoryLabel = service.category ? categoryLabels[service.category] || service.category : '';
 
   return (
-    <div className="flex items-center gap-3 p-3 bg-white border rounded-lg hover:shadow-sm transition-shadow">
+    <div className="flex items-center gap-3 p-3 bg-card border rounded-lg hover:shadow-sm transition-shadow">
       {/* Thumbnail da imagem */}
       {service.image && service.image.startsWith('https://') && (
         <div className="w-12 h-12 rounded-md overflow-hidden shrink-0 bg-muted">
