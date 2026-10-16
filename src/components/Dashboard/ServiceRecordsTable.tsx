@@ -265,7 +265,7 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
           />
         </div>
       </div>
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-[repeat(auto-fill,minmax(320px,1fr))]">
+      <div className="space-y-3">
 
         {paginatedRecords.map((record) => (
           <Card key={record.id} className="p-4 space-y-2">
@@ -291,10 +291,10 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
           </Card>
         ))}
         {filteredRecords.length === 0 && (
-          <p className="text-center py-6 text-muted-foreground md:col-span-full">{searchTerm ? "Nenhum resultado encontrado para a busca" : "Nenhum dado para o período selecionado"}</p>
+          <p className="text-center py-6 text-muted-foreground">{searchTerm ? "Nenhum resultado encontrado para a busca" : "Nenhum dado para o período selecionado"}</p>
         )}
         {filteredRecords.length > 0 && (
-          <Card className="p-4 grid grid-cols-3 gap-2 text-center text-xs md:col-span-full">
+          <Card className="p-4 grid grid-cols-3 gap-2 text-center text-xs">
             <div><p className="text-muted-foreground">Comissões</p><p className="font-bold text-sm">{new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(filteredTotalCommissions)}</p></div>
             <div><p className="text-muted-foreground">Gorjetas</p><p className="font-bold text-sm">{new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(filteredTotalTips)}</p></div>
             <div><p className="text-muted-foreground">Total</p><p className="font-bold text-sm text-primary">{new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(filteredTotalServiceValue)}</p></div>
