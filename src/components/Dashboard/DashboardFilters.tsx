@@ -59,7 +59,7 @@ const DashboardFilters: React.FC<DashboardFiltersProps> = ({
   return (
     <div className="flex flex-wrap items-center gap-4">
       <Select value={dateFilter} onValueChange={setDateFilter}>
-        <SelectTrigger className="w-[180px] bg-white border-2 border-gray-200 shadow-sm">
+        <SelectTrigger className="w-full sm:w-[180px] bg-card border-2 border-border shadow-sm">
           <SelectValue placeholder="Filtrar por período" />
         </SelectTrigger>
         <SelectContent>
@@ -75,7 +75,7 @@ const DashboardFilters: React.FC<DashboardFiltersProps> = ({
         <div className="flex items-center gap-2">
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" className="justify-start text-left font-normal bg-white border-2 border-gray-200 shadow-sm">
+              <Button variant="outline" className="justify-start text-left font-normal bg-card border-2 border-border shadow-sm">
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {startDate ? format(startDate, 'dd/MM/yyyy') : 'Data inicial'}
               </Button>
@@ -95,7 +95,7 @@ const DashboardFilters: React.FC<DashboardFiltersProps> = ({
           
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" className="justify-start text-left font-normal bg-white border-2 border-gray-200 shadow-sm">
+              <Button variant="outline" className="justify-start text-left font-normal bg-card border-2 border-border shadow-sm">
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {endDate ? format(endDate, 'dd/MM/yyyy') : 'Data final'}
               </Button>
@@ -125,7 +125,7 @@ const DashboardFilters: React.FC<DashboardFiltersProps> = ({
                   value={selectedProfessional || "all"} 
                   onValueChange={onProfessionalChange}
                 >
-                  <SelectTrigger className="w-[180px] bg-white border-2 border-gray-200 shadow-sm">
+                  <SelectTrigger className="w-full sm:w-[180px] bg-card border-2 border-border shadow-sm">
                     <SelectValue placeholder="Todos os profissionais" />
                   </SelectTrigger>
                   <SelectContent>
@@ -158,7 +158,7 @@ const DashboardFilters: React.FC<DashboardFiltersProps> = ({
                 value={selectedType} 
                 onValueChange={onTypeChange}
               >
-                <SelectTrigger className="w-[180px] bg-white border-2 border-gray-200 shadow-sm">
+                <SelectTrigger className="w-full sm:w-[180px] bg-card border-2 border-border shadow-sm">
                   <SelectValue placeholder="Todos os tipos" />
                 </SelectTrigger>
                 <SelectContent>
