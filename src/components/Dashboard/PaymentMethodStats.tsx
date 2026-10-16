@@ -17,7 +17,7 @@ const PaymentMethodStats: React.FC<PaymentMethodStatsProps> = ({ paymentMethodSt
       <h2 className="text-xl font-semibold">Pagamentos por Método</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {paymentMethodStats.map(({method, amount}) => (
-          <Card key={method} className="shadow-md border-2 border-gray-100">
+          <Card key={method} className="shadow-md border-2 border-border">
             <CardHeader>
               <CardDescription>Pagamentos em {method}</CardDescription>
               <CardTitle className="text-2xl">
@@ -30,7 +30,7 @@ const PaymentMethodStats: React.FC<PaymentMethodStatsProps> = ({ paymentMethodSt
           </Card>
         ))}
         {paymentMethodStats.length === 0 && (
-          <Card className="col-span-full shadow-md border-2 border-gray-100">
+          <Card className="col-span-full shadow-md border-2 border-border">
             <CardHeader>
               <CardDescription>Nenhum pagamento registrado no período</CardDescription>
             </CardHeader>

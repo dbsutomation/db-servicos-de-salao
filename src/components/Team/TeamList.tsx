@@ -35,7 +35,7 @@ const TeamList = ({ teamMembersList, onEdit, onDelete, loading }: TeamListProps)
   
   if (teamMembersList.length === 0) {
     return (
-      <div className="col-span-full text-center py-12 text-gray-500">
+      <div className="col-span-full text-center py-12 text-muted-foreground">
         Nenhum profissional cadastrado
       </div>
     );
@@ -51,7 +51,7 @@ const TeamList = ({ teamMembersList, onEdit, onDelete, loading }: TeamListProps)
       {teamMembersList.map((member) => (
         <div
           key={member.id}
-          className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100 flex flex-col"
+          className="bg-card rounded-lg shadow-sm overflow-hidden border border-border flex flex-col"
         >
           <div className="p-6 flex items-start gap-4">
             <Avatar className="h-16 w-16 flex-shrink-0">
@@ -61,7 +61,7 @@ const TeamList = ({ teamMembersList, onEdit, onDelete, loading }: TeamListProps)
             
             <div className="flex-1 min-w-0">
               <h3 className="font-medium text-lg truncate">{member.name}</h3>
-              <p className="text-gray-500 truncate">{member.profession}</p>
+              <p className="text-muted-foreground truncate">{member.profession}</p>
               
               <div className="mt-2 space-y-1 text-sm">
                 <p className="truncate"><span className="font-medium">Email:</span> {member.email}</p>
@@ -71,7 +71,7 @@ const TeamList = ({ teamMembersList, onEdit, onDelete, loading }: TeamListProps)
               {/* Categorias de serviços */}
               {member.categories && member.categories.length > 0 && (
                 <div className="mt-3">
-                  <p className="text-xs font-medium text-gray-600 mb-1">Categorias:</p>
+                  <p className="text-xs font-medium text-muted-foreground mb-1">Categorias:</p>
                   <div className="flex gap-1 flex-wrap">
                     {member.categories.map((category) => (
                       <Badge key={category} variant="outline" className="text-xs">
@@ -90,7 +90,7 @@ const TeamList = ({ teamMembersList, onEdit, onDelete, loading }: TeamListProps)
                 )}
                 
                 {member.isManager && (
-                  <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                  <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-primary text-primary">
                     Gerente
                   </span>
                 )}

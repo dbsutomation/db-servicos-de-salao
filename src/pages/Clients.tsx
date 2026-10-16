@@ -221,10 +221,10 @@ const Clients = () => {
         </div>
 
         <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
           <Input 
             placeholder="Buscar por nome, telefone ou email" 
-            className="pl-10 border-2 border-gray-200 shadow-sm bg-white"
+            className="pl-10 border-2 border-border shadow-sm bg-card"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -240,7 +240,7 @@ const Clients = () => {
               <div
                 key={client.id}
                 onClick={() => navigate(`/clients/${client.id}`)}
-                className="bg-white rounded-lg shadow-md border-2 border-gray-100 overflow-hidden flex flex-col cursor-pointer hover:shadow-lg transition-shadow"
+                className="bg-card rounded-lg shadow-md border-2 border-border overflow-hidden flex flex-col cursor-pointer hover:shadow-lg transition-shadow"
               >
                 <div className="p-6 flex items-start gap-4">
                   <Avatar className="h-16 w-16 flex-shrink-0 bg-primary/20">
@@ -287,7 +287,7 @@ const Clients = () => {
             ))}
             
             {filteredClients.length === 0 && !loading && (
-              <div className="col-span-full text-center py-12 text-gray-500 bg-white rounded-lg shadow-md border-2 border-gray-100">
+              <div className="col-span-full text-center py-12 text-muted-foreground bg-card rounded-lg shadow-md border-2 border-border">
                 {searchTerm ? 'Nenhum cliente encontrado' : 'Nenhum cliente cadastrado'}
               </div>
             )}

@@ -35,7 +35,7 @@ const STATUS_LABEL: Record<string, { label: string; color: string }> = {
   confirmed: { label: 'Confirmado',  color: 'bg-green-100 text-green-700 border-green-200' },
   cancelled: { label: 'Cancelado',   color: 'bg-red-100 text-red-700 border-red-200' },
   completed: { label: 'Concluído',  color: 'bg-blue-100 text-blue-700 border-blue-200' },
-  in_progress: { label: 'Em atendimento', color: 'bg-purple-100 text-purple-700 border-purple-200' },
+  in_progress: { label: 'Em atendimento', color: 'bg-primary text-primary border-primary' },
 };
 
 export default function MeusAgendamentos() {
@@ -145,7 +145,7 @@ export default function MeusAgendamentos() {
   return (
     <ClientLayout>
       {/* Título fixo */}
-      <div className="sticky top-0 z-10 bg-white pb-3 border-b mb-4 -mx-4 px-4 md:-mx-6 md:px-6">
+      <div className="sticky top-0 z-10 bg-card pb-3 border-b mb-4 -mx-4 px-4 md:-mx-6 md:px-6">
         <h1 className="text-xl font-semibold">Meus agendamentos</h1>
         <p className="text-sm text-muted-foreground">Acompanhe e gerencie seus horários</p>
       </div>
@@ -166,7 +166,7 @@ export default function MeusAgendamentos() {
       )}
 
       {appointments.map(appt => {
-        const status = STATUS_LABEL[appt.status] ?? { label: appt.status, color: 'bg-gray-100 text-gray-700' };
+        const status = STATUS_LABEL[appt.status] ?? { label: appt.status, color: 'bg-muted text-foreground' };
         const podeAgir = canActOn(appt);
         const total = appt.services.reduce((s, sv) => s + sv.price, 0);
 

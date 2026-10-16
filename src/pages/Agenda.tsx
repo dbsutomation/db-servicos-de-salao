@@ -299,7 +299,7 @@ export default function Agenda() {
           }}
           role="button"
           tabIndex={0}
-          className="absolute left-1 right-1 rounded-md border px-2 py-1 text-xs text-left shadow-sm overflow-hidden bg-gray-200 text-gray-600 border-gray-300 border-l-4 border-l-gray-500 cursor-pointer hover:bg-gray-300 transition-colors"
+          className="absolute left-1 right-1 rounded-md border px-2 py-1 text-xs text-left shadow-sm overflow-hidden bg-gray-200 text-muted-foreground border-border border-l-4 border-l-gray-500 cursor-pointer hover:bg-gray-300 transition-colors"
           style={{ top, height }}
           title="Clique para remover o bloqueio"
         >
@@ -694,11 +694,11 @@ export default function Agenda() {
           </div>
         )}
 
-        <div className="border rounded-lg overflow-hidden bg-white">
+        <div className="border rounded-lg overflow-hidden bg-card">
 
           {/* ── MOBILE: vista diária ── */}
           <div className="block md:hidden">
-            <div className="flex items-center justify-between border-b px-3 py-2 sticky top-0 bg-white z-10">
+            <div className="flex items-center justify-between border-b px-3 py-2 sticky top-0 bg-card z-10">
               <button onClick={() => setMobileDay(d => addDays(d,-1))}
                 className="p-2 rounded hover:bg-muted"><ChevronLeft className="h-5 w-5" /></button>
               <div className="text-center">
@@ -720,7 +720,7 @@ export default function Agenda() {
                   <div key={h}
                     className="absolute left-0 right-0 border-t border-dashed border-muted pointer-events-none"
                     style={{ top: i * 60 + 16 }}>
-                    <span className="absolute text-[10px] text-muted-foreground left-1 -top-3 bg-white px-0.5 pointer-events-none">
+                    <span className="absolute text-[10px] text-muted-foreground left-1 -top-3 bg-card px-0.5 pointer-events-none">
                       {String(h).padStart(2,'0')}:00
                     </span>
                   </div>
@@ -751,7 +751,7 @@ export default function Agenda() {
 
           {/* ── DESKTOP: vista semanal ── */}
           <div className="hidden md:block overflow-auto">
-            <div className="grid sticky top-0 z-10 bg-white border-b"
+            <div className="grid sticky top-0 z-10 bg-card border-b"
               style={{ gridTemplateColumns: '60px repeat(7, minmax(100px, 1fr))' }}>
               <div />
               {weekDays.map((d, i) => {
@@ -882,7 +882,7 @@ export default function Agenda() {
                     <button
                       onClick={handleStart}
                       disabled={acting || toBR(new Date(selected.starts_at)) < toBR(new Date())}
-                      className="flex-1 bg-purple-500 hover:bg-purple-600 text-white font-medium py-2 px-4 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="flex-1 bg-primary hover:bg-primary text-white font-medium py-2 px-4 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       Iniciar atendimento
                     </button>

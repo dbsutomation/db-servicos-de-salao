@@ -30,7 +30,7 @@ const FinancialStats: React.FC<FinancialStatsProps> = ({
     <>
       <h2 className="text-xl font-semibold">Indicadores Financeiros</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="shadow-md border-2 border-gray-100">
+        <Card className="shadow-md border-2 border-border">
           <CardHeader className="bg-accent">
             <CardDescription>Faturamento Total</CardDescription>
             <CardTitle className="text-3xl">
@@ -42,7 +42,7 @@ const FinancialStats: React.FC<FinancialStatsProps> = ({
           </CardHeader>
         </Card>
         
-        <Card className="shadow-md border-2 border-gray-100">
+        <Card className="shadow-md border-2 border-border">
           <CardHeader className="bg-destructive/10">
             <CardDescription>Comissão Total</CardDescription>
             <CardTitle className="text-3xl">
@@ -55,7 +55,7 @@ const FinancialStats: React.FC<FinancialStatsProps> = ({
         </Card>
         
         {isManager && currentUser?.features?.expenses && (
-          <Card className="shadow-md border-2 border-gray-100">
+          <Card className="shadow-md border-2 border-border">
             <CardHeader className="bg-destructive/10">
               <CardDescription>Despesas</CardDescription>
               <CardTitle className="text-3xl">
@@ -69,7 +69,7 @@ const FinancialStats: React.FC<FinancialStatsProps> = ({
         )}
         
         {isManager && currentUser?.features?.expenses && (
-          <Card className="shadow-md border-2 border-gray-100">
+          <Card className="shadow-md border-2 border-border">
             <CardHeader className={profitBackgroundColor}>
               <CardDescription>Lucro Líquido</CardDescription>
               <CardTitle className="text-3xl">

@@ -338,7 +338,7 @@ export default function ClientBooking() {
             </CardHeader>
 
             {/* Resumo fixo no topo */}
-            <div className="sticky top-0 z-10 bg-white border-b border-t px-6 py-3 shadow-sm">
+            <div className="sticky top-0 z-10 bg-card border-b border-t px-6 py-3 shadow-sm">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   {selectedServices.length === 0 ? (

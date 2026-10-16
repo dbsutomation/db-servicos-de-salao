@@ -150,7 +150,7 @@ const Expenses = () => {
   if (!currentUser?.isManager) {
     return (
       <MainLayout>
-        <div className="text-center py-12 text-gray-500">Acesso restrito a gerentes.</div>
+        <div className="text-center py-12 text-muted-foreground">Acesso restrito a gerentes.</div>
       </MainLayout>
     );
   }
@@ -213,10 +213,10 @@ const Expenses = () => {
         </div>
 
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
           <Input
             placeholder="Buscar despesas"
-            className="pl-10 border-2 border-gray-200 shadow-sm bg-white"
+            className="pl-10 border-2 border-border shadow-sm bg-card"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -227,14 +227,14 @@ const Expenses = () => {
             <p className="text-lg">Carregando despesas...</p>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-12 text-gray-500 bg-white rounded-lg shadow-md border-2 border-gray-100">
+          <div className="text-center py-12 text-muted-foreground bg-card rounded-lg shadow-md border-2 border-border">
             {searchTerm ? 'Nenhuma despesa encontrada' : 'Nenhuma despesa cadastrada'}
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow-md border-2 border-gray-100 overflow-hidden">
+          <div className="bg-card rounded-lg shadow-md border-2 border-border overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50 border-b">
+                <thead className="bg-muted border-b">
                   <tr>
                     <th className="text-left p-4 font-medium">Nome</th>
                     <th className="text-left p-4 font-medium">Valor</th>
@@ -245,10 +245,10 @@ const Expenses = () => {
                 </thead>
                 <tbody>
                   {filtered.map((e) => (
-                    <tr key={e.id} className="border-b last:border-0 hover:bg-gray-50">
+                    <tr key={e.id} className="border-b last:border-0 hover:bg-muted">
                       <td className="p-4">
                         <div className="font-medium">{e.name}</div>
-                        {e.description && <div className="text-sm text-gray-500">{e.description}</div>}
+                        {e.description && <div className="text-sm text-muted-foreground">{e.description}</div>}
                       </td>
                       <td className="p-4">{formatBRL(Number(e.amount))}</td>
                       <td className="p-4">{format(parseISO(e.expense_date), "dd/MM/yyyy", { locale: ptBR })}</td>

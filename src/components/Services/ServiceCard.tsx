@@ -39,14 +39,14 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
       <div className="flex flex-col flex-grow">
         <CardHeader className="pb-2 pt-4">
           <CardTitle className="text-lg font-semibold">{service.name}</CardTitle>
-          <CardDescription className="text-sm text-gray-500 line-clamp-2">
+          <CardDescription className="text-sm text-muted-foreground line-clamp-2">
             {service.description}
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-0 pb-2 flex-grow">
           <div className="flex flex-col">
             <p className="text-xl font-semibold text-primary">{formattedPrice}</p>
-            <div className="flex items-center text-sm text-gray-500 mt-1">
+            <div className="flex items-center text-sm text-muted-foreground mt-1">
               <Percent size={14} className="mr-1" />
               <span>Comissão: {service.commission}%</span>
             </div>
