@@ -1,7 +1,9 @@
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { CartItem, Service } from '../types';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { getCurrentSalonId } from '@/lib/salon';
 
 interface CartContextType {
   cartItems: CartItem[];
@@ -18,7 +20,46 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [storageKey, setStorageKey] = useState<string | null>(null);
   const { toast } = useToast();
+
+  // Resolve a chave do carrinho por usuário + salão e carrega os itens salvos
+  useEffect(() => {
+    let active = true;
+    const resolve = async (userId: string | undefined) => {
+      if (!userId) {
+        if (active) { setStorageKey(null); setCartItems([]); }
+        return;
+      }
+      try {
+        const salonId = await getCurrentSalonId();
+        const key = `cart:${userId}:${salonId}`;
+        let items: CartItem[] = [];
+        try {
+          const raw = localStorage.getItem(key);
+          const parsed = raw ? JSON.parse(raw) : [];
+          if (Array.isArray(parsed)) items = parsed;
+        } catch { /* ignora dados corrompidos */ }
+        if (active) { setCartItems(items); setStorageKey(key); }
+      } catch {
+        if (active) { setStorageKey(null); setCartItems([]); }
+      }
+    };
+    supabase.auth.getSession().then(({ data }) => resolve(data.session?.user.id));
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
+        setTimeout(() => resolve(session?.user.id), 0);
+      }
+    });
+    return () => { active = false; sub.subscription.unsubscribe(); };
+  }, []);
+
+  // Salva os itens sempre que mudarem (remove a chave quando vazio)
+  useEffect(() => {
+    if (!storageKey) return;
+    if (cartItems.length === 0) localStorage.removeItem(storageKey);
+    else localStorage.setItem(storageKey, JSON.stringify(cartItems));
+  }, [cartItems, storageKey]);
 
   const addToCart = (service: Service) => {
     setCartItems(prevItems => {
