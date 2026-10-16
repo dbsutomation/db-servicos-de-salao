@@ -35,7 +35,7 @@ const STATUS_LABEL: Record<string, { label: string; color: string }> = {
   confirmed: { label: 'Confirmado',  color: 'bg-green-100 text-green-700 border-green-200' },
   cancelled: { label: 'Cancelado',   color: 'bg-red-100 text-red-700 border-red-200' },
   completed: { label: 'Concluído',  color: 'bg-blue-100 text-blue-700 border-blue-200' },
-  in_progress: { label: 'Em atendimento', color: 'bg-primary text-primary border-primary' },
+  in_progress: { label: 'Em atendimento', color: 'bg-accent text-accent-foreground border-primary' },
 };
 
 export default function MeusAgendamentos() {

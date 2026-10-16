@@ -90,7 +90,7 @@ const TeamList = ({ teamMembersList, onEdit, onDelete, loading }: TeamListProps)
                 )}
                 
                 {member.isManager && (
-                  <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-primary text-primary">
+                  <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-accent text-accent-foreground">
                     Gerente
                   </span>
                 )}

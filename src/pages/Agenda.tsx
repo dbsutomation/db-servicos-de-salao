@@ -299,7 +299,7 @@ export default function Agenda() {
           }}
           role="button"
           tabIndex={0}
-          className="absolute left-1 right-1 rounded-md border px-2 py-1 text-xs text-left shadow-sm overflow-hidden bg-gray-200 text-muted-foreground border-border border-l-4 border-l-gray-500 cursor-pointer hover:bg-gray-300 transition-colors"
+          className="absolute left-1 right-1 rounded-md border px-2 py-1 text-xs text-left shadow-sm overflow-hidden bg-muted text-muted-foreground border-border border-l-4 border-l-muted-foreground cursor-pointer hover:bg-secondary transition-colors"
           style={{ top, height }}
           title="Clique para remover o bloqueio"
         >

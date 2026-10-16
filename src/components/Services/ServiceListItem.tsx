@@ -12,7 +12,7 @@ interface ServiceListItemProps {
 }
 
 const categoryColors: Record<string, string> = {
-  Cabelo: 'bg-primary text-primary hover:bg-primary',
+  Cabelo: 'bg-accent text-accent-foreground hover:bg-accent',
   'Depilação': 'bg-pink-100 text-pink-800 hover:bg-pink-100',
   Podologia: 'bg-blue-100 text-blue-800 hover:bg-blue-100',
   Sobrancelhas: 'bg-amber-100 text-amber-800 hover:bg-amber-100',
