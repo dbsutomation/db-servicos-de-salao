@@ -265,7 +265,8 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
           />
         </div>
       </div>
-      <div className="space-y-3 md:hidden">
+      <div className="space-y-3">
+
         {paginatedRecords.map((record) => (
           <Card key={record.id} className="p-4 space-y-2">
             <div className="flex items-start justify-between gap-2">
