@@ -144,6 +144,56 @@ const Settings: React.FC = () => {
                 <Building2 size={20} className="text-primary" />
                 <h2 className="text-lg font-semibold">Dados do salão</h2>
               </div>
+
+              <div className="space-y-3">
+                <Label>Logo do salão</Label>
+                <div className="flex items-center gap-4">
+                  <div className="h-20 w-20 rounded-full border-2 border-border bg-muted flex items-center justify-center overflow-hidden shrink-0">
+                    {(logoPreview || logoUrl) ? (
+                      <img
+                        src={logoPreview || logoUrl}
+                        alt="Logo do salão"
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <ImagePlus size={24} className="text-muted-foreground" />
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <input
+                      ref={logoInputRef}
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      className="hidden"
+                      onChange={handleLogoChange}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => logoInputRef.current?.click()}
+                      disabled={uploadingLogo}
+                    >
+                      {uploadingLogo ? (
+                        <><Loader2 size={16} className="mr-2 animate-spin" /> Enviando...</>
+                      ) : (
+                        <><ImagePlus size={16} className="mr-2" /> {logoUrl ? 'Trocar logo' : 'Enviar logo'}</>
+                      )}
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      PNG, JPG ou WebP até 5 MB. A imagem é ajustada automaticamente para um círculo leve e otimizado.
+                    </p>
+                  </div>
+                </div>
+                <div className="rounded-md bg-accent/50 border border-border p-3 text-xs text-muted-foreground space-y-1">
+                  <p className="font-medium text-foreground">Dica: não tem um logo ainda?</p>
+                  <p>
+                    Você pode gerar um com ferramentas de IA como Canva (Magic Media), Looka ou Bing Image Creator.
+                    Peça algo como <span className="italic">"logo minimalista para salão de beleza, fundo transparente, formato quadrado"</span> e
+                    baixe em PNG — assim o arquivo já chega leve e no formato ideal.
+                  </p>
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="salonName">Nome do salão</Label>
                 <Input id="salonName" value={salonName} onChange={(e) => setSalonName(e.target.value)} />
