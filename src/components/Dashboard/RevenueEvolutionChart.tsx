@@ -3,8 +3,8 @@ import { format, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toZonedTime } from 'date-fns-tz';
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -61,7 +61,7 @@ const RevenueEvolutionChart = ({ records }: RevenueEvolutionChartProps) => {
   }, [records]);
 
   return (
-    <Card>
+    <Card className="rounded-xl shadow-sm">
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
         <div className="space-y-1">
           <CardTitle className="text-base font-semibold">Evolução do Faturamento</CardTitle>
@@ -72,7 +72,13 @@ const RevenueEvolutionChart = ({ records }: RevenueEvolutionChartProps) => {
       <CardContent>
         <div className="h-[260px] sm:h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+            <AreaChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id="revenueFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.25} />
+                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                </linearGradient>
+              </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
               <XAxis
                 dataKey="label"
@@ -106,15 +112,16 @@ const RevenueEvolutionChart = ({ records }: RevenueEvolutionChartProps) => {
                   fontSize: 13,
                 }}
               />
-              <Line
+              <Area
                 type="monotone"
                 dataKey="total"
                 stroke="hsl(var(--primary))"
                 strokeWidth={2.5}
+                fill="url(#revenueFill)"
                 dot={{ r: 4, fill: 'hsl(var(--primary))', strokeWidth: 0 }}
                 activeDot={{ r: 6 }}
               />
-            </LineChart>
+            </AreaChart>
           </ResponsiveContainer>
         </div>
       </CardContent>
