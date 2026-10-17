@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -23,12 +22,7 @@ const Login = () => {
   const [showPass, setShowPass]     = useState(false);
   const [resetting, setResetting]   = useState(false);
   const [resetSent, setResetSent]   = useState(false);
-  const { login, isAuthenticated }  = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (isAuthenticated) navigate('/');
-  }, [isAuthenticated, navigate]);
+  const { login, isLoading: resolvingAccess } = useAuth();
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(formSchema),
@@ -38,9 +32,7 @@ const Login = () => {
   const onSubmit = async (values: LoginFormValues) => {
     setIsLoading(true);
     try {
-      const success = await login(values.email, values.password);
-      // O AuthContext já faz o navigate correto (/ ou /redefinir-senha?obrigatorio=true)
-      // Não navegamos aqui para não sobrescrever o redirecionamento de 1º acesso
+      await login(values.email, values.password);
     } catch (error: any) {
       toast({ title: 'Erro ao fazer login', description: error.message || 'Ocorreu um erro inesperado', variant: 'destructive' });
     } finally {
@@ -118,8 +110,8 @@ const Login = () => {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Entrando...' : 'Entrar'}
+              <Button type="submit" className="w-full" disabled={isLoading || resolvingAccess}>
+                {isLoading || resolvingAccess ? 'Entrando...' : 'Entrar'}
               </Button>
             </form>
           </Form>
@@ -130,7 +122,7 @@ const Login = () => {
             {resetting ? 'Enviando…' : 'Esqueci minha senha'}
           </button>
           <p className="text-center text-sm text-muted-foreground">
-            Caso não possua acesso, entre em contato com o gerente do salão.
+            Caso não possua acesso, entre em contato com o responsável pelo estabelecimento.
           </p>
         </CardFooter>
       </Card>

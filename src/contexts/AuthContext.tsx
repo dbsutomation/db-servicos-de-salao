@@ -5,12 +5,14 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 import { clearSalonCache } from '@/lib/salon';
+import { canEnterOperationalPages, loginDestination } from '@/lib/loginAccess';
 
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   checkAccess: (requiredRoutes: string[]) => boolean;
   isLoading: boolean;
+  isSystemAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -23,6 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isSystemAdmin, setIsSystemAdmin] = useState(false);
   
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -36,9 +39,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(newSession?.user ?? null);
         
         if (newSession?.user) {
+          setIsLoading(true);
           // Buscar informações adicionais do usuário do banco de dados
           setTimeout(async () => {
             try {
+              // Resolve platform administration before any operational profile.
+              const { data: adminRow, error: adminError } = await supabase
+                .from('system_admins')
+                .select('user_id')
+                .eq('user_id', newSession.user.id)
+                .maybeSingle();
+              if (adminError) throw adminError;
+              setIsSystemAdmin(Boolean(adminRow));
+              if (adminRow) {
+                clearSalonCache();
+                setAuthState({ isAuthenticated: true, currentUser: null });
+                if (!window.location.pathname.startsWith('/admin/') || window.location.pathname === '/admin/login') {
+                  navigate(loginDestination(true), { replace: true });
+                }
+                return;
+              }
               const { data, error } = await supabase
                 .from('users')
                 .select('*, salon_id')
@@ -50,21 +70,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               }
 
               if (!data) {
-                // Pode ser um administrador da plataforma
-                const { data: adminRow } = await supabase
-                  .from('system_admins')
-                  .select('user_id')
-                  .eq('user_id', newSession.user.id)
-                  .maybeSingle();
-
-                if (adminRow) {
-                  setAuthState({ isAuthenticated: false, currentUser: null });
-                  if (!window.location.pathname.startsWith('/admin')) {
-                    navigate('/admin/saloes');
-                  }
-                  return;
-                }
-
                 toast({
                   title: "Conta sem acesso",
                   description: "Esta conta não está vinculada a nenhum estabelecimento.",
@@ -144,14 +149,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   isAuthenticated: true,
                   currentUser: teamMember
                 });
+                if (window.location.pathname === '/login') navigate(loginDestination(false), { replace: true });
               }
             } catch (error) {
+              setIsSystemAdmin(false);
+              setAuthState({ isAuthenticated: false, currentUser: null });
               console.error('Erro ao carregar usuário:', error);
             } finally {
               setIsLoading(false);
             }
           }, 0);
         } else {
+          setIsSystemAdmin(false);
           setAuthState({ isAuthenticated: false, currentUser: null });
           setIsLoading(false);
         }
@@ -194,6 +203,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       
       if (error) {
+        setIsLoading(false);
         toast({
           title: "Falha no login",
           description: error.message,
@@ -207,20 +217,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           title: "Login bem-sucedido",
           description: "Bem-vindo de volta!",
         });
-        navigate('/');
         return true;
       }
       
       return false;
     } catch (error: any) {
+      setIsLoading(false);
       toast({
         title: "Erro no login",
         description: error.message ?? "Ocorreu um erro inesperado",
         variant: "destructive",
       });
       return false;
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -248,7 +256,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const checkAccess = (requiredRoutes: string[]): boolean => {
     // Se não está autenticado, não tem acesso
-    if (!authState.isAuthenticated || !authState.currentUser) {
+    if (!canEnterOperationalPages(authState.isAuthenticated, isSystemAdmin, Boolean(authState.currentUser)) || !authState.currentUser) {
       return false;
     }
     const features = authState.currentUser.features;
@@ -265,7 +273,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ ...authState, isLoading, login, logout, checkAccess }}>
+    <AuthContext.Provider value={{ ...authState, isSystemAdmin, isLoading, login, logout, checkAccess }}>
       {children}
     </AuthContext.Provider>
   );
