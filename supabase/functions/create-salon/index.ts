@@ -132,7 +132,19 @@ Deno.serve(async (req) => {
     }
     if (!managerId) return json({ error: 'Não foi possível identificar o responsável' }, 500);
 
-    // O gatilho handle_new_user cria salão + usuário + papel. Confere consistência.
+    // Provisioning is trusted service-only; public signup metadata grants no staff access.
+    if (createdNow) {
+      const { error: provisionError } = await supabaseAdmin.rpc('provision_new_salon', {
+        p_manager_id: managerId,
+        p_manager_name: managerName,
+        p_manager_email: managerEmail,
+        p_salon_name: salonName,
+      });
+      if (provisionError) {
+        await supabaseAdmin.auth.admin.deleteUser(managerId);
+        return json({ error: 'Não foi possível criar o estabelecimento. Tente novamente.' }, 500);
+      }
+    }
     const { data: userRow } = await supabaseAdmin
       .from("users")
       .select("id, salon_id, is_manager")
@@ -186,7 +198,7 @@ Deno.serve(async (req) => {
 
     if (salonUpdErr) return json({ error: salonUpdErr.message }, 400);
 
-    return json({ success: true, salonId, managerId, resumed: !createdNow });
+    return json({ success: true, salonId, managerId, resumed: !createdNow, passwordSet: createdNow && accessMode === 'password' });
   } catch (e) {
     return json({ error: (e as Error).message ?? "Erro inesperado" }, 500);
   }

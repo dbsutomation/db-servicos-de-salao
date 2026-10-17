@@ -1,6 +1,8 @@
 # Architecture decisions
 
 - Share internal client validation between client management and quick checkout creation; render the quick-create dialog outside the checkout form to avoid nested form submissions.
+- Provision staff membership only through trusted service-role operations, never signup metadata; validate role changes and sale references against the caller's establishment in the database.
+- Service image writes require an active same-establishment manager and establishment-prefixed paths; public image links remain compatible, but cross-establishment listing is denied.
 
 - Resolve platform-admin membership from Supabase before operational profiles in the shared auth context; route guards use that resolved state to keep administrative and establishment screens mutually exclusive.
 
