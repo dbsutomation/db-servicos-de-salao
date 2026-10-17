@@ -14,18 +14,10 @@ import { Service } from '@/types';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, AlertDialogTitle, AlertDialogDescription, AlertDialogAction, AlertDialogCancel } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { getCurrentSalonId } from '@/lib/salon';
 import { toTitleCase, formatCurrencyMask, parseCurrency, clampCommission } from '@/lib/formatters';
-
-const serviceCategories = [
-  { value: 'Cabelo', label: 'Cabelo' },
-  { value: 'Depilação', label: 'Depilação' },
-  { value: 'Podologia', label: 'Podologia' },
-  { value: 'Sobrancelhas', label: 'Sobrancelhas' },
-  { value: 'Unhas', label: 'Unhas' }
-];
+import { getServiceCategories } from '@/lib/serviceCategories';
 
 const Services = () => {
   const { currentUser } = useAuth();
@@ -93,6 +85,7 @@ const Services = () => {
 
   // Filter services based on search term, category, and user's allowed categories
   const userCategories = currentUser?.categories || [];
+  const serviceCategories = getServiceCategories(servicesList.map(service => service.category));
   const restrictByUser = !!currentUser && !currentUser.isManager && userCategories.length > 0;
 
   const filteredServices = servicesList.filter(service => {
@@ -246,7 +239,7 @@ const Services = () => {
         price: parseCurrency(data.price),
         commission: Math.max(0, Math.min(100, parseInt(String(data.commission).replace(/\D/g, '') || '0', 10))),
         image: data.image || '/placeholder.svg',
-        category: toTitleCase(data.category),
+        category: data.category.trim(),
         type: data.type,
         duration: parseInt(data.duration) || 60
       };
@@ -375,7 +368,7 @@ const Services = () => {
         <div className="flex flex-wrap gap-2">
           {[
             { value: 'all', label: 'Todos' },
-            ...serviceCategories.filter(c => !restrictByUser || userCategories.includes(c.value)),
+            ...serviceCategories.filter(category => !restrictByUser || userCategories.includes(category)).map(category => ({ value: category, label: category })),
           ].map((cat) => (
             <Button
               key={cat.value}
@@ -479,24 +472,12 @@ const Services = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Categoria</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
-                      defaultValue={field.value}
-                      value={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione uma categoria" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {serviceCategories.map((category) => (
-                          <SelectItem key={category.value} value={category.value}>
-                            {category.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <Input {...field} list="service-category-options" placeholder="Categoria" required />
+                    </FormControl>
+                    <datalist id="service-category-options">
+                      {serviceCategories.map(category => <option key={category} value={category} />)}
+                    </datalist>
                   </FormItem>
                 )}
               />

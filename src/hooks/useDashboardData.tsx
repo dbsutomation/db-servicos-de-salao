@@ -32,12 +32,14 @@ export const useDashboardData = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [serviceRecords, setServiceRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   
   
   // Fetch expenses and service records from Supabase
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+      setLoadError(false);
       try {
         // Fetch expenses
         const { data: expensesData, error: expensesError } = currentUser?.features?.expenses
@@ -109,6 +111,7 @@ export const useDashboardData = () => {
 
         setServiceRecords(formattedRecords);
       } catch (error: any) {
+        setLoadError(true);
         console.error('Error fetching dashboard data:', error.message);
       } finally {
         setLoading(false);
@@ -335,6 +338,8 @@ export const useDashboardData = () => {
     topClient,
     paymentMethodStats,
     serviceRecordsList,
-    loading
+    loading,
+    loadError,
+    hasAnyRecords: serviceRecords.length > 0
   };
 };

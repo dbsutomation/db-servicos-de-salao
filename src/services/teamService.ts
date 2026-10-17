@@ -124,7 +124,10 @@ export const createTeamMember = async (data: any): Promise<boolean> => {
       }
     );
 
-    if (error) throw error;
+    if (error) {
+      const details = error.context instanceof Response ? await error.context.json().catch(() => null) : null;
+      throw new Error(details?.error || error.message);
+    }
     if (result?.error) throw new Error(result.error);
 
     toast({
