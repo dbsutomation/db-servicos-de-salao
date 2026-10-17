@@ -65,6 +65,12 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       icon: <Clock size={20} />,
       requiredRoles: ['/configurar-horarios']
     },
+    {
+      path: '/configuracoes',
+      label: 'Configurações',
+      icon: <Settings size={20} />,
+      requiredRoles: ['/configuracoes']
+    },
   ];
 
   const handleLogout = () => {
