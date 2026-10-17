@@ -27,6 +27,7 @@ const useTeamMemberForm = ({ teamMemberId, onSuccess }: UseTeamMemberFormProps) 
       password: '',
       hasAccess: isEditing ? undefined : true,  // novo profissional já tem acesso por padrão
       isManager: false,                          // gerente desligado por padrão
+      receivesCommission: true,                  // comissão ligada por padrão
       categories: []
     }
   });
@@ -63,6 +64,7 @@ const useTeamMemberForm = ({ teamMemberId, onSuccess }: UseTeamMemberFormProps) 
               password: '',
               hasAccess: data.has_access,
               isManager: data.is_manager,
+              receivesCommission: data.receives_commission ?? true,
               categories: data.categories || []
             });
           }

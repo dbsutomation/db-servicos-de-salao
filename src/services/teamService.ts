@@ -20,6 +20,7 @@ export const fetchTeamMembers = async (): Promise<TeamMember[]> => {
       email: user.email,
       hasAccess: user.has_access,
       isManager: user.is_manager,
+      receivesCommission: user.receives_commission ?? true,
       phone: user.phone || '',
       profession: user.profession || '',
       password: '',
@@ -53,6 +54,7 @@ export const updateTeamMember = async (memberId: string, data: any): Promise<boo
       profession: data.profession || null,
       has_access: data.hasAccess,
       is_manager: data.isManager,
+      receives_commission: data.receivesCommission ?? true,
       categories: data.categories || []
     };
     
@@ -119,6 +121,7 @@ export const createTeamMember = async (data: any): Promise<boolean> => {
           profession: data.profession,
           hasAccess: data.hasAccess ?? true,
           isManager: data.isManager ?? false,
+          receivesCommission: data.receivesCommission ?? true,
           categories: data.categories || [],
         },
       }

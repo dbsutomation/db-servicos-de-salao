@@ -84,6 +84,7 @@ export function useCheckoutForm() {
           password: '', // This is a placeholder since we don't get passwords from the database
           hasAccess: member.has_access,
           isManager: member.is_manager,
+          receivesCommission: member.receives_commission ?? true,
           avatar: member.avatar || ''
         })) as TeamMember[];
         
@@ -167,7 +168,9 @@ export function useCheckoutForm() {
           professional_id: teamMember.id,
           service_id: item.service.id,
           payment_method: paymentMethodString,
-          commission_amount: item.service.price * (item.service.commission / 100),
+          commission_amount: (teamMember.receivesCommission ?? true)
+            ? item.service.price * (item.service.commission / 100)
+            : 0,
           service_value: item.service.price * item.quantity,
           tip_amount: item.tipAmount || 0,
           salon_id: salonId,
