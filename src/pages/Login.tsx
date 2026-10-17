@@ -95,7 +95,7 @@ const Login = () => {
                 <h1 className="text-3xl sm:text-5xl font-bold leading-tight tracking-tight">
                   Gestão completa<br />para o <span className="text-primary">seu salão.</span>
                 </h1>
-                <p className="max-w-xl text-base sm:text-lg text-foreground/80">
+                <p className="max-w-xl text-base sm:text-lg text-foreground">
                   Organize clientes, serviços, profissionais, carrinho, comissões e indicadores financeiros em um só sistema.
                 </p>
               </div>
