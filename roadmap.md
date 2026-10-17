@@ -1,9 +1,12 @@
 # Salon function controls
 
 # Client checkout and security
-- [ ] Make client email optional and test validation.
-- [ ] Add quick client creation inside checkout and verify selection without losing cart items.
-- [ ] Review and repair security findings; verify isolation and report any external configuration blockers.
+- [x] Make client email optional; three validation tests pass.
+- [x] Add quick client creation inside checkout; verified real save, automatic selection, mobile form and cart reload, with disposable clients removed.
+- [x] Repair image policies, role mutation authorization, trusted staff provisioning and same-establishment sale validation; database authorization tests pass and production dependency scan is clear.
+- [ ] Enable leaked-password protection in external Supabase Authentication settings (blocked: requires owner configuration and an eligible Supabase plan).
+- [ ] Apply available Postgres security upgrade (blocked: owner must schedule the external Supabase upgrade; it may interrupt live access).
+- [x] Review 14 signed-in SECURITY DEFINER warnings: scoped RLS helpers and authorized administrative routines are intentional; retain required grants rather than breaking access.
 
 # Unified login
 - [x] Share the login screen, resolve platform-admin access first, and block operational pages for administrators; access rules covered by four tests.
