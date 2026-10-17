@@ -52,7 +52,7 @@ const DashboardTeaser = () => (
       </div>
       <div className="rounded-lg border p-2.5">
         <p className="text-[11px] font-semibold">Evolução do Faturamento</p>
-        <svg viewBox="0 0 300 70" className="mt-1 h-16 w-full">
+        <svg viewBox="0 0 300 70" preserveAspectRatio="none" className="mt-1 h-16 w-full">
           <defs>
             <linearGradient id="teaserFill" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.25" />
