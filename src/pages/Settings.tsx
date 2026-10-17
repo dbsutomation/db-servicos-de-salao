@@ -1,13 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import MainLayout from '@/components/Layout/MainLayout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Building2, User } from 'lucide-react';
+import { Building2, User, ImagePlus, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import { processLogoFile } from '@/lib/imageUtils';
 
 const Settings: React.FC = () => {
   const { currentUser } = useAuth();
@@ -19,6 +20,10 @@ const Settings: React.FC = () => {
   const [savingSalon, setSavingSalon] = useState(false);
   const [savingUser, setSavingUser] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [logoUrl, setLogoUrl] = useState('');
+  const [logoPreview, setLogoPreview] = useState('');
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -28,13 +33,14 @@ const Settings: React.FC = () => {
       if (currentUser.isManager && currentUser.salonId) {
         const { data, error } = await supabase
           .from('salons')
-          .select('name, phone, address')
+          .select('name, phone, address, logo_url')
           .eq('id', currentUser.salonId)
           .single();
         if (!error && data) {
           setSalonName(data.name || '');
           setSalonPhone(data.phone || '');
           setSalonAddress(data.address || '');
+          setLogoUrl((data as any).logo_url || '');
         }
       }
       setLoading(false);
@@ -59,6 +65,42 @@ const Settings: React.FC = () => {
       toast({ title: 'Erro ao salvar dados do salão', description: error.message, variant: 'destructive' });
     } else {
       toast({ title: 'Dados do salão atualizados' });
+    }
+  };
+
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !currentUser?.salonId) return;
+
+    setUploadingLogo(true);
+    try {
+      const blob = await processLogoFile(file);
+      const previewUrl = URL.createObjectURL(blob);
+      setLogoPreview(previewUrl);
+
+      const path = `${currentUser.salonId}/logo.webp`;
+      const { error: uploadError } = await supabase.storage
+        .from('service-images')
+        .upload(path, blob, { contentType: 'image/webp', upsert: true });
+      if (uploadError) throw uploadError;
+
+      const { data: publicData } = supabase.storage.from('service-images').getPublicUrl(path);
+      const url = `${publicData.publicUrl}?v=${Date.now()}`;
+
+      const { error: updateError } = await supabase
+        .from('salons')
+        .update({ logo_url: url } as any)
+        .eq('id', currentUser.salonId);
+      if (updateError) throw updateError;
+
+      setLogoUrl(url);
+      toast({ title: 'Logo atualizado', description: 'Recarregue a página para ver o logo no menu.' });
+    } catch (error: any) {
+      setLogoPreview('');
+      toast({ title: 'Erro ao enviar o logo', description: error.message, variant: 'destructive' });
+    } finally {
+      setUploadingLogo(false);
     }
   };
 
@@ -102,6 +144,56 @@ const Settings: React.FC = () => {
                 <Building2 size={20} className="text-primary" />
                 <h2 className="text-lg font-semibold">Dados do salão</h2>
               </div>
+
+              <div className="space-y-3">
+                <Label>Logo do salão</Label>
+                <div className="flex items-center gap-4">
+                  <div className="h-20 w-20 rounded-full border-2 border-border bg-muted flex items-center justify-center overflow-hidden shrink-0">
+                    {(logoPreview || logoUrl) ? (
+                      <img
+                        src={logoPreview || logoUrl}
+                        alt="Logo do salão"
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <ImagePlus size={24} className="text-muted-foreground" />
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <input
+                      ref={logoInputRef}
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      className="hidden"
+                      onChange={handleLogoChange}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => logoInputRef.current?.click()}
+                      disabled={uploadingLogo}
+                    >
+                      {uploadingLogo ? (
+                        <><Loader2 size={16} className="mr-2 animate-spin" /> Enviando...</>
+                      ) : (
+                        <><ImagePlus size={16} className="mr-2" /> {logoUrl ? 'Trocar logo' : 'Enviar logo'}</>
+                      )}
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      PNG, JPG ou WebP até 5 MB. A imagem é ajustada automaticamente para um círculo leve e otimizado.
+                    </p>
+                  </div>
+                </div>
+                <div className="rounded-md bg-accent/50 border border-border p-3 text-xs text-muted-foreground space-y-1">
+                  <p className="font-medium text-foreground">Dica: não tem um logo ainda?</p>
+                  <p>
+                    Você pode gerar um com ferramentas de IA como Canva (Magic Media), Looka ou Bing Image Creator.
+                    Peça algo como <span className="italic">"logo minimalista para salão de beleza, fundo transparente, formato quadrado"</span> e
+                    baixe em PNG — assim o arquivo já chega leve e no formato ideal.
+                  </p>
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="salonName">Nome do salão</Label>
                 <Input id="salonName" value={salonName} onChange={(e) => setSalonName(e.target.value)} />

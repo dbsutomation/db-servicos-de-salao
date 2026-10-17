@@ -64,10 +64,19 @@ const Sidebar = ({
 
   return (
     <div className="flex flex-col h-full overflow-y-auto">
-      <div className="px-4 py-6 border-b-2 border-border flex justify-between items-center">
-        <h1 className={`font-bold text-primary ${isMobile ? 'text-lg' : 'text-xl'}`}>
-          {currentUser?.salonName || 'Gestão de Produtos e Serviços'}
-        </h1>
+      <div className="px-4 py-6 border-b-2 border-border flex justify-between items-center gap-2">
+        <div className="flex items-center gap-3 min-w-0">
+          {currentUser?.salonLogo && (
+            <img
+              src={currentUser.salonLogo}
+              alt={`Logo de ${currentUser.salonName || 'estabelecimento'}`}
+              className="h-10 w-10 rounded-full object-cover border-2 border-border shrink-0"
+            />
+          )}
+          <h1 className={`font-bold text-primary truncate ${isMobile ? 'text-lg' : 'text-xl'}`}>
+            {currentUser?.salonName || 'Gestão de Produtos e Serviços'}
+          </h1>
+        </div>
         {isMobile && (
           <Button variant="ghost" size="icon" onClick={toggleMobileMenu} aria-label="Fechar menu">
             <X size={24} />
