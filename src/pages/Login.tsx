@@ -74,12 +74,12 @@ const Login = () => {
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
       {/* Foto de salão ao fundo, suavizada */}
-      <div className="absolute inset-y-0 left-0 w-full lg:w-[65%]" aria-hidden="true">
+      <div className="absolute inset-0" aria-hidden="true">
         <img src={salonBg} alt="" className="h-full w-full object-cover blur-[2px] opacity-60" />
         <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/40 to-background/90" />
-        <div className="absolute inset-y-0 right-0 w-1/3 bg-gradient-to-r from-transparent to-background" />
+        <div className="absolute inset-0 hidden lg:block bg-gradient-to-r from-transparent via-transparent to-background/95" />
       </div>
-      <div className="relative mx-auto grid min-h-screen max-w-7xl items-center gap-8 p-4 sm:p-8 lg:grid-cols-[1.4fr_1fr] lg:items-stretch lg:gap-12 lg:py-10">
+      <div className="relative mx-auto flex min-h-screen max-w-7xl items-center p-4 sm:p-8"><div className="grid w-full items-center gap-8 p-4 sm:p-8 lg:grid-cols-[1.4fr_1fr] lg:items-stretch lg:gap-12 lg:py-10">
         {/* Marca + prévia ilustrativa */}
         <section className="space-y-6 lg:flex lg:flex-col lg:justify-center">
           <div>
@@ -110,7 +110,7 @@ const Login = () => {
         </section>
 
         {/* Login */}
-        <section className="w-full max-w-md justify-self-center lg:justify-self-end lg:self-stretch lg:flex lg:flex-col lg:justify-center lg:my-8 rounded-2xl border bg-card p-6 sm:p-10 shadow-xl">
+        <section className="w-full max-w-md justify-self-center lg:justify-self-end lg:self-stretch lg:flex lg:flex-col lg:justify-center rounded-2xl border bg-card p-6 sm:p-10 shadow-xl">
           <div className="mb-8 flex flex-col items-center text-center">
             <span className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-accent text-primary"><Lock size={28} /></span>
             <h2 className="text-2xl sm:text-3xl font-bold">Bem-vindo de volta</h2>
