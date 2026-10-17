@@ -76,34 +76,34 @@ const Login = () => {
       {/* Foto de salão ao fundo: ambiente visível e desfocado, com véu reduzido */}
       <div className="absolute inset-0" aria-hidden="true">
         <img src={salonBg} alt=""
-          className="h-full w-full scale-[1.03] object-cover blur-[2px] opacity-95 sm:blur-[3px] lg:blur-[4px] contrast-[1.08]" />
-        {/* Véu base: mais denso no celular para manter a leitura */}
-        <div className="absolute inset-0 bg-background/55 lg:bg-background/18" />
+          className="h-full w-full scale-[1.03] object-cover blur-[2px] opacity-95 sm:blur-[3px] lg:blur-[4px] contrast-[1.14] brightness-[0.9]" />
+        {/* Véu base reduzido: o ambiente aparece, mas não compete com o conteúdo */}
+        <div className="absolute inset-0 bg-background/40 lg:bg-background/10" />
         {/* Véu lateral: protege os textos à esquerda e o card à direita */}
-        <div className="absolute inset-0 hidden lg:block bg-gradient-to-r from-background/72 via-background/18 to-background/55" />
-        {/* Suaviza topo e rodapé sem apagar o ambiente */}
-        <div className="absolute inset-0 bg-gradient-to-b from-background/35 via-transparent to-background/40" />
+        <div className="absolute inset-0 hidden lg:block bg-gradient-to-r from-background/72 via-background/15 to-background/55" />
+        {/* No celular, um véu extra só atrás da marca e do título garante a leitura */}
+        <div className="absolute inset-x-0 top-0 h-[58%] bg-gradient-to-b from-background/85 via-background/50 to-transparent lg:hidden" />
       </div>
       <div className="relative mx-auto flex min-h-screen max-w-7xl items-center p-4 sm:p-8"><div className="grid w-full items-center gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-stretch lg:gap-12">
         {/* Marca + prévia ilustrativa */}
         <section className="space-y-6 lg:flex lg:flex-col lg:justify-center">
           <div>
             <p className="text-3xl sm:text-4xl font-bold tracking-tight"><span className="text-primary">DB</span>-Automation</p>
-            <p className="text-sm text-muted-foreground">Gestão para salões de beleza</p>
+            <p className="text-sm text-foreground/70">Gestão para salões de beleza</p>
             <span className="mt-3 block h-1 w-10 rounded-full bg-primary" />
           </div>
           <div className="space-y-3">
             <h1 className="text-3xl sm:text-5xl font-bold leading-tight tracking-tight">
               Gestão completa<br />para o <span className="text-primary">seu salão.</span>
             </h1>
-            <p className="max-w-xl text-base sm:text-lg text-muted-foreground">
+            <p className="max-w-xl text-base sm:text-lg text-foreground/80">
               Organize clientes, serviços, profissionais, carrinho, comissões e indicadores financeiros em um só sistema.
             </p>
           </div>
           <div className="hidden md:block"><DashboardTeaser /></div>
           <div className="hidden md:grid grid-cols-3 gap-2">
             {features.map(({ icon: Icon, title, text }) => (
-              <div key={title} className="flex gap-2 rounded-xl border bg-card/90 p-2.5 shadow-sm">
+              <div key={title} className="flex gap-2 rounded-xl border bg-card p-2.5 shadow-sm">
                 <Icon size={18} className="mt-0.5 shrink-0 text-primary" />
                 <div className="min-w-0">
                   <p className="text-xs font-semibold">{title}</p>
