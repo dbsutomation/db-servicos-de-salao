@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, Scissors, Users, User, ShoppingBag, Calendar, Receipt, Clock } from 'lucide-react';
+import { Home, Scissors, Users, User, ShoppingBag, Calendar, Receipt, Clock, Settings } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMediaQuery } from '@/hooks/use-mobile';
 import { MainLayoutProps, NavItem } from './types';
@@ -64,6 +64,12 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       label: 'Horários de trabalho',
       icon: <Clock size={20} />,
       requiredRoles: ['/configurar-horarios']
+    },
+    {
+      path: '/configuracoes',
+      label: 'Configurações',
+      icon: <Settings size={20} />,
+      requiredRoles: ['/configuracoes']
     },
   ];
 

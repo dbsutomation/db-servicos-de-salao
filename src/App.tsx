@@ -21,6 +21,7 @@ import ResetPassword from "./pages/ResetPassword";
 import ClientBooking from "./pages/ClientBooking";
 import MeusAgendamentos from "./pages/MeusAgendamentos";
 import Agenda from "./pages/Agenda";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import AdminGuard from "./components/admin/AdminGuard";
 import AdminSalons from "./pages/admin/AdminSalons";
@@ -144,6 +145,14 @@ const AppRoutes = () => {
         <CartProvider>
           <ProtectedRoute requiredRoutes={["/configurar-horarios"]}>
             <ProfessionalSchedules />
+          </ProtectedRoute>
+        </CartProvider>
+      } />
+
+      <Route path="/configuracoes" element={
+        <CartProvider>
+          <ProtectedRoute requiredRoutes={["/configuracoes"]}>
+            <Settings />
           </ProtectedRoute>
         </CartProvider>
       } />
