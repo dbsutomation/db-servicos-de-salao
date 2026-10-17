@@ -12,15 +12,17 @@ const CheckoutForm = () => {
   const { form, clients, teamMembers, loading, onSubmit, onClientCreated } = useCheckoutForm();
   
   return (
-    <>
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <div className="space-y-6">
+      <div className="space-y-2">
         <ClientSelect 
           form={form} 
           clients={clients} 
           loading={loading} 
         />
-        <Button type="button" variant="link" className="hidden" aria-hidden="true" tabIndex={-1} />
+        <QuickClientCreate disabled={loading} onCreated={onClientCreated} />
+      </div>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         
         <TeamMemberSelect 
           form={form} 
@@ -34,11 +36,8 @@ const CheckoutForm = () => {
           Finalizar Registro
         </Button>
       </form>
+      </div>
     </Form>
-    <div className="mt-3">
-      <QuickClientCreate disabled={loading} onCreated={onClientCreated} />
-    </div>
-    </>
   );
 };
 
