@@ -2,6 +2,7 @@
 // Provisiona um novo salão + gerente. Somente administradores da plataforma.
 // Não altera a sessão do chamador (usa Admin API com service role).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { initialAccessError } from './provisioning.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -31,10 +32,11 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const ANON_KEY = Deno.env.get("SUPABASE_PUBLISHABLE_KEY") ??
-      Deno.env.get("SUPABASE_ANON_KEY")!;
-    const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      Deno.env.get("SUPABASE_ANON_KEY");
+    const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!SUPABASE_URL || !ANON_KEY || !SERVICE_ROLE) return json({ error: 'Configuração de acesso indisponível' }, 500);
 
     const authHeader = req.headers.get("Authorization") ?? "";
     if (!authHeader) return json({ error: "Sem autorização" }, 401);
@@ -77,19 +79,22 @@ Deno.serve(async (req) => {
     const managerEmail = (body?.managerEmail ?? "").trim().toLowerCase();
     const phone = body?.phone ? normalizePhone(body.phone) : null;
     const address = body?.address ? String(body.address).trim() : null;
+    const accessMode = body?.accessMode ?? 'invite';
+    const accessError = initialAccessError(accessMode, body?.initialPassword);
+    if (accessError) return json({ error: accessError }, 400);
 
     if (!salonName || !managerName || !managerEmail) {
       return json({ error: "Informe nome do salão, responsável e e-mail do gerente" }, 400);
     }
 
     // Usuário já existe? -> só retomar se a correlação for inequívoca
-    const { data: existingList } = await supabaseAdmin.auth.admin.listUsers({
-      page: 1,
-      perPage: 200,
-    });
-    const existing = existingList?.users?.find(
-      (u: { email?: string }) => (u.email ?? "").toLowerCase() === managerEmail,
-    );
+    let existing: { id: string } | undefined;
+    for (let page = 1; ; page++) {
+      const { data: existingList, error: listError } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 200 });
+      if (listError) return json({ error: 'Não foi possível verificar o e-mail do responsável.' }, 500);
+      existing = existingList.users.find(u => (u.email ?? '').toLowerCase() === managerEmail);
+      if (existing || existingList.users.length < 200) break;
+    }
 
     let managerId: string | null = null;
     let createdNow = false;
@@ -111,31 +116,31 @@ Deno.serve(async (req) => {
       }
       managerId = existing.id;
     } else {
-      const { data: invited, error: inviteErr } = await supabaseAdmin.auth.admin
-        .inviteUserByEmail(managerEmail, {
-          redirectTo,
-          data: {
+      const metadata = {
             name: managerName,
             is_new_manager: true,
             salon_name: salonName,
-          },
-        });
+      };
+      const { data: invited, error: inviteErr } = accessMode === 'password'
+        ? await supabaseAdmin.auth.admin.createUser({ email: managerEmail, password: body.initialPassword, email_confirm: true, user_metadata: metadata })
+        : await supabaseAdmin.auth.admin.inviteUserByEmail(managerEmail, { redirectTo, data: metadata });
       if (inviteErr || !invited?.user) {
         return json({ error: inviteErr?.message ?? "Falha ao criar o acesso do gerente" }, 400);
       }
       managerId = invited.user.id;
       createdNow = true;
     }
+    if (!managerId) return json({ error: 'Não foi possível identificar o responsável' }, 500);
 
     // O gatilho handle_new_user cria salão + usuário + papel. Confere consistência.
     const { data: userRow } = await supabaseAdmin
       .from("users")
       .select("id, salon_id, is_manager")
-      .eq("id", managerId!)
+      .eq("id", managerId)
       .maybeSingle();
 
     if (!userRow?.salon_id) {
-      if (createdNow) await supabaseAdmin.auth.admin.deleteUser(managerId!);
+      if (createdNow) await supabaseAdmin.auth.admin.deleteUser(managerId);
       return json({ error: "Provisionamento incompleto: salão não foi criado. Tente novamente." }, 500);
     }
 
@@ -145,16 +150,16 @@ Deno.serve(async (req) => {
     const { error: userUpdErr } = await supabaseAdmin
       .from("users")
       .update({ name: managerName, email: managerEmail, has_access: true, is_manager: true })
-      .eq("id", managerId!);
+      .eq("id", managerId);
     if (userUpdErr) {
-      if (createdNow) await supabaseAdmin.auth.admin.deleteUser(managerId!);
+      if (createdNow) await supabaseAdmin.auth.admin.deleteUser(managerId);
       return json({ error: userUpdErr.message }, 400);
     }
 
     // Garante papel de gerente
     const { error: roleErr } = await supabaseAdmin
       .from("user_roles")
-      .upsert({ user_id: managerId!, role: "manager" }, { onConflict: "user_id,role" });
+      .upsert({ user_id: managerId, role: "manager" }, { onConflict: "user_id,role" });
     if (roleErr) {
       return json({ error: `Salão criado, mas o papel do gerente falhou: ${roleErr.message}` }, 500);
     }
