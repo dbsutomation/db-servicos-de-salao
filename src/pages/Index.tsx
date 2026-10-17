@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import MainLayout from '@/components/Layout/MainLayout';
 import DashboardFilters from '@/components/Dashboard/DashboardFilters';
 import FinancialStats from '@/components/Dashboard/FinancialStats';
+import RevenueEvolutionChart from '@/components/Dashboard/RevenueEvolutionChart';
 import PaymentMethodStats from '@/components/Dashboard/PaymentMethodStats';
 import QuantityStats from '@/components/Dashboard/QuantityStats';
 import ServiceRecordsTable from '@/components/Dashboard/ServiceRecordsTable';
@@ -39,6 +40,7 @@ const Index = () => {
     topServices,
     topClient,
     paymentMethodStats,
+    evolutionRecords,
     serviceRecordsList,
     loading,
     loadError,
