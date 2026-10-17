@@ -1,0 +1,2 @@
+CREATE OR REPLACE FUNCTION public.get_user_salon_id() RETURNS uuid LANGUAGE sql STABLE SECURITY DEFINER SET search_path='' AS $$ SELECT u.salon_id FROM public.users u WHERE u.id=auth.uid() AND u.has_access AND NOT EXISTS(SELECT 1 FROM public.system_admins a WHERE a.user_id=auth.uid()) $$;
+CREATE OR REPLACE FUNCTION public.is_manager() RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path='' AS $$ SELECT public.get_user_salon_id() IS NOT NULL AND public.has_role(auth.uid(),'manager') $$;
