@@ -79,24 +79,27 @@ const Login = () => {
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${salonBg.url})` }}
       />
-      {/* Camada branca bem suave só onde o texto institucional fica */}
-      <div className="absolute inset-0 hidden lg:block bg-gradient-to-r from-background/70 via-background/25 to-transparent" />
-      <div className="absolute inset-0 lg:hidden bg-gradient-to-b from-background/75 via-background/30 to-transparent" />
       <div className="relative mx-auto flex min-h-screen max-w-7xl items-center p-4 sm:p-8"><div className="grid w-full items-center gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-stretch lg:gap-12">
         {/* Marca + prévia ilustrativa */}
         <section className="space-y-6 lg:flex lg:flex-col lg:justify-center">
-          <div>
-            <p className="text-3xl sm:text-4xl font-bold tracking-tight"><span className="text-primary">DB</span>-Automation</p>
-            <p className="text-sm text-foreground/70">Gestão para salões de beleza</p>
-            <span className="mt-3 block h-1 w-10 rounded-full bg-primary" />
-          </div>
-          <div className="space-y-3">
-            <h1 className="text-3xl sm:text-5xl font-bold leading-tight tracking-tight">
-              Gestão completa<br />para o <span className="text-primary">seu salão.</span>
-            </h1>
-            <p className="max-w-xl text-base sm:text-lg text-foreground/80">
-              Organize clientes, serviços, profissionais, carrinho, comissões e indicadores financeiros em um só sistema.
-            </p>
+          <div className="relative">
+            {/* Véu branco suave só atrás do texto institucional */}
+            <div aria-hidden="true" className="text-veil absolute -inset-x-6 -inset-y-5 sm:-inset-x-10 sm:-inset-y-8" />
+            <div className="relative space-y-6">
+              <div>
+                <p className="text-3xl sm:text-4xl font-bold tracking-tight"><span className="text-primary">DB</span>-Automation</p>
+                <p className="text-sm text-foreground/70">Gestão para salões de beleza</p>
+                <span className="mt-3 block h-1 w-10 rounded-full bg-primary" />
+              </div>
+              <div className="space-y-3">
+                <h1 className="text-3xl sm:text-5xl font-bold leading-tight tracking-tight">
+                  Gestão completa<br />para o <span className="text-primary">seu salão.</span>
+                </h1>
+                <p className="max-w-xl text-base sm:text-lg text-foreground/80">
+                  Organize clientes, serviços, profissionais, carrinho, comissões e indicadores financeiros em um só sistema.
+                </p>
+              </div>
+            </div>
           </div>
           <div className="hidden md:block"><DashboardTeaser /></div>
           <div className="hidden md:grid grid-cols-3 gap-2">
