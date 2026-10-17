@@ -6,18 +6,23 @@ import { useCheckoutForm } from '@/hooks/useCheckoutForm';
 import ClientSelect from './CheckoutComponents/ClientSelect';
 import TeamMemberSelect from './CheckoutComponents/TeamMemberSelect';
 import PaymentMethodSelector from './CheckoutComponents/PaymentMethodSelector';
+import QuickClientCreate from './CheckoutComponents/QuickClientCreate';
 
 const CheckoutForm = () => {
-  const { form, clients, teamMembers, loading, onSubmit } = useCheckoutForm();
+  const { form, clients, teamMembers, loading, onSubmit, onClientCreated } = useCheckoutForm();
   
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <div className="space-y-6">
+      <div className="space-y-2">
         <ClientSelect 
           form={form} 
           clients={clients} 
           loading={loading} 
         />
+        <QuickClientCreate disabled={loading} onCreated={onClientCreated} />
+      </div>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         
         <TeamMemberSelect 
           form={form} 
@@ -31,6 +36,7 @@ const CheckoutForm = () => {
           Finalizar Registro
         </Button>
       </form>
+      </div>
     </Form>
   );
 };

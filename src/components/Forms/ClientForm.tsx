@@ -2,39 +2,16 @@
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { toTitleCase, formatPhoneMask, normalizePhone } from '@/lib/formatters';
-
-// Validates the masked phone like "(DD) NNNNN-NNNN" (10 or 11 digits total)
-const phoneRegex = /^\(\d{2}\)\s\d{4,5}-\d{4}$/;
-
-const baseSchema = z.object({
-  name: z.string().min(2, { message: 'Nome deve ter pelo menos 2 caracteres' }),
-});
-
-const newClientSchema = baseSchema.extend({
-  phone: z.string().min(1, { message: 'Telefone é obrigatório' }).regex(phoneRegex, { message: 'Telefone inválido. Use (DD) NNNNN-NNNN' }),
-  email: z.string().min(1, { message: 'Email é obrigatório' }).email({ message: 'Email inválido' }),
-});
-
-const editClientSchema = baseSchema.extend({
-  phone: z.string().optional().refine((v) => !v || phoneRegex.test(v), { message: 'Telefone inválido. Use (DD) NNNNN-NNNN' }),
-  email: z.string().optional().or(z.literal('')).refine((v) => !v || z.string().email().safeParse(v).success, { message: 'Email inválido' }),
-});
-
-type ClientFormValues = {
-  name: string;
-  phone?: string;
-  email?: string;
-};
+import { newClientSchema, editClientSchema, type ClientFormValues } from '@/lib/clientValidation';
 
 interface ClientFormProps {
-  onSuccess: (data: ClientFormValues) => void;
+  onSuccess: (data: ClientFormValues) => void | Promise<boolean | void>;
   clientId?: string | null;
 }
 
@@ -83,14 +60,14 @@ const ClientForm = ({ onSuccess, clientId }: ClientFormProps) => {
     fetchClientData();
   }, [clientId, form, toast]);
 
-  const onSubmit = (data: ClientFormValues) => {
+  const onSubmit = async (data: ClientFormValues) => {
     const normalized = {
       ...data,
       name: toTitleCase(data.name),
       phone: data.phone ? normalizePhone(data.phone) : data.phone,
     };
-    onSuccess(normalized);
-    form.reset();
+    const result = await onSuccess(normalized);
+    if (result !== false) form.reset();
   };
 
   return (
@@ -138,7 +115,7 @@ const ClientForm = ({ onSuccess, clientId }: ClientFormProps) => {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>Email (opcional)</FormLabel>
               <FormControl>
                 <Input type="email" placeholder="exemplo@email.com" {...field} />
               </FormControl>
@@ -148,7 +125,7 @@ const ClientForm = ({ onSuccess, clientId }: ClientFormProps) => {
         />
         
         <div className="flex justify-end space-x-2">
-          <Button type="submit">{clientId ? 'Salvar' : 'Adicionar'}</Button>
+          <Button type="submit" disabled={form.formState.isSubmitting}>{form.formState.isSubmitting ? 'Salvando...' : clientId ? 'Salvar' : 'Adicionar'}</Button>
         </div>
       </form>
     </Form>

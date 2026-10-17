@@ -117,7 +117,7 @@ const Clients = () => {
         description: error.message || "Ocorreu um erro ao salvar o cliente",
         variant: "destructive"
       });
-      return;
+      return false;
     }
     
     setDialogOpen(false);

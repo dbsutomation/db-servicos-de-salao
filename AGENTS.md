@@ -1,5 +1,7 @@
 # Architecture decisions
 
+- Share internal client validation between client management and quick checkout creation; render the quick-create dialog outside the checkout form to avoid nested form submissions.
+
 - Resolve platform-admin membership from Supabase before operational profiles in the shared auth context; route guards use that resolved state to keep administrative and establishment screens mutually exclusive.
 
 - Create the default walk-in client with an after-insert salon trigger, never a backfill, so existing establishments remain unchanged and provisioning is atomic.
