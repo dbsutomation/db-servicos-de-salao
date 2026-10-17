@@ -192,6 +192,18 @@ export const useDashboardData = () => {
     );
   }, [filteredRecords, clientSearchTerm]);
 
+  // Records for the revenue evolution chart: same revenue rule as "Faturamento Total",
+  // scoped by professional access, but NOT limited by the period/type filters
+  const evolutionRecords = useMemo(() => {
+    let records = [...serviceRecords];
+    if (selectedProfessional && selectedProfessional !== 'all') {
+      records = records.filter(record => record.teamMember.id === selectedProfessional);
+    } else if (currentUser && !currentUser.isManager) {
+      records = records.filter(record => record.teamMember.id === currentUser.id);
+    }
+    return records;
+  }, [serviceRecords, selectedProfessional, currentUser]);
+
   // Filter expenses using the SAME date filter as service records
   const filteredExpenses = useMemo(() => {
     if (!expenses || expenses.length === 0) return [];
