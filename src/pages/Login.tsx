@@ -76,11 +76,11 @@ const Login = () => {
       {/* Foto de salão ao fundo: ambiente visível e desfocado, com véu reduzido */}
       <div className="absolute inset-0" aria-hidden="true">
         <img src={salonBg} alt=""
-          className="h-full w-full scale-[1.03] object-cover blur-[2px] opacity-95 sm:blur-[3px] lg:blur-[4px] contrast-[1.14] brightness-[0.9]" />
+          className="h-full w-full scale-[1.03] object-cover blur-[2px] opacity-95 sm:blur-[3px] lg:blur-[4px] contrast-[1.12] brightness-[0.95]" />
         {/* Véu base reduzido: o ambiente aparece, mas não compete com o conteúdo */}
-        <div className="absolute inset-0 bg-background/40 lg:bg-background/10" />
-        {/* Véu lateral: protege os textos à esquerda e o card à direita */}
-        <div className="absolute inset-0 hidden lg:block bg-gradient-to-r from-background/72 via-background/15 to-background/55" />
+        <div className="absolute inset-0 bg-background/40 lg:bg-background/22" />
+        {/* Véu lateral: denso atrás dos textos à esquerda, leve perto do card */}
+        <div className="absolute inset-0 hidden lg:block bg-gradient-to-r from-background/90 from-[8%] via-background/70 via-[55%] to-background/15 to-[92%]" />
         {/* No celular, um véu extra só atrás da marca e do título garante a leitura */}
         <div className="absolute inset-x-0 top-0 h-[58%] bg-gradient-to-b from-background/85 via-background/50 to-transparent lg:hidden" />
       </div>
