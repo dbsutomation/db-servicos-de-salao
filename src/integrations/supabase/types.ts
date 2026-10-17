@@ -671,6 +671,15 @@ export type Database = {
         | { Args: never; Returns: boolean }
         | { Args: { p_salon_id: string }; Returns: boolean }
       is_system_admin: { Args: never; Returns: boolean }
+      provision_new_salon: {
+        Args: {
+          p_manager_email: string
+          p_manager_id: string
+          p_manager_name: string
+          p_salon_name: string
+        }
+        Returns: string
+      }
       salon_feature_enabled: {
         Args: { p_feature: string; p_salon_id: string }
         Returns: boolean

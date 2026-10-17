@@ -26,10 +26,11 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const ANON_KEY = Deno.env.get("SUPABASE_PUBLISHABLE_KEY") ??
-      Deno.env.get("SUPABASE_ANON_KEY")!;
-    const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      Deno.env.get("SUPABASE_ANON_KEY");
+    const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!SUPABASE_URL || !ANON_KEY || !SERVICE_ROLE) return new Response(JSON.stringify({ error: 'Configuração indisponível' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
     const authHeader = req.headers.get("Authorization") ?? "";
     if (!authHeader) {
@@ -61,7 +62,7 @@ Deno.serve(async (req) => {
     // Verifica se o chamador é manager e obtém o salon_id dele
     const { data: callerRow, error: callerRowErr } = await supabaseAdmin
       .from("users")
-      .select("salon_id, is_manager")
+      .select("salon_id, has_access")
       .eq("id", callerId)
       .single();
 
@@ -71,7 +72,9 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    if (!callerRow.is_manager || !callerRow.salon_id) {
+    const { data: roleRow } = await supabaseAdmin.from('user_roles').select('user_id').eq('user_id', callerId).eq('role', 'manager').maybeSingle();
+    const { data: salonRow } = await supabaseAdmin.from('salons').select('status').eq('id', callerRow.salon_id).maybeSingle();
+    if (!roleRow || !callerRow.has_access || salonRow?.status !== 'ativo' || !callerRow.salon_id) {
       return new Response(
         JSON.stringify({ error: "Apenas gerentes podem cadastrar profissionais" }),
         {
