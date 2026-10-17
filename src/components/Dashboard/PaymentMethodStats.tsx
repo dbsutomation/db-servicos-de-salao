@@ -1,44 +1,32 @@
-
 import React from 'react';
-import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Banknote, CreditCard, QrCode, Wallet } from 'lucide-react';
+import StatCard from './StatCard';
 
-interface PaymentMethodStat {
-  method: string;
-  amount: number;
-}
+interface PaymentMethodStat { method: string; amount: number; }
+interface PaymentMethodStatsProps { paymentMethodStats: PaymentMethodStat[]; }
 
-interface PaymentMethodStatsProps {
-  paymentMethodStats: PaymentMethodStat[];
-}
+const brl = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
 
-const PaymentMethodStats: React.FC<PaymentMethodStatsProps> = ({ paymentMethodStats }) => {
-  return (
-    <>
-      <h2 className="text-xl font-semibold">Pagamentos por Método</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {paymentMethodStats.map(({method, amount}) => (
-          <Card key={method} className="shadow-md border-2 border-border">
-            <CardHeader>
-              <CardDescription>Pagamentos em {method}</CardDescription>
-              <CardTitle className="text-2xl">
-                {new Intl.NumberFormat('pt-BR', {
-                  style: 'currency', 
-                  currency: 'BRL'
-                }).format(amount)}
-              </CardTitle>
-            </CardHeader>
-          </Card>
-        ))}
-        {paymentMethodStats.length === 0 && (
-          <Card className="col-span-full shadow-md border-2 border-border">
-            <CardHeader>
-              <CardDescription>Nenhum pagamento registrado no período</CardDescription>
-            </CardHeader>
-          </Card>
-        )}
-      </div>
-    </>
-  );
+const iconFor = (method: string) => {
+  const m = method.toLowerCase();
+  if (m.includes('pix')) return <QrCode size={20} />;
+  if (m.includes('cart') || m.includes('créd') || m.includes('déb')) return <CreditCard size={20} />;
+  if (m.includes('dinheiro')) return <Banknote size={20} />;
+  return <Wallet size={20} />;
 };
+
+const PaymentMethodStats: React.FC<PaymentMethodStatsProps> = ({ paymentMethodStats }) => (
+  <section className="space-y-3">
+    <h2 className="text-lg font-semibold">Pagamentos por Método</h2>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {paymentMethodStats.map(({ method, amount }) => (
+        <StatCard key={method} label={`Pagamentos em ${method}`} value={brl(amount)} icon={iconFor(method)} />
+      ))}
+      {paymentMethodStats.length === 0 && (
+        <p className="col-span-full rounded-xl border p-4 text-sm text-muted-foreground">Nenhum pagamento registrado no período</p>
+      )}
+    </div>
+  </section>
+);
 
 export default PaymentMethodStats;

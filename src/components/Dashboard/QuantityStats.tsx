@@ -1,12 +1,8 @@
-
 import React from 'react';
-import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Scissors, Star, Users } from 'lucide-react';
+import StatCard from './StatCard';
 
-interface TopItem {
-  name: string;
-  count: number;
-}
-
+interface TopItem { name: string; count: number; }
 interface QuantityStatsProps {
   totalServices: number;
   totalClients: number;
@@ -14,50 +10,16 @@ interface QuantityStatsProps {
   topClient: TopItem;
 }
 
-const QuantityStats: React.FC<QuantityStatsProps> = ({ 
-  totalServices, 
-  totalClients, 
-  topServices, 
-  topClient 
-}) => {
-  return (
-    <>
-      <h2 className="text-xl font-semibold">Indicadores de Quantidade</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="shadow-md border-2 border-border">
-          <CardHeader>
-            <CardDescription>Total de Serviços</CardDescription>
-            <CardTitle className="text-3xl">{totalServices}</CardTitle>
-          </CardHeader>
-        </Card>
-        
-        <Card className="shadow-md border-2 border-border">
-          <CardHeader>
-            <CardDescription>Clientes Atendidos</CardDescription>
-            <CardTitle className="text-3xl">{totalClients}</CardTitle>
-          </CardHeader>
-        </Card>
-
-        <Card className="shadow-md border-2 border-border">
-          <CardHeader>
-            <CardDescription>Serviço Mais Realizado</CardDescription>
-            <CardTitle className="text-2xl">
-              {topServices.name} ({topServices.count})
-            </CardTitle>
-          </CardHeader>
-        </Card>
-        
-        <Card className="shadow-md border-2 border-border">
-          <CardHeader>
-            <CardDescription>Cliente com Mais Serviços</CardDescription>
-            <CardTitle className="text-2xl">
-              {topClient.name} ({topClient.count})
-            </CardTitle>
-          </CardHeader>
-        </Card>
-      </div>
-    </>
-  );
-};
+const QuantityStats: React.FC<QuantityStatsProps> = ({ totalServices, totalClients, topServices, topClient }) => (
+  <section className="space-y-3">
+    <h2 className="text-lg font-semibold">Indicadores de Quantidade</h2>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <StatCard label="Total de Serviços" value={totalServices} icon={<Scissors size={20} />} />
+      <StatCard label="Clientes Atendidos" value={totalClients} icon={<Users size={20} />} />
+      <StatCard label="Serviço Mais Realizado" value={`${topServices.name} (${topServices.count})`} icon={<Star size={20} />} />
+      <StatCard label="Cliente com Mais Serviços" value={`${topClient.name} (${topClient.count})`} icon={<Star size={20} />} />
+    </div>
+  </section>
+);
 
 export default QuantityStats;

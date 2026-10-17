@@ -1,7 +1,7 @@
-
 import React from 'react';
-import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { BarChart3, Coins, Receipt, TrendingUp } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import StatCard from './StatCard';
 
 interface FinancialStatsProps {
   totalRevenue: number;
@@ -10,79 +10,23 @@ interface FinancialStatsProps {
   netProfit: number;
 }
 
-const FinancialStats: React.FC<FinancialStatsProps> = ({ 
-  totalRevenue, 
-  totalCommissions, 
-  totalExpenses, 
-  netProfit 
-}) => {
+const brl = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+
+const FinancialStats: React.FC<FinancialStatsProps> = ({ totalRevenue, totalCommissions, totalExpenses, netProfit }) => {
   const { currentUser } = useAuth();
-  const isManager = currentUser?.isManager;
-  
-  // Define the correct background colors
-  const positiveBackgroundColor = "bg-accent"; // Matches revenue background
-  const negativeBackgroundColor = "bg-destructive/10"; // Matches expenses background
-  
-  // Use different backgrounds based on profit value
-  const profitBackgroundColor = netProfit >= 0 ? positiveBackgroundColor : negativeBackgroundColor;
+  const showExpenses = currentUser?.isManager && currentUser?.features?.expenses;
 
   return (
-    <>
-      <h2 className="text-xl font-semibold">Indicadores Financeiros</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="shadow-md border-2 border-border">
-          <CardHeader className="bg-accent">
-            <CardDescription>Faturamento Total</CardDescription>
-            <CardTitle className="text-3xl">
-              {new Intl.NumberFormat('pt-BR', {
-                style: 'currency', 
-                currency: 'BRL'
-              }).format(totalRevenue)}
-            </CardTitle>
-          </CardHeader>
-        </Card>
-        
-        <Card className="shadow-md border-2 border-border">
-          <CardHeader className="bg-destructive/10">
-            <CardDescription>Comissão Total</CardDescription>
-            <CardTitle className="text-3xl">
-              {new Intl.NumberFormat('pt-BR', {
-                style: 'currency', 
-                currency: 'BRL'
-              }).format(totalCommissions)}
-            </CardTitle>
-          </CardHeader>
-        </Card>
-        
-        {isManager && currentUser?.features?.expenses && (
-          <Card className="shadow-md border-2 border-border">
-            <CardHeader className="bg-destructive/10">
-              <CardDescription>Despesas</CardDescription>
-              <CardTitle className="text-3xl">
-                {new Intl.NumberFormat('pt-BR', {
-                  style: 'currency', 
-                  currency: 'BRL'
-                }).format(totalExpenses)}
-              </CardTitle>
-            </CardHeader>
-          </Card>
-        )}
-        
-        {isManager && currentUser?.features?.expenses && (
-          <Card className="shadow-md border-2 border-border">
-            <CardHeader className={profitBackgroundColor}>
-              <CardDescription>Lucro Líquido</CardDescription>
-              <CardTitle className="text-3xl">
-                {new Intl.NumberFormat('pt-BR', {
-                  style: 'currency', 
-                  currency: 'BRL'
-                }).format(netProfit)}
-              </CardTitle>
-            </CardHeader>
-          </Card>
-        )}
-      </div>
-    </>
+    <div className={`grid grid-cols-1 sm:grid-cols-2 ${showExpenses ? 'lg:grid-cols-4' : ''} gap-4`}>
+      <StatCard size="lg" tone="primary" label="Faturamento Total" value={brl(totalRevenue)} icon={<BarChart3 size={22} />} />
+      <StatCard size="lg" tone="destructive" label="Comissão Total" value={brl(totalCommissions)} icon={<Coins size={22} />} />
+      {showExpenses && (
+        <StatCard size="lg" tone="destructive" label="Despesas" value={brl(totalExpenses)} icon={<Receipt size={22} />} />
+      )}
+      {showExpenses && (
+        <StatCard size="lg" tone={netProfit >= 0 ? 'primary' : 'destructive'} label="Lucro Líquido" value={brl(netProfit)} icon={<TrendingUp size={22} />} />
+      )}
+    </div>
   );
 };
 
