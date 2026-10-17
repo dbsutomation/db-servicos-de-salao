@@ -95,10 +95,10 @@
      sem clarear a tela inteira. As bordas somem no fundo em degradê. */
   .text-veil {
     background: radial-gradient(
-      ellipse 74% 72% at 42% 50%,
-      hsl(var(--background) / 0.82) 0%,
-      hsl(var(--background) / 0.64) 40%,
-      hsl(var(--background) / 0.32) 68%,
+      ellipse 76% 74% at 42% 50%,
+      hsl(var(--background) / 0.86) 0%,
+      hsl(var(--background) / 0.70) 42%,
+      hsl(var(--background) / 0.34) 70%,
       hsl(var(--background) / 0) 100%
     );
   }

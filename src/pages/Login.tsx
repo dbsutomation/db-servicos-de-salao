@@ -81,21 +81,21 @@ const Login = () => {
       />
       <div className="relative mx-auto flex min-h-screen max-w-7xl items-center p-4 sm:p-8"><div className="grid w-full items-center gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-stretch lg:gap-12">
         {/* Marca + prévia ilustrativa */}
-        <section className="space-y-6 lg:flex lg:flex-col lg:justify-center">
+        <section className="space-y-8 lg:flex lg:flex-col lg:justify-center">
           <div className="relative">
             {/* Véu branco suave só atrás do texto institucional */}
-            <div aria-hidden="true" className="text-veil absolute -inset-x-6 -inset-y-5 sm:-inset-x-10 sm:-inset-y-8" />
-            <div className="relative space-y-6">
-              <div>
+            <div aria-hidden="true" className="text-veil absolute -inset-x-6 -inset-y-6 sm:-inset-x-10 sm:-inset-y-9" />
+            <div className="relative space-y-8">
+              <div className="space-y-2.5">
                 <p className="text-3xl sm:text-4xl font-bold tracking-tight"><span className="text-primary">DB</span>-Automation</p>
-                <p className="text-sm text-foreground/70">Gestão para salões de beleza</p>
-                <span className="mt-3 block h-1 w-10 rounded-full bg-primary" />
+                <p className="text-sm sm:text-base font-medium tracking-wide text-foreground/80">Gestão para salões de beleza</p>
+                <span className="block h-1 w-10 rounded-full bg-primary" />
               </div>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <h1 className="text-3xl sm:text-5xl font-bold leading-tight tracking-tight">
                   Gestão completa<br />para o <span className="text-primary">seu salão.</span>
                 </h1>
-                <p className="max-w-xl text-base sm:text-lg text-foreground">
+                <p className="max-w-xl text-base sm:text-lg leading-relaxed text-foreground">
                   Organize clientes, serviços, profissionais, carrinho, comissões e indicadores financeiros em um só sistema.
                 </p>
               </div>
