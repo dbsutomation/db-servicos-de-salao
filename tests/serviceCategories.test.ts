@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { getServiceCategories } from './serviceCategories';
+import { getServiceCategories } from '../src/lib/serviceCategories';
 
 describe('custom service categories', () => {
   it('accepts a custom category alongside all five existing categories', () => {
