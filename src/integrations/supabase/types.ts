@@ -322,6 +322,7 @@ export type Database = {
           feature_work_hours: boolean
           id: string
           is_active: boolean
+          logo_url: string | null
           name: string
           owner_id: string
           phone: string | null
@@ -337,6 +338,7 @@ export type Database = {
           feature_work_hours?: boolean
           id?: string
           is_active?: boolean
+          logo_url?: string | null
           name: string
           owner_id: string
           phone?: string | null
@@ -352,6 +354,7 @@ export type Database = {
           feature_work_hours?: boolean
           id?: string
           is_active?: boolean
+          logo_url?: string | null
           name?: string
           owner_id?: string
           phone?: string | null
