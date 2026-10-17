@@ -149,6 +149,14 @@ const AppRoutes = () => {
         </CartProvider>
       } />
 
+      <Route path="/configuracoes" element={
+        <CartProvider>
+          <ProtectedRoute requiredRoutes={["/configuracoes"]}>
+            <Settings />
+          </ProtectedRoute>
+        </CartProvider>
+      } />
+
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
