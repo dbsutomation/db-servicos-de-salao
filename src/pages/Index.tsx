@@ -108,6 +108,11 @@ const Index = () => {
               />
             )}
 
+            {/* Revenue evolution chart - Conditional rendering based on showFinancialData */}
+            {showFinancialData && (
+              <RevenueEvolutionChart records={evolutionRecords} />
+            )}
+
             {/* Stats by payment method - Conditional rendering based on showFinancialData */}
             {showFinancialData && (
               <PaymentMethodStats paymentMethodStats={paymentMethodStats} />
