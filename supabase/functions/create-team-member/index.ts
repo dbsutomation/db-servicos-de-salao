@@ -95,6 +95,7 @@ Deno.serve(async (req) => {
       profession,
       hasAccess,
       isManager,
+      receivesCommission,
       categories,
     } = body ?? {};
 
@@ -146,6 +147,7 @@ Deno.serve(async (req) => {
         profession: profession || null,
         has_access: hasAccess ?? true,
         is_manager: isManager ?? false,
+        receives_commission: receivesCommission ?? true,
         categories: categories || [],
         salon_id: salonId,
       });
