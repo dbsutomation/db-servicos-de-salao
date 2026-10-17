@@ -78,11 +78,11 @@ const Login = () => {
         <img src={salonBg} alt=""
           className="h-full w-full scale-[1.03] object-cover blur-[2px] opacity-95 sm:blur-[3px] lg:blur-[4px] contrast-[1.12] brightness-[0.95]" />
         {/* Véu base reduzido: o ambiente aparece, mas não compete com o conteúdo */}
-        <div className="absolute inset-0 bg-background/40 lg:bg-background/22" />
+        <div className="absolute inset-0 bg-background/30 lg:bg-background/20" />
         {/* Véu lateral: denso atrás dos textos à esquerda, leve perto do card */}
         <div className="absolute inset-0 hidden lg:block bg-gradient-to-r from-background/90 from-[8%] via-background/70 via-[55%] to-background/15 to-[92%]" />
         {/* No celular, um véu extra só atrás da marca e do título garante a leitura */}
-        <div className="absolute inset-x-0 top-0 h-[58%] bg-gradient-to-b from-background/85 via-background/50 to-transparent lg:hidden" />
+        <div className="absolute inset-x-0 top-0 h-[58%] bg-gradient-to-b from-background/80 via-background/45 to-transparent lg:hidden" />
       </div>
       <div className="relative mx-auto flex min-h-screen max-w-7xl items-center p-4 sm:p-8"><div className="grid w-full items-center gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-stretch lg:gap-12">
         {/* Marca + prévia ilustrativa */}
