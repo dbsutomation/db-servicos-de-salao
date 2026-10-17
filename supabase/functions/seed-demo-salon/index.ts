@@ -180,9 +180,14 @@ Deno.serve(async (req) => {
   // ---- GUARDA 4: divergência de conteúdo em IDs já existentes ----
   const existingIds = new Set((existing ?? []).map((e) => e.id));
   if (existingIds.size > 0) {
-    const { data: existingFull } = await supabase.from("service_records")
-      .select("id,client_id,professional_id,service_id,service_value,commission_amount,payment_method,date")
-      .in("id", [...existingIds]);
+    const existingFull: Record<string, unknown>[] = [];
+    const idArr = [...existingIds];
+    for (let i = 0; i < idArr.length; i += 500) {
+      const { data: page } = await supabase.from("service_records")
+        .select("id,client_id,professional_id,service_id,service_value,commission_amount,payment_method,date")
+        .in("id", idArr.slice(i, i + 500));
+      existingFull.push(...(page ?? []));
+    }
     const byId = new Map(recs.map((r) => [r.id, r]));
     for (const e of existingFull ?? []) {
       const p = byId.get(e.id)!;
