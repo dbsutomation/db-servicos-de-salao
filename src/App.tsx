@@ -23,17 +23,17 @@ import MeusAgendamentos from "./pages/MeusAgendamentos";
 import Agenda from "./pages/Agenda";
 import NotFound from "./pages/NotFound";
 import AdminGuard from "./components/admin/AdminGuard";
-import AdminLogin from "./pages/admin/AdminLogin";
 import AdminSalons from "./pages/admin/AdminSalons";
 import AdminSalonNew from "./pages/admin/AdminSalonNew";
 import AdminSalonDetail from "./pages/admin/AdminSalonDetail";
 import ClientPortalGuard from "./components/Layout/ClientPortalGuard";
+import { loginDestination } from './lib/loginAccess';
 
 const queryClient = new QueryClient();
 
 // Protected route component
 const ProtectedRoute = ({ children, requiredRoutes }: { children: JSX.Element, requiredRoutes: string[] }) => {
-  const { isAuthenticated, isLoading, checkAccess } = useAuth();
+  const { isAuthenticated, isSystemAdmin, isLoading, checkAccess } = useAuth();
 
   if (isLoading) {
     return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Carregando...</div>;
@@ -42,6 +42,7 @@ const ProtectedRoute = ({ children, requiredRoutes }: { children: JSX.Element, r
   if (!isAuthenticated) {
     return <Navigate to="/login" />;
   }
+  if (isSystemAdmin) return <Navigate to={loginDestination(true)} replace />;
   
   if (!checkAccess(requiredRoutes)) {
     return <Navigate to="/" />;
@@ -52,12 +53,12 @@ const ProtectedRoute = ({ children, requiredRoutes }: { children: JSX.Element, r
 
 // Auth wrapper that uses the context
 const AppRoutes = () => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isSystemAdmin, isLoading } = useAuth();
 
   return (
     <Routes>
       <Route path="/login" element={
-        isAuthenticated && !isLoading ? <Navigate to="/" /> : <Login />
+        isAuthenticated && !isLoading ? <Navigate to={loginDestination(isSystemAdmin)} replace /> : <Login />
       } />
 
       {/* Rotas públicas de cliente (não passam pela auth interna) */}
@@ -68,7 +69,7 @@ const AppRoutes = () => {
       <Route path="/meus-agendamentos" element={<ClientPortalGuard><MeusAgendamentos /></ClientPortalGuard>} />
 
       {/* Administração da plataforma */}
-      <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/admin/login" element={<Navigate to="/login" replace />} />
       <Route path="/admin" element={<Navigate to="/admin/saloes" replace />} />
       <Route path="/admin/saloes" element={<AdminGuard><AdminSalons /></AdminGuard>} />
       <Route path="/admin/saloes/novo" element={<AdminGuard><AdminSalonNew /></AdminGuard>} />

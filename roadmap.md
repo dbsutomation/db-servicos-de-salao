@@ -1,5 +1,10 @@
 # Salon function controls
 
+# Unified login
+- [x] Share the login screen, resolve platform-admin access first, and block operational pages for administrators; access rules covered by four tests.
+- [x] Remove the dedicated administrator login; verify real staff login, denied admin-page access, reload, and logout in the browser.
+- [ ] Verify shared login with a real platform-admin session (blocked: available test account is an establishment user; administrator routing and operational denial verified by tests).
+
 # Readiness for the next establishment
 
 - [x] Allow administrator-selected initial passwords without requiring email delivery; retain invitation mode and preserve passwords on retries.

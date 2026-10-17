@@ -1,5 +1,7 @@
 # Architecture decisions
 
+- Resolve platform-admin membership from Supabase before operational profiles in the shared auth context; route guards use that resolved state to keep administrative and establishment screens mutually exclusive.
+
 - Create the default walk-in client with an after-insert salon trigger, never a backfill, so existing establishments remain unchanged and provisioning is atomic.
 - Provision initial manager passwords only through the authenticated platform-admin edge function; preserve invitation mode and never store or return the password.
 - Derive category suggestions from current RLS-scoped services plus legacy defaults; keep category strings consistent between service and professional forms.
