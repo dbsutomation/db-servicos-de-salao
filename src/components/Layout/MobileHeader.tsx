@@ -33,7 +33,7 @@ const MobileHeader = ({ toggleMobileMenu }: MobileHeaderProps) => {
         <Button variant="ghost" size="icon" onClick={toggleMobileMenu} aria-label="Abrir menu">
           <MenuIcon size={24} />
         </Button>
-        <div className="flex items-center gap-2 min-w-0">
+        <div className="flex items-center gap-2 min-w-0 flex-1 justify-center px-1">
           {currentUser?.salonLogo && (
             <img
               src={currentUser.salonLogo}
@@ -41,7 +41,7 @@ const MobileHeader = ({ toggleMobileMenu }: MobileHeaderProps) => {
               className="h-8 w-8 rounded-full object-cover border border-border shrink-0"
             />
           )}
-          <h1 className="text-sm font-bold text-primary truncate max-w-[160px]">
+          <h1 className="text-sm font-bold text-primary truncate min-w-0">
             {currentUser?.salonName || 'Gestão de Produtos e Serviços'}
           </h1>
         </div>
