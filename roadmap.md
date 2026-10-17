@@ -1,5 +1,9 @@
 # Salon function controls
 
+# Unified login
+- [ ] Share the login screen, resolve platform-admin access first, and block operational pages for administrators.
+- [ ] Remove the dedicated administrator login and verify shared login and access guards.
+
 # Readiness for the next establishment
 
 - [x] Allow administrator-selected initial passwords without requiring email delivery; retain invitation mode and preserve passwords on retries.
