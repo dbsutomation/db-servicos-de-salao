@@ -73,11 +73,16 @@ const Login = () => {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
-      {/* Foto de salão ao fundo, suavizada */}
+      {/* Foto de salão ao fundo: ambiente visível e desfocado, com véu reduzido */}
       <div className="absolute inset-0" aria-hidden="true">
-        <img src={salonBg} alt="" className="h-full w-full object-cover blur-[2px] opacity-60" />
-        <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/40 to-background/90" />
-        <div className="absolute inset-0 hidden lg:block bg-gradient-to-r from-transparent via-transparent to-background/95" />
+        <img src={salonBg} alt=""
+          className="h-full w-full scale-[1.03] object-cover blur-[2px] opacity-95 sm:blur-[3px] lg:blur-[4px] contrast-[1.08]" />
+        {/* Véu base: mais denso no celular para manter a leitura */}
+        <div className="absolute inset-0 bg-background/55 lg:bg-background/18" />
+        {/* Véu lateral: protege os textos à esquerda e o card à direita */}
+        <div className="absolute inset-0 hidden lg:block bg-gradient-to-r from-background/72 via-background/18 to-background/55" />
+        {/* Suaviza topo e rodapé sem apagar o ambiente */}
+        <div className="absolute inset-0 bg-gradient-to-b from-background/35 via-transparent to-background/40" />
       </div>
       <div className="relative mx-auto flex min-h-screen max-w-7xl items-center p-4 sm:p-8"><div className="grid w-full items-center gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-stretch lg:gap-12">
         {/* Marca + prévia ilustrativa */}
