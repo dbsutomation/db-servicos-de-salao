@@ -222,5 +222,11 @@ export function useCheckoutForm() {
     }
   };
 
-  return { form, clients, teamMembers, loading, onSubmit };
+  const onClientCreated = (client: Client) => {
+    setClients(previous => [...previous.filter(existing => existing.id !== client.id), client]
+      .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')));
+    form.setValue('client', client.id, { shouldValidate: true, shouldDirty: true });
+  };
+
+  return { form, clients, teamMembers, loading, onSubmit, onClientCreated };
 }

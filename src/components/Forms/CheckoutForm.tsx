@@ -6,11 +6,13 @@ import { useCheckoutForm } from '@/hooks/useCheckoutForm';
 import ClientSelect from './CheckoutComponents/ClientSelect';
 import TeamMemberSelect from './CheckoutComponents/TeamMemberSelect';
 import PaymentMethodSelector from './CheckoutComponents/PaymentMethodSelector';
+import QuickClientCreate from './CheckoutComponents/QuickClientCreate';
 
 const CheckoutForm = () => {
-  const { form, clients, teamMembers, loading, onSubmit } = useCheckoutForm();
+  const { form, clients, teamMembers, loading, onSubmit, onClientCreated } = useCheckoutForm();
   
   return (
+    <>
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <ClientSelect 
@@ -18,6 +20,7 @@ const CheckoutForm = () => {
           clients={clients} 
           loading={loading} 
         />
+        <Button type="button" variant="link" className="hidden" aria-hidden="true" tabIndex={-1} />
         
         <TeamMemberSelect 
           form={form} 
@@ -32,6 +35,10 @@ const CheckoutForm = () => {
         </Button>
       </form>
     </Form>
+    <div className="mt-3">
+      <QuickClientCreate disabled={loading} onCreated={onClientCreated} />
+    </div>
+    </>
   );
 };
 
