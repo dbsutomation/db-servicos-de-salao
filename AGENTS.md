@@ -15,3 +15,4 @@
 - Enforce optional functions in RLS as well as page navigation; UI-only restrictions cannot protect direct data access.
 - Work hours require agenda, and disabling agenda turns off its work-hours flag without deleting saved schedule rows. This preserves settings for later reactivation.
 - Only platform administrators can update salon feature flags; a database trigger protects this even if other salon update permissions change.- Components use only semantic color tokens (primary, secondary, accent, etc.) defined in `src/index.css`; no brand-specific color utilities. This keeps a single source of truth and enables future per-salon theming by overriding CSS variables.
+- Salon logos live in the existing public service-images bucket at {salon_id}/logo.webp, resized client-side to 256px WebP before upload; the URL is stored in salons.logo_url. Reuses the same salon-prefixed storage policies instead of a new bucket.
