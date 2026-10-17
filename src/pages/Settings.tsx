@@ -20,6 +20,10 @@ const Settings: React.FC = () => {
   const [savingSalon, setSavingSalon] = useState(false);
   const [savingUser, setSavingUser] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [logoUrl, setLogoUrl] = useState('');
+  const [logoPreview, setLogoPreview] = useState('');
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -29,13 +33,14 @@ const Settings: React.FC = () => {
       if (currentUser.isManager && currentUser.salonId) {
         const { data, error } = await supabase
           .from('salons')
-          .select('name, phone, address')
+          .select('name, phone, address, logo_url')
           .eq('id', currentUser.salonId)
           .single();
         if (!error && data) {
           setSalonName(data.name || '');
           setSalonPhone(data.phone || '');
           setSalonAddress(data.address || '');
+          setLogoUrl((data as any).logo_url || '');
         }
       }
       setLoading(false);
