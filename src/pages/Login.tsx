@@ -79,7 +79,7 @@ const Login = () => {
         <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/40 to-background/90" />
         <div className="absolute inset-0 hidden lg:block bg-gradient-to-r from-transparent via-transparent to-background/95" />
       </div>
-      <div className="relative mx-auto flex min-h-screen max-w-7xl items-center p-4 sm:p-8"><div className="grid w-full items-center gap-8 p-4 sm:p-8 lg:grid-cols-[1.4fr_1fr] lg:items-stretch lg:gap-12 lg:py-10">
+      <div className="relative mx-auto flex min-h-screen max-w-7xl items-center p-4 sm:p-8"><div className="grid w-full items-center gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-stretch lg:gap-12">
         {/* Marca + prévia ilustrativa */}
         <section className="space-y-6 lg:flex lg:flex-col lg:justify-center">
           <div>
@@ -179,7 +179,7 @@ const Login = () => {
             </div>
           </div>
         </section>
-      </div>
+      </div></div>
     </div>
   );
 };
