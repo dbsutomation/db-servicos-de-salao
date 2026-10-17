@@ -65,7 +65,7 @@ const Sidebar = ({
   return (
     <div className="flex flex-col h-full overflow-y-auto">
       <div className="px-4 py-6 border-b-2 border-border flex justify-between items-center gap-2">
-        <div className="flex items-center gap-3 min-w-0">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
           {currentUser?.salonLogo && (
             <img
               src={currentUser.salonLogo}
@@ -73,7 +73,7 @@ const Sidebar = ({
               className="h-10 w-10 rounded-full object-cover border-2 border-border shrink-0"
             />
           )}
-          <h1 className={`font-bold text-primary truncate ${isMobile ? 'text-lg' : 'text-xl'}`}>
+          <h1 className={`font-bold text-primary min-w-0 break-words leading-tight ${isMobile ? 'text-base' : 'text-lg'}`}>
             {currentUser?.salonName || 'Gestão de Produtos e Serviços'}
           </h1>
         </div>

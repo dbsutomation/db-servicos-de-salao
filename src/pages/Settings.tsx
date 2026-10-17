@@ -11,7 +11,7 @@ import { toast } from '@/hooks/use-toast';
 import { processLogoFile } from '@/lib/imageUtils';
 
 const Settings: React.FC = () => {
-  const { currentUser } = useAuth();
+  const { currentUser, refreshSalonInfo } = useAuth();
   const [salonName, setSalonName] = useState('');
   const [salonPhone, setSalonPhone] = useState('');
   const [salonAddress, setSalonAddress] = useState('');
@@ -64,6 +64,7 @@ const Settings: React.FC = () => {
     if (error) {
       toast({ title: 'Erro ao salvar dados do salão', description: error.message, variant: 'destructive' });
     } else {
+      await refreshSalonInfo();
       toast({ title: 'Dados do salão atualizados' });
     }
   };
@@ -95,7 +96,8 @@ const Settings: React.FC = () => {
       if (updateError) throw updateError;
 
       setLogoUrl(url);
-      toast({ title: 'Logo atualizado', description: 'Recarregue a página para ver o logo no menu.' });
+      await refreshSalonInfo();
+      toast({ title: 'Logo atualizado' });
     } catch (error: any) {
       setLogoPreview('');
       toast({ title: 'Erro ao enviar o logo', description: error.message, variant: 'destructive' });

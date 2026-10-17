@@ -13,6 +13,7 @@ interface AuthContextType extends AuthState {
   checkAccess: (requiredRoutes: string[]) => boolean;
   isLoading: boolean;
   isSystemAdmin: boolean;
+  refreshSalonInfo: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -275,8 +276,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return requiredRoutes.some(route => allowedRoutes.includes(route));
   };
 
+  // Recarrega nome, logo e funções do salão sem exigir novo login
+  const refreshSalonInfo = async () => {
+    const current = authState.currentUser;
+    if (!current?.salonId) return;
+    const { data: salonData } = await supabase
+      .from('salons' as any)
+      .select('name, logo_url, feature_expenses, feature_agenda, feature_work_hours')
+      .eq('id', current.salonId)
+      .single();
+    if (!salonData) return;
+    setAuthState({
+      isAuthenticated: true,
+      currentUser: {
+        ...current,
+        salonName: (salonData as any)?.name || '',
+        salonLogo: (salonData as any)?.logo_url || '',
+        features: {
+          expenses: (salonData as any)?.feature_expenses === true,
+          agenda: (salonData as any)?.feature_agenda === true,
+          workHours: (salonData as any)?.feature_agenda === true && (salonData as any)?.feature_work_hours === true,
+        },
+      },
+    });
+  };
+
   return (
-    <AuthContext.Provider value={{ ...authState, isSystemAdmin, isLoading, login, logout, checkAccess }}>
+    <AuthContext.Provider value={{ ...authState, isSystemAdmin, isLoading, login, logout, checkAccess, refreshSalonInfo }}>
       {children}
     </AuthContext.Provider>
   );
