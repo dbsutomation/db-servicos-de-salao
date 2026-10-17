@@ -349,6 +349,7 @@ export const useDashboardData = () => {
     topServices,
     topClient,
     paymentMethodStats,
+    evolutionRecords,
     serviceRecordsList,
     loading,
     loadError,
