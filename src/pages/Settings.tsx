@@ -68,6 +68,42 @@ const Settings: React.FC = () => {
     }
   };
 
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !currentUser?.salonId) return;
+
+    setUploadingLogo(true);
+    try {
+      const blob = await processLogoFile(file);
+      const previewUrl = URL.createObjectURL(blob);
+      setLogoPreview(previewUrl);
+
+      const path = `${currentUser.salonId}/logo.webp`;
+      const { error: uploadError } = await supabase.storage
+        .from('service-images')
+        .upload(path, blob, { contentType: 'image/webp', upsert: true });
+      if (uploadError) throw uploadError;
+
+      const { data: publicData } = supabase.storage.from('service-images').getPublicUrl(path);
+      const url = `${publicData.publicUrl}?v=${Date.now()}`;
+
+      const { error: updateError } = await supabase
+        .from('salons')
+        .update({ logo_url: url } as any)
+        .eq('id', currentUser.salonId);
+      if (updateError) throw updateError;
+
+      setLogoUrl(url);
+      toast({ title: 'Logo atualizado', description: 'Recarregue a página para ver o logo no menu.' });
+    } catch (error: any) {
+      setLogoPreview('');
+      toast({ title: 'Erro ao enviar o logo', description: error.message, variant: 'destructive' });
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
   const saveUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser?.id) return;
