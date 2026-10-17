@@ -144,6 +144,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   categories: (data as any).categories || [],
                   salonId,
                   salonName,
+                  salonLogo,
                   features: salonFeatures,
                 };
                 
