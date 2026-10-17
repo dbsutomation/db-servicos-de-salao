@@ -101,14 +101,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 
                 // Buscar nome e situação do salão
                 let salonName = '';
+                let salonLogo = '';
                 let salonFeatures = { expenses: false, agenda: false, workHours: false };
                 if (salonId) {
                   const { data: salonData } = await supabase
                     .from('salons' as any)
-                    .select('name, status, feature_expenses, feature_agenda, feature_work_hours')
+                    .select('name, status, logo_url, feature_expenses, feature_agenda, feature_work_hours')
                     .eq('id', salonId)
                     .single();
                   salonName = (salonData as any)?.name || '';
+                  salonLogo = (salonData as any)?.logo_url || '';
                   salonFeatures = {
                     expenses: (salonData as any)?.feature_expenses === true,
                     agenda: (salonData as any)?.feature_agenda === true,
