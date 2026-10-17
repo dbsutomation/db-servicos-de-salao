@@ -119,7 +119,9 @@ Deno.serve(async (req) => {
 
     if (createErr || !created.user) {
       return new Response(
-        JSON.stringify({ error: createErr?.message ?? "Falha ao criar usuário" }),
+        JSON.stringify({ error: createErr && (createErr.code === 'email_exists' || /already.*(registered|exists)|email.*exists/i.test(createErr.message))
+          ? 'Este e-mail já possui um cadastro no sistema. Confira se o profissional já foi cadastrado ou utilize outro e-mail pessoal ao qual ele tenha acesso.'
+          : createErr?.message ?? "Falha ao criar usuário" }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },

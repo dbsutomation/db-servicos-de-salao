@@ -9,9 +9,12 @@ import ServiceRecordsTable from '@/components/Dashboard/ServiceRecordsTable';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { Button } from '@/components/ui/button';
 import { Eye, EyeOff } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Index = () => {
   const [showFinancialData, setShowFinancialData] = useState(true);
+  const { currentUser } = useAuth();
 
   const {
     dateFilter,
@@ -37,7 +40,9 @@ const Index = () => {
     topClient,
     paymentMethodStats,
     serviceRecordsList,
-    loading
+    loading,
+    loadError,
+    hasAnyRecords
   } = useDashboardData();
 
   const toggleFinancialData = () => {
@@ -81,6 +86,16 @@ const Index = () => {
           </div>
         ) : (
           <>
+            {loadError ? <p role="alert" className="border-l-4 border-destructive bg-muted p-4 text-sm">Não foi possível carregar os dados. Tente recarregar a página.</p> : !hasAnyRecords && (
+              <section className="border-l-4 border-primary bg-accent p-4 space-y-3">
+                <h2 className="font-semibold">Bem-vindo à Gestão de Produtos e Serviços</h2>
+                <p className="text-sm text-muted-foreground">{currentUser?.isManager ? 'Nenhum registro realizado ainda. Seu estabelecimento está pronto para começar.' : 'Você ainda não possui registros realizados.'}</p>
+                <div className="flex flex-wrap gap-2">
+                  <Button asChild><Link to="/services">{currentUser?.isManager ? 'Cadastrar serviços e produtos' : 'Ver serviços e produtos'}</Link></Button>
+                  {currentUser?.isManager && <Button asChild variant="outline"><Link to="/team">Cadastrar profissionais</Link></Button>}
+                </div>
+              </section>
+            )}
             {/* Financial Stats Cards - Conditional rendering based on showFinancialData */}
             {showFinancialData && (
               <FinancialStats 

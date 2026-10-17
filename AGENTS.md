@@ -1,5 +1,10 @@
 # Architecture decisions
 
+- Create the default walk-in client with an after-insert salon trigger, never a backfill, so existing establishments remain unchanged and provisioning is atomic.
+- Provision initial manager passwords only through the authenticated platform-admin edge function; preserve invitation mode and never store or return the password.
+- Derive category suggestions from current RLS-scoped services plus legacy defaults; keep category strings consistent between service and professional forms.
+- Determine dashboard first-use state from unfiltered accessible records only after a successful read, so filtered empty periods and failed requests do not look like new establishments.
+
 - Optional salon functions live as booleans on `public.salons`; database defaults are off, while preexisting salons retain their former access. This prevents new salons from inheriting optional capabilities.
 - Enforce optional functions in RLS as well as page navigation; UI-only restrictions cannot protect direct data access.
 - Work hours require agenda, and disabling agenda turns off its work-hours flag without deleting saved schedule rows. This preserves settings for later reactivation.

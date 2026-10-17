@@ -1,10 +1,13 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { X } from 'lucide-react';
+import { X, Plus } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { supabase } from '@/integrations/supabase/client';
+import { getServiceCategories } from '@/lib/serviceCategories';
 import { UseFormReturn } from 'react-hook-form';
 import { TeamMemberFormValues } from './validationSchema';
 
@@ -12,22 +15,27 @@ interface CategoriesFieldProps {
   form: UseFormReturn<TeamMemberFormValues>;
 }
 
-const serviceCategories = [
-  { value: 'Cabelo', label: 'Cabelo' },
-  { value: 'Depilação', label: 'Depilação' },
-  { value: 'Podologia', label: 'Podologia' },
-  { value: 'Sobrancelhas', label: 'Sobrancelhas' },
-  { value: 'Unhas', label: 'Unhas' }
-];
-
 const CategoriesField = ({ form }: CategoriesFieldProps) => {
   const currentCategories = form.watch('categories') || [];
+  const [customCategory, setCustomCategory] = useState('');
+  const [salonCategories, setSalonCategories] = useState<string[]>([]);
+  useEffect(() => {
+    let active = true;
+    supabase.from('services').select('category').then(({ data }) => {
+      if (active) setSalonCategories((data ?? []).map(service => service.category ?? ''));
+    });
+    return () => { active = false; };
+  }, []);
+  const serviceCategories = getServiceCategories([...salonCategories, ...currentCategories]).map(category => ({ value: category, label: category }));
 
   const addCategory = (categoryValue: string) => {
+    categoryValue = categoryValue.trim();
+    if (!categoryValue) return;
     if (!currentCategories.includes(categoryValue)) {
       const newCategories = [...currentCategories, categoryValue];
-      form.setValue('categories', newCategories);
+      form.setValue('categories', newCategories, { shouldDirty: true });
     }
+    setCustomCategory('');
   };
 
   const removeCategory = (categoryValue: string) => {
@@ -87,6 +95,12 @@ const CategoriesField = ({ form }: CategoriesFieldProps) => {
                 </SelectContent>
               </Select>
             )}
+            <div className="flex gap-2">
+              <Input aria-label="Nova categoria" placeholder="Nova categoria" value={customCategory} onChange={e => setCustomCategory(e.target.value)} onKeyDown={e => {
+                if (e.key === 'Enter') { e.preventDefault(); addCategory(customCategory); }
+              }} />
+              <Button type="button" variant="outline" size="icon" title="Adicionar categoria" aria-label="Adicionar categoria" disabled={!customCategory.trim()} onClick={() => addCategory(customCategory)}><Plus size={18} /></Button>
+            </div>
           </div>
           <FormMessage />
         </FormItem>
