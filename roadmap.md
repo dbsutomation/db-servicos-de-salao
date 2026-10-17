@@ -1,5 +1,10 @@
 # Salon function controls
 
+# Client checkout and security
+- [ ] Make client email optional and test validation.
+- [ ] Add quick client creation inside checkout and verify selection without losing cart items.
+- [ ] Review and repair security findings; verify isolation and report any external configuration blockers.
+
 # Unified login
 - [x] Share the login screen, resolve platform-admin access first, and block operational pages for administrators; access rules covered by four tests.
 - [x] Remove the dedicated administrator login; verify real staff login, denied admin-page access, reload, and logout in the browser.
