@@ -1,0 +1,1 @@
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS receives_commission boolean NOT NULL DEFAULT true;

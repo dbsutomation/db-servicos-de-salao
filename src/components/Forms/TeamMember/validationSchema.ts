@@ -11,6 +11,7 @@ export const teamMemberFormSchema = (isEditing: boolean) => z.object({
   password: z.string().optional(),
   hasAccess: z.boolean(),
   isManager: z.boolean(),
+  receivesCommission: z.boolean().default(true),
   categories: z.array(z.string()).default([])
 });
 

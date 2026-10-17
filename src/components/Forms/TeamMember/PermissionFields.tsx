@@ -46,6 +46,27 @@ const PermissionFields = ({ form }: PermissionFieldsProps) => {
           </FormItem>
         )}
       />
+
+      <FormField
+        control={form.control}
+        name="receivesCommission"
+        render={({ field }) => (
+          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+            <div className="space-y-0.5">
+              <FormLabel className="text-base">Recebe Comissão</FormLabel>
+              <p className="text-sm text-muted-foreground">
+                Se desligado, os atendimentos deste profissional não geram comissão.
+              </p>
+            </div>
+            <FormControl>
+              <Switch
+                checked={field.value}
+                onCheckedChange={field.onChange}
+              />
+            </FormControl>
+          </FormItem>
+        )}
+      />
     </div>
   );
 };

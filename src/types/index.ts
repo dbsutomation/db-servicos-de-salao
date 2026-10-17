@@ -30,6 +30,7 @@ export interface TeamMember {
   password: string;
   hasAccess: boolean;
   isManager: boolean;
+  receivesCommission?: boolean;
   avatar?: string;
   categories?: string[]; // Categorias do profissional
   salonId?: string;   // Salão ao qual o usuário pertence

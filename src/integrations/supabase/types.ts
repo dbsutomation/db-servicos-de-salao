@@ -563,6 +563,7 @@ export type Database = {
           name: string
           phone: string | null
           profession: string | null
+          receives_commission: boolean
           salon_id: string
           updated_at: string
           user_type: string | null
@@ -578,6 +579,7 @@ export type Database = {
           name: string
           phone?: string | null
           profession?: string | null
+          receives_commission?: boolean
           salon_id: string
           updated_at?: string
           user_type?: string | null
@@ -593,6 +595,7 @@ export type Database = {
           name?: string
           phone?: string | null
           profession?: string | null
+          receives_commission?: boolean
           salon_id?: string
           updated_at?: string
           user_type?: string | null
