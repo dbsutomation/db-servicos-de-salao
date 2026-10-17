@@ -166,7 +166,12 @@ Deno.serve(async (req) => {
   // ---- GUARDA 3: registros pré-existentes fora desta carga ----
   const recs = await generate();
   const plannedIds = new Set(recs.map((r) => r.id));
-  const { data: existing } = await supabase.from("service_records").select("id").eq("salon_id", SALON).limit(2000);
+  const existing: { id: string }[] = [];
+  for (let from = 0; ; from += 1000) {
+    const { data: page } = await supabase.from("service_records").select("id").eq("salon_id", SALON).range(from, from + 999);
+    existing.push(...(page ?? []));
+    if (!page || page.length < 1000) break;
+  }
   const estranhos = (existing ?? []).filter((e) => !plannedIds.has(e.id));
   if (estranhos.length > 0) {
     return Response.json({ abortado: "existem registros fora desta carga", ids: estranhos.slice(0, 5) }, { status: 409 });
