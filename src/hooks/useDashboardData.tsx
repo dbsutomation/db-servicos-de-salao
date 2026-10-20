@@ -34,6 +34,9 @@ export const useDashboardData = () => {
   const [serviceRecords, setServiceRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
+  // Only show the full-screen loading state on the first load; refreshes keep filters and page visible.
+  const firstLoadRef = useRef(true);
   
   
   // Fetch expenses and service records from Supabase
@@ -115,7 +118,7 @@ export const useDashboardData = () => {
     };
 
     fetchData();
-  }, [currentUser?.features?.expenses]);
+  }, [currentUser?.features?.expenses, reloadKey]);
 
   // If user is not a manager, pre-filter by their ID
   useEffect(() => {
@@ -349,6 +352,7 @@ export const useDashboardData = () => {
     serviceRecordsList,
     loading,
     loadError,
-    hasAnyRecords: serviceRecords.length > 0
+    hasAnyRecords: serviceRecords.length > 0,
+    reload: () => setReloadKey((k) => k + 1)
   };
 };

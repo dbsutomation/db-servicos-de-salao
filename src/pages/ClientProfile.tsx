@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ArrowLeft } from 'lucide-react';
+import { fetchAllRows } from '@/lib/fetchAllRows';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
@@ -65,8 +66,7 @@ const ClientProfile: React.FC = () => {
           query = query.eq('professional_id', currentUser.id);
         }
 
-        const { data: recordsData, error: recordsError } = await query;
-        if (recordsError) throw recordsError;
+        const recordsData = await fetchAllRows<any>((from, to) => query.order('id').range(from, to) as any);
 
         const mapped: RecordRow[] = (recordsData || []).map((r: any) => ({
           id: r.id,

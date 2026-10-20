@@ -19,9 +19,9 @@ const StatCard = ({ label, value, icon, tone = 'neutral', size = 'md' }: StatCar
   const t = toneStyles[tone];
   return (
     <div className={cn('flex items-center justify-between gap-3 rounded-xl border p-4 shadow-sm min-w-0', t.card)}>
-      <div className="min-w-0">
-        <p className="text-sm text-muted-foreground truncate">{label}</p>
-        <p className={cn('font-bold text-foreground truncate', size === 'lg' ? 'text-2xl sm:text-3xl' : 'text-xl')}>{value}</p>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm text-muted-foreground leading-snug">{label}</p>
+        <p className={cn('font-bold text-foreground tabular-nums leading-tight break-words', size === 'lg' ? 'text-2xl lg:text-xl xl:text-2xl' : 'text-xl')}>{value}</p>
       </div>
       <div className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-lg', t.icon)}>{icon}</div>
     </div>
