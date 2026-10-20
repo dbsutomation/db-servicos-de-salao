@@ -14,6 +14,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { fetchAllRows } from '@/lib/fetchAllRows';
 import { supabase } from '@/integrations/supabase/client';
 import { getCurrentSalonId } from '@/lib/salon';
 import { Expense } from '@/types';
@@ -50,12 +51,9 @@ const Expenses = () => {
   const fetchExpenses = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('expenses')
-        .select('*')
-        .order('expense_date', { ascending: false });
-      if (error) throw error;
-      setExpenses((data || []) as Expense[]);
+      const data = await fetchAllRows<Expense>((from, to) =>
+        supabase.from('expenses').select('*').order('expense_date', { ascending: false }).order('id').range(from, to) as any);
+      setExpenses(data);
     } catch (error: any) {
       toast({ title: 'Erro ao carregar despesas', description: error.message, variant: 'destructive' });
     } finally {

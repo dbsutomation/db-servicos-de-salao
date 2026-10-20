@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { format as dateFormat } from 'date-fns';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { Card } from '@/components/ui/card';
@@ -39,6 +39,8 @@ interface ServiceRecordsTableProps {
   serviceRecordsList: DisplayServiceRecord[];
   searchTerm: string;
   setSearchTerm: (term: string) => void;
+  onChanged?: () => void;
+  resetKey?: string;
 }
 
 const formSchema = z.object({
@@ -55,9 +57,14 @@ const ITEMS_PER_PAGE = 20;
 const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({ 
   serviceRecordsList,
   searchTerm,
-  setSearchTerm
+  setSearchTerm,
+  onChanged,
+  resetKey
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Any filter/search change starts again at page 1.
+  useEffect(() => { setCurrentPage(1); }, [resetKey]);
   const { currentUser } = useAuth();
   const { toast } = useToast();
   const [selectedRecord, setSelectedRecord] = useState<DisplayServiceRecord | null>(null);
@@ -92,6 +99,12 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
   const totalPages = Math.ceil(filteredRecords.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const paginatedRecords = filteredRecords.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  // Keep the page valid when results shrink (after edit/delete or filtering).
+  useEffect(() => {
+    const maxPage = Math.max(1, totalPages);
+    if (currentPage > maxPage) setCurrentPage(maxPage);
+  }, [currentPage, totalPages]);
   
   // Calculate filtered totals (for the current filtered records only)
   const filteredTotalCommissions = filteredRecords.reduce((total, record) => total + (record.commissionAmount || 0), 0);
@@ -199,8 +212,7 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
         description: "O registro de serviço foi removido com sucesso.",
       });
 
-      // Force reload to update the list
-      window.location.reload();
+      onChanged?.();
     } catch (error: any) {
       toast({
         title: "Erro ao excluir",
@@ -234,8 +246,7 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
         description: "O registro de serviço foi atualizado com sucesso.",
       });
 
-      // Force reload to update the list
-      window.location.reload();
+      onChanged?.();
     } catch (error: any) {
       toast({
         title: "Erro ao atualizar",
@@ -291,7 +302,7 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
           </Card>
         ))}
         {filteredRecords.length === 0 && (
-          <p className="text-center py-6 text-muted-foreground">{searchTerm ? "Nenhum resultado encontrado para a busca" : "Nenhum dado para o período selecionado"}</p>
+          <p className="text-center py-6 text-muted-foreground">{searchTerm ? "Nenhum registro encontrado para a busca" : "Nenhum registro encontrado para o período selecionado"}</p>
         )}
         {filteredRecords.length > 0 && (
           <Card className="p-4 grid grid-cols-3 gap-2 text-center text-xs">

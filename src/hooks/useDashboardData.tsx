@@ -5,6 +5,7 @@ import { fromZonedTime, toZonedTime } from 'date-fns-tz';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Expense, ServiceRecord, Service, TeamMember, Client } from '@/types';
+import { fetchAllRows } from '@/lib/fetchAllRows';
 
 export const useDashboardData = () => {
   // Explicitly set timezone to Brasilia time (UTC-3)
@@ -33,6 +34,9 @@ export const useDashboardData = () => {
   const [serviceRecords, setServiceRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
+  // Only show the full-screen loading state on the first load; refreshes keep filters and page visible.
+  const firstLoadRef = useRef(true);
   
   
   // Fetch expenses and service records from Supabase
@@ -41,21 +45,15 @@ export const useDashboardData = () => {
       setLoading(true);
       setLoadError(false);
       try {
-        // Fetch expenses
-        const { data: expensesData, error: expensesError } = currentUser?.features?.expenses
-          ? await supabase.from('expenses').select('*')
-          : { data: [], error: null };
+        // Fetch expenses (paginated: no fixed row cap)
+        const expensesData = currentUser?.features?.expenses
+          ? await fetchAllRows<Expense>((from, to) =>
+              supabase.from('expenses').select('*').order('expense_date', { ascending: false }).order('id').range(from, to) as any)
+          : [];
 
-        if (expensesError) {
-          throw expensesError;
-        }
-
-        // Fetch service records with related data.
-        // PostgREST caps each response at 1,000 rows, so paginate until a short page.
-        const PAGE_SIZE = 1000;
-        const recordsData: any[] = [];
-        for (let from = 0; ; from += PAGE_SIZE) {
-          const { data: page, error: recordsError } = await supabase
+        // Fetch all service records with related data, page by page.
+        const recordsData = await fetchAllRows<any>((from, to) =>
+          supabase
             .from('service_records')
             .select(`
               id,
@@ -69,15 +67,8 @@ export const useDashboardData = () => {
               users:professional_id (id, name, profession)
             `)
             .order('date', { ascending: false })
-            .range(from, from + PAGE_SIZE - 1);
-
-          if (recordsError) {
-            throw recordsError;
-          }
-
-          recordsData.push(...(page || []));
-          if (!page || page.length < PAGE_SIZE) break;
-        }
+            .order('id')
+            .range(from, to) as any);
 
         setExpenses(expensesData || []);
         
@@ -127,7 +118,7 @@ export const useDashboardData = () => {
     };
 
     fetchData();
-  }, [currentUser?.features?.expenses]);
+  }, [currentUser?.features?.expenses, reloadKey]);
 
   // If user is not a manager, pre-filter by their ID
   useEffect(() => {
@@ -361,6 +352,7 @@ export const useDashboardData = () => {
     serviceRecordsList,
     loading,
     loadError,
-    hasAnyRecords: serviceRecords.length > 0
+    hasAnyRecords: serviceRecords.length > 0,
+    reload: () => setReloadKey((k) => k + 1)
   };
 };

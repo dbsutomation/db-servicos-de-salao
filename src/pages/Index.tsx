@@ -44,7 +44,8 @@ const Index = () => {
     serviceRecordsList,
     loading,
     loadError,
-    hasAnyRecords
+    hasAnyRecords,
+    reload
   } = useDashboardData();
 
   const toggleFinancialData = () => {
@@ -137,6 +138,8 @@ const Index = () => {
               serviceRecordsList={serviceRecordsList}
               searchTerm={clientSearchTerm}
               setSearchTerm={setClientSearchTerm}
+              onChanged={reload}
+              resetKey={`${dateFilter}|${startDate?.toISOString()}|${endDate?.toISOString()}|${selectedProfessional}|${selectedType}|${clientSearchTerm}`}
             />
           </>
         )}
