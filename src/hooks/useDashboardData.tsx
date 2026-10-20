@@ -50,25 +50,33 @@ export const useDashboardData = () => {
           throw expensesError;
         }
 
-        // Fetch service records with related data
-        const { data: recordsData, error: recordsError } = await supabase
-          .from('service_records')
-          .select(`
-            id,
-            date,
-            payment_method,
-            commission_amount,
-            service_value,
-            tip_amount,
-            services:service_id (id, name, price, type, category),
-            clients:client_id (id, name),
-            users:professional_id (id, name, profession)
-          `)
-          .range(0, 9999)
-          .order('date', { ascending: false });
+        // Fetch service records with related data.
+        // PostgREST caps each response at 1,000 rows, so paginate until a short page.
+        const PAGE_SIZE = 1000;
+        const recordsData: any[] = [];
+        for (let from = 0; ; from += PAGE_SIZE) {
+          const { data: page, error: recordsError } = await supabase
+            .from('service_records')
+            .select(`
+              id,
+              date,
+              payment_method,
+              commission_amount,
+              service_value,
+              tip_amount,
+              services:service_id (id, name, price, type, category),
+              clients:client_id (id, name),
+              users:professional_id (id, name, profession)
+            `)
+            .order('date', { ascending: false })
+            .range(from, from + PAGE_SIZE - 1);
 
-        if (recordsError) {
-          throw recordsError;
+          if (recordsError) {
+            throw recordsError;
+          }
+
+          recordsData.push(...(page || []));
+          if (!page || page.length < PAGE_SIZE) break;
         }
 
         setExpenses(expensesData || []);
