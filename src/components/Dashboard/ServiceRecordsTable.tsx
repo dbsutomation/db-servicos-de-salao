@@ -103,7 +103,7 @@ const ServiceRecordsTable: React.FC<ServiceRecordsTableProps> = ({
   // Keep the page valid when results shrink (after edit/delete or filtering).
   useEffect(() => {
     const maxPage = Math.max(1, totalPages);
-    if (currentPage > maxPage) setCurrentPage(maxPage);
+    setCurrentPage((p) => Math.min(p, maxPage));
   }, [currentPage, totalPages]);
   
   // Calculate filtered totals (for the current filtered records only)
