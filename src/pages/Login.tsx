@@ -73,23 +73,23 @@ const Login = () => {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-background">
+    <div className="relative flex min-h-screen flex-col overflow-hidden bg-background">
       {/* Foto do salão enviada pelo usuário: cor original, cover, centrada */}
       <div
         aria-hidden="true"
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${salonBg.url})` }}
       />
-      <div className="relative mx-auto flex min-h-screen max-w-7xl items-center p-4 sm:p-8"><div className="grid w-full items-center gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-stretch lg:gap-12">
+      <div className="relative mx-auto flex w-full max-w-7xl flex-1 items-center p-4 sm:p-8"><div className="grid w-full items-center gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-stretch lg:gap-12">
         {/* Marca + prévia ilustrativa */}
         <section className="space-y-8 lg:flex lg:flex-col lg:justify-center">
           <div className="relative">
             {/* Véu branco suave só atrás do texto institucional */}
             <div aria-hidden="true" className="text-veil absolute -inset-x-6 -inset-y-6 sm:-inset-x-10 sm:-inset-y-9" />
             <div className="relative space-y-8">
-              <div className="space-y-2.5">
-                <div className="flex items-center gap-3 sm:gap-4">
-                  <img src={studioIcon.url} alt="" width={64} height={64} className="h-14 w-14 shrink-0 rounded-xl sm:h-16 sm:w-16" />
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <img src={studioIcon.url} alt="" width={64} height={64} className="h-11 w-11 shrink-0 rounded-lg sm:h-12 sm:w-12" />
                   <p className="text-3xl font-bold text-primary sm:text-4xl">One Studio</p>
                 </div>
                 <p className="text-sm sm:text-base font-medium tracking-wide text-foreground/80">Gestão para salões de beleza</p>
@@ -190,6 +190,9 @@ const Login = () => {
           </div>
         </section>
       </div></div>
+      <footer className="relative px-4 pb-4 pt-1 text-center sm:pb-6">
+        <p className="text-xs font-medium text-muted-foreground/70">Uma solução DB Automation</p>
+      </footer>
     </div>
   );
 };
