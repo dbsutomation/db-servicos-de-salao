@@ -87,9 +87,9 @@ const Login = () => {
             {/* Véu branco suave só atrás do texto institucional */}
             <div aria-hidden="true" className="text-veil absolute -inset-x-6 -inset-y-6 sm:-inset-x-10 sm:-inset-y-9" />
             <div className="relative space-y-8">
-              <div className="space-y-2.5">
-                <div className="flex items-center gap-3 sm:gap-4">
-                  <img src={studioIcon.url} alt="" width={64} height={64} className="h-14 w-14 shrink-0 rounded-xl sm:h-16 sm:w-16" />
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <img src={studioIcon.url} alt="" width={64} height={64} className="h-11 w-11 shrink-0 rounded-lg sm:h-12 sm:w-12" />
                   <p className="text-3xl font-bold text-primary sm:text-4xl">One Studio</p>
                 </div>
                 <p className="text-sm sm:text-base font-medium tracking-wide text-foreground/80">Gestão para salões de beleza</p>
