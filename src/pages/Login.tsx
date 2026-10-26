@@ -73,14 +73,14 @@ const Login = () => {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-background">
+    <div className="relative flex min-h-screen flex-col overflow-hidden bg-background">
       {/* Foto do salão enviada pelo usuário: cor original, cover, centrada */}
       <div
         aria-hidden="true"
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${salonBg.url})` }}
       />
-      <div className="relative mx-auto flex min-h-screen max-w-7xl items-center p-4 sm:p-8"><div className="grid w-full items-center gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-stretch lg:gap-12">
+      <div className="relative mx-auto flex w-full max-w-7xl flex-1 items-center p-4 sm:p-8"><div className="grid w-full items-center gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-stretch lg:gap-12">
         {/* Marca + prévia ilustrativa */}
         <section className="space-y-8 lg:flex lg:flex-col lg:justify-center">
           <div className="relative">
@@ -190,6 +190,9 @@ const Login = () => {
           </div>
         </section>
       </div></div>
+      <footer className="relative px-4 pb-4 pt-1 text-center sm:pb-6">
+        <p className="text-xs font-medium text-muted-foreground/70">Uma solução DB Automation</p>
+      </footer>
     </div>
   );
 };
