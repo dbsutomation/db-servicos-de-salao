@@ -1,5 +1,9 @@
 # Salon function controls
 
+# Login branding and mobile shortcut
+- [x] Apply supplied OS symbol with One Studio on login without changing authentication or the surrounding composition.
+- [x] Configure favicon and manifest-only mobile home-screen icons; desktop/mobile display and served icon metadata verified, no runtime errors; physical-device installation not tested.
+
 # Client checkout and security
 - [x] Make client email optional; three validation tests pass.
 - [x] Add quick client creation inside checkout; verified real save, automatic selection, mobile form and cart reload, with disposable clients removed.

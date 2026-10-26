@@ -1,5 +1,7 @@
 # Architecture decisions
 
+- Home-screen support uses a static manifest and public icons derived from the supplied brand asset, without a service worker; this avoids stale preview caches and adds no offline behavior.
+
 - Share internal client validation between client management and quick checkout creation; render the quick-create dialog outside the checkout form to avoid nested form submissions.
 - Provision staff membership only through trusted service-role operations, never signup metadata; validate role changes and sale references against the caller's establishment in the database.
 - Service image writes require an active same-establishment manager and establishment-prefixed paths; public image links remain compatible, but cross-establishment listing is denied.

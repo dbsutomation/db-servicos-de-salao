@@ -11,6 +11,7 @@ import { toast } from '@/hooks/use-toast';
 import { ArrowRight, BarChart3, Eye, EyeOff, HelpCircle, Lock, Mail, Percent, Scissors, ShoppingCart, User, Users } from 'lucide-react';
 import DashboardTeaser from '@/components/Login/DashboardTeaser';
 import salonBg from '@/assets/salon-moderno-espelhos.png.asset.json';
+import studioIcon from '@/assets/one-studio.webp.asset.json';
 
 const features = [
   { icon: Users, title: 'Clientes', text: 'Cadastre e gerencie seus clientes' },
@@ -87,7 +88,10 @@ const Login = () => {
             <div aria-hidden="true" className="text-veil absolute -inset-x-6 -inset-y-6 sm:-inset-x-10 sm:-inset-y-9" />
             <div className="relative space-y-8">
               <div className="space-y-2.5">
-                <p className="text-3xl sm:text-4xl font-bold tracking-tight"><span className="text-primary">DB</span>-Automation</p>
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <img src={studioIcon.url} alt="" width={64} height={64} className="h-14 w-14 shrink-0 rounded-xl sm:h-16 sm:w-16" />
+                  <p className="text-3xl font-bold text-primary sm:text-4xl">One Studio</p>
+                </div>
                 <p className="text-sm sm:text-base font-medium tracking-wide text-foreground/80">Gestão para salões de beleza</p>
                 <span className="block h-1 w-10 rounded-full bg-primary" />
               </div>
