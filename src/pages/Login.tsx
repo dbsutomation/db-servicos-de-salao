@@ -105,7 +105,7 @@ const Login = () => {
               </div>
             </div>
           </div>
-          <div className="hidden lg:block"><DashboardTeaser /></div>
+          <div className="login-preview hidden lg:block"><DashboardTeaser /></div>
           <div className="hidden lg:grid grid-cols-3 gap-2">
             {features.map(({ icon: Icon, title, text }) => (
               <div key={title} className="flex gap-2 rounded-xl border bg-card p-2.5 shadow-sm">
