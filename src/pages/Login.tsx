@@ -73,20 +73,20 @@ const Login = () => {
   };
 
   return (
-    <div className="relative flex min-h-screen flex-col overflow-hidden bg-background">
+    <div className="login-page relative flex min-h-screen flex-col bg-background">
       {/* Foto do salão enviada pelo usuário: cor original, cover, centrada */}
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        className="pointer-events-none fixed inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${salonBg.url})` }}
       />
-      <div className="relative mx-auto flex w-full max-w-7xl flex-1 items-center p-4 sm:p-8"><div className="grid w-full items-center gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-stretch lg:gap-12">
+      <div className="login-content relative mx-auto flex w-full max-w-7xl flex-1 items-center p-4 sm:p-8"><div className="login-grid grid min-w-0 w-full items-center gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:items-stretch lg:gap-12">
         {/* Marca + prévia ilustrativa */}
-        <section className="space-y-8 lg:flex lg:flex-col lg:justify-center">
+        <section className="login-intro min-w-0 space-y-8 lg:flex lg:flex-col lg:justify-center">
           <div className="relative">
             {/* Véu branco suave só atrás do texto institucional */}
-            <div aria-hidden="true" className="text-veil absolute -inset-x-6 -inset-y-6 sm:-inset-x-10 sm:-inset-y-9" />
-            <div className="relative space-y-8">
+            <div aria-hidden="true" className="text-veil pointer-events-none absolute inset-x-0 -inset-y-6 sm:-inset-y-9" />
+            <div className="login-intro-copy relative space-y-8">
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
                   <img src={studioIcon.url} alt="" width={64} height={64} className="h-11 w-11 shrink-0 rounded-lg sm:h-12 sm:w-12" />
@@ -96,7 +96,7 @@ const Login = () => {
                 <span className="block h-1 w-10 rounded-full bg-primary" />
               </div>
               <div className="space-y-4">
-                <h1 className="text-3xl sm:text-5xl font-bold leading-tight tracking-tight">
+                <h1 className="login-headline text-3xl sm:text-5xl font-bold leading-tight tracking-tight">
                   Gestão completa<br />para o <span className="text-primary">seu salão.</span>
                 </h1>
                 <p className="max-w-xl text-base sm:text-lg leading-relaxed text-foreground">
@@ -105,8 +105,8 @@ const Login = () => {
               </div>
             </div>
           </div>
-          <div className="hidden md:block"><DashboardTeaser /></div>
-          <div className="hidden md:grid grid-cols-3 gap-2">
+          <div className="login-preview hidden lg:block"><DashboardTeaser /></div>
+          <div className="hidden lg:grid grid-cols-3 gap-2">
             {features.map(({ icon: Icon, title, text }) => (
               <div key={title} className="flex gap-2 rounded-xl border bg-card p-2.5 shadow-sm">
                 <Icon size={18} className="mt-0.5 shrink-0 text-primary" />
@@ -120,8 +120,8 @@ const Login = () => {
         </section>
 
         {/* Login */}
-        <section className="w-full max-w-md justify-self-center lg:justify-self-end lg:self-stretch lg:flex lg:flex-col lg:justify-center rounded-2xl border bg-card p-6 sm:p-10 shadow-xl">
-          <div className="mb-8 flex flex-col items-center text-center">
+        <section className="login-card min-w-0 w-full max-w-md justify-self-center lg:justify-self-end lg:self-stretch lg:flex lg:flex-col lg:justify-center rounded-2xl border bg-card p-6 sm:p-10 shadow-xl">
+          <div className="login-card-heading mb-8 flex flex-col items-center text-center">
             <span className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-accent text-primary"><Lock size={28} /></span>
             <h2 className="text-2xl sm:text-3xl font-bold">Bem-vindo de volta</h2>
             <p className="mt-2 text-sm text-muted-foreground">Entre com suas credenciais para acessar o sistema de gestão.</p>
@@ -181,7 +181,7 @@ const Login = () => {
               {resetting ? 'Enviando…' : 'Esqueci minha senha'}
             </button>
           </div>
-          <div className="mt-6 flex gap-3 rounded-xl border-t bg-muted/50 p-4">
+          <div className="login-help mt-6 flex gap-3 rounded-xl border-t bg-muted/50 p-4">
             <HelpCircle size={22} className="shrink-0 text-primary" />
             <div>
               <p className="text-sm font-semibold">Precisa de acesso?</p>
